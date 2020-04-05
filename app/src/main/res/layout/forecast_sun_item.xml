@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+
+    <ImageView
+        android:id="@+id/solar_path_iv"
+        android:layout_width="250dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:src="@drawable/ic_sun_path" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/sunrise_text_tv"
+        style="@style/forecast_secondary_small_tv"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="@id/solar_path_iv"
+        app:layout_constraintTop_toBottomOf="@id/solar_path_iv"
+        android:text="@string/sunrise" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/sunrise_time_tv"
+        style="@style/forecast_primary_tv"
+        app:layout_constraintEnd_toEndOf="@id/sunrise_text_tv"
+        app:layout_constraintStart_toStartOf="@id/sunrise_text_tv"
+        app:layout_constraintTop_toBottomOf="@id/sunrise_text_tv"
+        tools:text="06:13" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/sunset_text_tv"
+        style="@style/forecast_secondary_small_tv"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="@id/solar_path_iv"
+        app:layout_constraintTop_toBottomOf="@id/solar_path_iv"
+        android:text="@string/sunset" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/sunset_time_tv"
+        style="@style/forecast_primary_tv"
+        app:layout_constraintEnd_toEndOf="@id/sunset_text_tv"
+        app:layout_constraintStart_toStartOf="@id/sunset_text_tv"
+        app:layout_constraintTop_toBottomOf="@id/sunset_text_tv"
+        tools:text="06:13" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/solar_day_text_tv"
+        style="@style/forecast_secondary_small_tv"
+        app:layout_constraintEnd_toEndOf="@id/solar_path_iv"
+        app:layout_constraintStart_toStartOf="@id/solar_path_iv"
+        app:layout_constraintTop_toTopOf="@id/solar_path_iv"
+        android:layout_marginTop="40dp"
+        android:text="@string/daylight_hours"  />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/solar_day_value_tv"
+        style="@style/forecast_primary_tv"
+        app:layout_constraintEnd_toEndOf="@id/solar_day_text_tv"
+        app:layout_constraintStart_toStartOf="@id/solar_day_text_tv"
+        app:layout_constraintTop_toBottomOf="@id/solar_day_text_tv"
+        tools:text="12 h 32 min" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

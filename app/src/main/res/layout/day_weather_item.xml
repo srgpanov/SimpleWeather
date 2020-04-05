@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/day_weather_root"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:background="@android:color/white"
+    >
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/data_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="March 17"
+        android:textColor="@color/secondary_text"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/day_week_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/data_tv"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="8dp"
+        android:text="March 17"
+        android:textColor="@color/primary_text"
+        android:textSize="16sp"
+        />
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/weather_icon_day_iv"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        app:layout_constraintEnd_toStartOf="@id/temp_day_tv"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:src="@drawable/ic_sunny_48px"
+        android:layout_marginEnd="16dp"
+        android:textColor="@color/primary_text"
+        android:textSize="18sp"
+        />
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/temp_day_tv"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toStartOf="@id/temp_night_tv"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:textAlignment="textEnd"
+        android:layout_marginEnd="16dp"
+        android:text="+7"
+        android:textColor="@color/primary_text"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        />
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/temp_night_tv"
+        android:layout_width="36dp"
+        android:layout_height="wrap_content"
+        android:textAlignment="textEnd"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="+3"
+        android:textColor="@color/secondary_text"
+        android:textSize="14sp"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

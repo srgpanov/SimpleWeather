@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/detail_weather_root"
+    android:layout_width="200dp"
+    android:layout_height="@dimen/detail_weather_height"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/vertical_guideline"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="30dp" />
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/wind_icon_iv"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:src="@drawable/windy"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/wind_speed_value_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:textSize="16sp"
+        android:text="6"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/vertical_guideline"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/wind_speed_text_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:textSize="16sp"
+        android:text="@string/m_s"
+        android:textColor="@color/dirty_white"
+        app:layout_constraintBaseline_toBaselineOf="@id/wind_speed_value_tv"
+        app:layout_constraintStart_toEndOf="@id/wind_speed_value_tv" />
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/wind_direction_icon_iv"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        app:layout_constraintBottom_toBottomOf="@id/wind_speed_text_tv"
+        app:layout_constraintStart_toEndOf="@id/wind_speed_text_tv"
+        app:layout_constraintTop_toTopOf="@id/wind_speed_text_tv" />
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/pressure_icon_iv"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:src="@drawable/ic_barometric_sensor"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/pressure_value_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:textSize="16sp"
+        android:text="1027"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/vertical_guideline"
+        app:layout_constraintTop_toTopOf="@id/pressure_icon_iv" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/pressure_text_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:text="@string/hPa"
+        android:textColor="@color/dirty_white"
+        android:textSize="16sp"
+        app:layout_constraintBaseline_toBaselineOf="@id/pressure_value_tv"
+        app:layout_constraintStart_toEndOf="@id/pressure_value_tv" />
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/humidity_icon_iv"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:src="@drawable/ic_humidity"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/humidity_value_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:text="42"
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/vertical_guideline"
+        app:layout_constraintTop_toTopOf="@id/humidity_icon_iv" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/humidity_text_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="16dp"
+        android:gravity="center_vertical"
+        android:text="%"
+        android:textColor="@color/dirty_white"
+        app:layout_constraintBaseline_toBaselineOf="@id/humidity_value_tv"
+        app:layout_constraintStart_toEndOf="@id/humidity_value_tv" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,33 @@
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:name="vector"
+    android:width="1000dp"
+    android:height="1000dp"
+    android:viewportWidth="1000"
+    android:viewportHeight="1000">
+    <path
+        android:name="path"
+        android:pathData="M 500 50 C 380.698 50 266.161 97.443 181.802 181.802 C 97.443 266.161 50 380.698 50 500 C 50 619.302 97.443 733.839 181.802 818.198 C 266.161 902.557 380.698 950 500 950 C 619.302 950 733.839 902.557 818.198 818.198 C 902.557 733.839 950 619.302 950 500 C 950 380.698 902.557 266.161 818.198 181.802 C 733.839 97.443 619.302 50 500 50 Z"
+        android:strokeColor="#d6e2ee"
+        android:strokeWidth="80"
+        android:strokeMiterLimit="22.9256"/>
+    <path
+        android:name="path_1"
+        android:pathData="M 500 400 C 473.489 400 448.036 410.543 429.289 429.289 C 410.543 448.036 400 473.489 400 500 C 400 526.511 410.543 551.964 429.289 570.711 C 448.036 589.457 473.489 600 500 600 C 526.511 600 551.964 589.457 570.711 570.711 C 589.457 551.964 600 526.511 600 500 C 600 473.489 589.457 448.036 570.711 429.289 C 551.964 410.543 526.511 400 500 400 Z M 597.45 400.24 L 570.36 428.94 M 597.45 400.24 L 669 324.42"
+        android:strokeColor="#d6e2ee"
+        android:strokeWidth="80"
+        android:strokeMiterLimit="22.9256"/>
+    <path
+        android:name="path_2"
+        android:pathData="M 669.04 285.46 C 660.577 285.434 652.32 288.027 645.463 292.865 C 638.607 297.702 633.499 304.539 630.879 312.385 C 628.259 320.231 628.259 328.689 630.879 336.535 C 633.499 344.381 638.607 351.218 645.463 356.055 C 652.32 360.893 660.577 363.486 669.04 363.46 C 677.503 363.486 685.76 360.893 692.617 356.055 C 699.473 351.218 704.581 344.381 707.201 336.535 C 709.821 328.689 709.821 320.231 707.201 312.385 C 704.581 304.539 699.473 297.702 692.617 292.865 C 685.76 288.027 677.503 285.434 669.04 285.46 Z"
+        android:fillColor="#d6e2ee"
+        android:strokeColor="#d6e2ee"
+        android:strokeWidth="1"
+        android:strokeMiterLimit="22.9256"/>
+    <path
+        android:name="path_3"
+        android:pathData="M 25 499.87 L 165 500.5 M 833.16 501.17 L 973.16 500.38 M 499.68 165 L 500.32 25"
+        android:strokeColor="#d6e2ee"
+        android:strokeWidth="80"
+        android:strokeMiterLimit="22.9256"/>
+</vector>
