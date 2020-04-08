@@ -3,7 +3,7 @@ package com.srgpanov.simpleweather.ui.forecast_screen
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.srgpanov.simpleweather.data.entity.weather.Forecast
+import com.srgpanov.simpleweather.data.models.weather.Forecast
 import com.srgpanov.simpleweather.databinding.*
 
 class ForecastDayAdapter() : RecyclerView.Adapter<DayHolders>() {

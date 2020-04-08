@@ -4,7 +4,7 @@ import android.content.Context
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.entity.weather.Forecast
+import com.srgpanov.simpleweather.data.models.weather.Forecast
 import com.srgpanov.simpleweather.databinding.*
 import com.srgpanov.simpleweather.other.formatTemp
 import com.srgpanov.simpleweather.other.getWeatherIcon

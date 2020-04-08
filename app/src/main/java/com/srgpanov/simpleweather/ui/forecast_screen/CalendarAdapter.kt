@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.srgpanov.simpleweather.data.entity.CalendarItem
+import com.srgpanov.simpleweather.data.models.other.CalendarItem
 import com.srgpanov.simpleweather.databinding.CalendarDayItemBinding
 import com.srgpanov.simpleweather.other.MyClickListener
 import java.text.SimpleDateFormat

@@ -8,8 +8,8 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.entity.weather.Forecast
-import com.srgpanov.simpleweather.data.entity.weather.WeatherResponse
+import com.srgpanov.simpleweather.data.models.weather.Forecast
+import com.srgpanov.simpleweather.data.models.weather.WeatherResponse
 import com.srgpanov.simpleweather.databinding.DayWeatherItemBinding
 import com.srgpanov.simpleweather.databinding.MainWeatherItemBinding
 import com.srgpanov.simpleweather.other.MyClickListener

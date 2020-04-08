@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.srgpanov.simpleweather.data.entity.weather.Forecast
+import com.srgpanov.simpleweather.data.models.weather.Forecast
 import com.srgpanov.simpleweather.databinding.ForecastPagerItemNewBinding
 import com.srgpanov.simpleweather.other.FirstItemCompletelyVisibleListener
 import com.srgpanov.simpleweather.other.MyClickListener

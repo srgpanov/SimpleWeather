@@ -2,7 +2,7 @@ package com.srgpanov.simpleweather.ui.forecast_screen
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.srgpanov.simpleweather.data.entity.weather.WeatherResponse
+import com.srgpanov.simpleweather.data.models.weather.WeatherResponse
 
 class ForecastPagerViewModel : ViewModel() {
     val request: MutableLiveData<WeatherResponse> = MutableLiveData<WeatherResponse>()

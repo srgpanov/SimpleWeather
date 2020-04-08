@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.widget.ViewPager2
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.entity.CalendarItem
+import com.srgpanov.simpleweather.data.models.other.CalendarItem
 import com.srgpanov.simpleweather.databinding.ForecastPagerFragmentBinding
 import com.srgpanov.simpleweather.other.*
 import com.srgpanov.simpleweather.ui.ShareViewModel
@@ -94,7 +94,11 @@ class ForecastPagerFragment : Fragment() {
             forecastAdapter.forecasts = it.forecasts.toMutableList()
             val dateList: MutableList<CalendarItem> = mutableListOf()
             it.forecasts.forEach { forecast ->
-                dateList.add(CalendarItem(forecast.getDate()))
+                dateList.add(
+                    CalendarItem(
+                        forecast.getDate()
+                    )
+                )
             }
             dateAdapter.setData(dateList.toList())
         }

@@ -15,15 +15,37 @@ class MainActivity : AppCompatActivity() {
                 .replace(R.id.container, DetailFragment.newInstance())
                 .commitNow()
         }
-        window.decorView.systemUiVisibility= View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                 View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
 
     }
-    fun navigate(fragment: Class<out Fragment>){
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.container, fragment.newInstance(),fragment.simpleName)
-            .addToBackStack(fragment.simpleName)
-            .commit()
+
+    fun navigate(
+        fragment: Class<out Fragment>,
+        bundle: Bundle? = null,
+        addToBackStack: Boolean = true
+    ) {
+        val instance = fragment.newInstance().apply {
+            bundle?.let {
+                this.arguments = it
+            }
+        }
+        return when (addToBackStack) {
+            true -> {
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.container, instance, fragment.simpleName)
+                    .addToBackStack(fragment.simpleName)
+                    .commit()
+                Unit
+            }
+            false -> {
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.container, instance, fragment.simpleName)
+                    .commit()
+                Unit
+            }
+        }
+
         //todo Доделать навигацию
     }
 }

@@ -3,7 +3,7 @@ package com.srgpanov.simpleweather.ui.weather_screen
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.srgpanov.simpleweather.data.entity.weather.WeatherResponse
+import com.srgpanov.simpleweather.data.models.weather.WeatherResponse
 import com.srgpanov.simpleweather.databinding.DayWeatherItemBinding
 import com.srgpanov.simpleweather.databinding.MainWeatherItemBinding
 import com.srgpanov.simpleweather.other.MyClickListener

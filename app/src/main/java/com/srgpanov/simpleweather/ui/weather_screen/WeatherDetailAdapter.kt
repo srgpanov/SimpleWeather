@@ -4,10 +4,10 @@ package com.srgpanov.simpleweather.ui.weather_screen
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.srgpanov.simpleweather.data.entity.weather.Fact
-import com.srgpanov.simpleweather.data.entity.weather.Hour
-import com.srgpanov.simpleweather.data.entity.weather.Sunrise
-import com.srgpanov.simpleweather.data.entity.weather.WeatherResponse
+import com.srgpanov.simpleweather.data.models.weather.Fact
+import com.srgpanov.simpleweather.data.models.weather.Hour
+import com.srgpanov.simpleweather.data.models.weather.Sunrise
+import com.srgpanov.simpleweather.data.models.weather.WeatherResponse
 import com.srgpanov.simpleweather.databinding.DetailWeatherItemBinding
 import com.srgpanov.simpleweather.databinding.HourlyWeatherItemBinding
 import com.srgpanov.simpleweather.other.logD

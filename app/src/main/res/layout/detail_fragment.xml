@@ -68,6 +68,18 @@
             app:layout_constraintDimensionRatio="1"
             app:layout_constraintEnd_toEndOf="@id/toolbar"
             app:layout_constraintTop_toTopOf="@id/toolbar" />
+        <CheckBox
+            android:id="@+id/favorite_check_box"
+            style="@style/match_constrained"
+            android:background="@android:color/transparent"
+            android:elevation="8dp"
+            android:tint="@android:color/white"
+            android:button="@drawable/check_box_selector"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/toolbar"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintEnd_toEndOf="@id/toolbar"
+            app:layout_constraintTop_toTopOf="@id/toolbar" />
 
         <View
             android:id="@+id/status_background"
