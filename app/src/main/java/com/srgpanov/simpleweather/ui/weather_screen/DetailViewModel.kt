@@ -11,10 +11,7 @@ import com.srgpanov.simpleweather.data.models.weather.WeatherResponse
 import com.srgpanov.simpleweather.other.*
 import com.srgpanov.simpleweather.ui.App
 import com.srgpanov.simpleweather.ui.favorits_screen.FavoriteFragment
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 class DetailViewModel(place: PlaceEntity?) : ViewModel() {
@@ -27,7 +24,23 @@ class DetailViewModel(place: PlaceEntity?) : ViewModel() {
     val weatherData = MutableLiveData<WeatherResponse?>()
     val navEvent = NavLiveEvent()
     val weatherPlace = MutableLiveData<PlaceEntity?>()
+    val showSetting = MutableLiveData<Boolean>()
     val showOptionsEvent = SingleLiveEvent<Boolean>()
+
+
+    private val placeObserver = object : Observer<PlaceEntity?> {
+        override fun onChanged(place: PlaceEntity?) {
+            place?.let {
+                scope.launch {
+                    val favorite = repository.placeIsFavorite(place)
+                    val current=repository.placeIsCurrent(place)
+                    logD("showSetting isFavorite $favorite isCurrent $current")
+                    showSetting.postValue(favorite||current)
+                }
+            }
+        }
+
+    }
 
     init {
         logD("init view model $place")
@@ -38,21 +51,23 @@ class DetailViewModel(place: PlaceEntity?) : ViewModel() {
                     val currentPlace = repository.getCurrentPlace()
                     if (currentPlace == null) {
                         logD("cuurent place == null")
-                        val newCurrentPlace = place.copy(isCurrent = 1)
-                        repository.savePlace(newCurrentPlace)
+
+                        repository.saveCurrentPlace(place)
                     }
                 }
                 fetchWeather(
-                    place.geoPoint.lat,
-                    place.geoPoint.lon
+                    place.toGeoPoint().lat,
+                    place.toGeoPoint().lon
                 )
             }
         } else {
             getCurrentPlace()
         }
+        weatherPlace.observeForever(placeObserver)
     }
 
     override fun onCleared() {
+        weatherPlace.removeObserver(placeObserver)
         super.onCleared()
     }
 
@@ -61,7 +76,7 @@ class DetailViewModel(place: PlaceEntity?) : ViewModel() {
             val currentPlace = repository.getCurrentPlace()
             logD("current Place ${currentPlace?.cityTitle}")
             if (currentPlace != null) {
-                fetchWeather(currentPlace.geoPoint.lat, currentPlace.geoPoint.lon)
+                fetchWeather(currentPlace.toGeoPoint().lat, currentPlace.toGeoPoint().lon)
                 weatherPlace.postValue(currentPlace)
 
             } else {
@@ -98,7 +113,7 @@ class DetailViewModel(place: PlaceEntity?) : ViewModel() {
         scope.launch {
             weatherPlace.value?.let {
                 val freshWeather = repository.getFreshWeather(
-                    it.geoPoint
+                    it.toGeoPoint()
                 )
                 freshWeather?.let {
                     weatherData.postValue(it)
@@ -110,16 +125,17 @@ class DetailViewModel(place: PlaceEntity?) : ViewModel() {
     fun changeFavoriteStatus(checked: Boolean) {
         weatherPlace.value?.let {
             scope.launch {
-                logD("is favorite before ${it.isFavorite}")
-                repository.changeFavotiteStatus(it)
-                val place = repository.getPlace(it.geoPoint)
-                weatherPlace.postValue(place)
-                logD("is favorite after ${place?.isFavorite}")
+                if (checked){
+                    repository.saveFavoritePlace(it)
+
+                }else{
+                    repository.removeFavoritePlace(it)
+                }
             }
-
         }
-
     }
+
+
 
 
 }

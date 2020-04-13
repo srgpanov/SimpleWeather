@@ -13,11 +13,7 @@ object RetrofitClient {
     private const val baseUrlWeather = "https://api.weather.yandex.ru/v1/"
     private const val baseUrlPlaces = "https://geocode-maps.yandex.ru/"
     private fun getInterceptor(): HttpLoggingInterceptor {
-        val loggingInterceptor=HttpLoggingInterceptor(object : HttpLoggingInterceptor.Logger{
-            override fun log(message: String) {
-                Log.d("Retrofit",message)
-            }
-        });
+        val loggingInterceptor=HttpLoggingInterceptor();
         if (BuildConfig.DEBUG){
             loggingInterceptor.apply { level= HttpLoggingInterceptor.Level.BODY}
         }

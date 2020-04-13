@@ -60,4 +60,6 @@
     <string name="favorites">Favorites</string>
     <string name="search_history">Search history</string>
     <string name="favorite">Favorite</string>
+    <string name="rename">Rename</string>
+    <string name="remove">Remove</string>
 </resources>

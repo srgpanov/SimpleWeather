@@ -1,5 +1,6 @@
 package com.srgpanov.simpleweather.other
 
+import android.content.res.Resources
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -134,4 +135,10 @@ fun View.requestApplyInsetsWhenAttached() {
             override fun onViewDetachedFromWindow(v: View) = Unit
         })
     }
+}
+fun dpToPx(dp:Int):Int{
+    return (dp*Resources.getSystem().displayMetrics.density).toInt()
+}
+fun pxToDp(px: Int): Int {
+    return (px / Resources.getSystem().displayMetrics.density).toInt()
 }

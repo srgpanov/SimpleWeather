@@ -12,7 +12,10 @@
 <!--        <item name="android:windowTranslucentStatus">true</item>-->
         <item name="android:windowTranslucentNavigation">true</item>
 
-        <item name="android:textColor">@android:color/white</item>
+
+        <item name="android:textColor">@color/primary_text</item>
+
+        
         <item name="searchViewStyle">@style/AppSearchViewStyle</item>
 
         <!--        прозрачный стаус бар и навигэйшн бар c выбором цвета-->
@@ -20,6 +23,14 @@
         <!--        <item name="android:navigationBarColor">#DC000000</item>-->
         <!--        <item name="android:windowDrawsSystemBarBackgrounds">true</item>-->
 
+    </style>
+    <style name="AnimationPopupBottom">
+        <item name="android:windowEnterAnimation">@anim/popup_top</item>
+        <item name="android:windowExitAnimation">@anim/disappear</item>
+    </style>
+    <style name="AnimationPopupTop">
+        <item name="android:windowEnterAnimation">@anim/popup_bottom</item>
+        <item name="android:windowExitAnimation">@anim/disappear</item>
     </style>
     <style name="AppSearchViewStyle" parent="Widget.AppCompat.SearchView">
         <item name="android:textCursorDrawable">@drawable/search_cursor</item>

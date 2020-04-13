@@ -2,36 +2,71 @@ package com.srgpanov.simpleweather.data.local
 
 import androidx.room.*
 import androidx.room.OnConflictStrategy.REPLACE
-import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
-import com.srgpanov.simpleweather.data.models.entity.WeatherEntity
-import com.srgpanov.simpleweather.data.models.other.GeoPoint
+import com.srgpanov.simpleweather.data.models.entity.*
+import com.srgpanov.simpleweather.other.logD
 
 @Dao
-interface WeatherDao {
+abstract class WeatherDao {
 
-    @Query("SELECT * from placeentity WHERE isFavorite==1")
-    suspend fun getFavoritesPlaces(): List<PlaceEntity>
+    @Query("SELECT cityTitle,lat,lon,cityFullName  from FavoriteTable")
+    abstract suspend fun getFavoritesPlaces(): List<PlaceEntity>
 
-    @Query("SELECT * from placeentity WHERE isCurrent==1")
-    suspend fun getCurrentLocation(): PlaceEntity?
+    @Query("SELECT cityTitle,lat,lon,cityFullName from CurrentTable")
+    abstract suspend fun getCurrentLocation(): List<PlaceEntity>
+
+    @Query("SELECT cityTitle,lat,lon,cityFullName  from SearchHistoryTable ORDER BY time DESC ")
+    abstract suspend fun getSearchHistory(): List<PlaceEntity>
 
     @Insert(onConflict = REPLACE)
-    suspend fun savePlace(placesEntity: PlaceEntity)
+    abstract suspend fun saveCurrentPlace(placesEntity: CurrentTable)
 
-    @Insert(onConflict = REPLACE)
-    suspend fun saveResponse(weatherEntity: WeatherEntity)
     @Delete
-    suspend fun removePlace(placesEntity: PlaceEntity)
+    abstract suspend fun deleteCurrentPlace(placesEntity: CurrentTable)
+
+    @Transaction
+    open suspend fun saveCurrentPlaceWithReplace(placesEntity: CurrentTable) {
+        getCurrentLocation().forEach {
+            deleteCurrentPlace(it.toCurrentTable())
+        }
+        saveCurrentPlace(placesEntity)
+    }
+
+    @Insert(onConflict = REPLACE)
+    abstract suspend fun savePlaceToHistory(place: SearchHistoryTable)
+
+    @Transaction
+    open suspend fun savePlaceToHistoryMaxPlace(place: SearchHistoryTable, maxPlace: Int = 30) {
+        val placeList = getSearchHistory()
+        if (placeList.size >= maxPlace) {
+            placeList.forEachIndexed { index, placeEntity ->
+                if (index >= maxPlace) {
+                    logD("place deleted ${placeEntity.cityFullName}")
+                    deletePlaceFromHistory(placeEntity.toSearchHistoryTable())
+                }
+            }
+        }
+        savePlaceToHistory(place)
+    }
+
+    @Delete
+    abstract suspend fun deletePlaceFromHistory(place: SearchHistoryTable)
+
+    @Query("SELECT * from FavoriteTable WHERE id=:pointToId")
+    abstract suspend fun placeIsFavorite(pointToId: String): FavoriteTable?
+
+    @Query("DELETE from FavoriteTable WHERE id=:id ")
+    abstract suspend fun removeFavoritePlace(id: String): Int
+
+    @Insert(onConflict = REPLACE)
+    abstract suspend fun saveFavoritePlace(placeEntity: FavoriteTable)
+
+    @Insert(onConflict = REPLACE)
+    abstract suspend fun saveResponse(weatherEntity: WeatherEntity)
 
     @Query("SELECT * from weatherentity")
-    suspend fun getLastResponse(): List<WeatherEntity>
+    abstract suspend fun getLastResponse(): List<WeatherEntity>
+
     @Query("SELECT * from  weatherentity WHERE id=:geoPoint")
-    suspend fun getResponse(geoPoint: String):WeatherEntity?
-
-    @Query("SELECT * from  placeentity WHERE lat=:lat AND  lon=:lon")
-    suspend fun getPlace(lat: Double, lon: Double): PlaceEntity?
-
-    @Update(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun changeFavoriteStatus(placeEntity: PlaceEntity)
+    abstract suspend fun getResponse(geoPoint: String): WeatherEntity?
 
 }

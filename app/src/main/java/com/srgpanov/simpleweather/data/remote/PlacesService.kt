@@ -13,6 +13,6 @@ interface PlacesService {
         @Query("lang") lang: String = "ru_RU",
         @Query("apikey") apikey: String ,
         @Query("kind") kind: String="locality" ,
-        @Query("results") results: Int = 10
+        @Query("results") results: Int = 15
     ): Response<Places>
 }

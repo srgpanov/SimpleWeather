@@ -25,6 +25,7 @@ import com.srgpanov.simpleweather.ui.forecast_screen.ForecastPagerFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlin.coroutines.CoroutineContext
 
 class DetailFragment : Fragment() {
@@ -33,10 +34,10 @@ class DetailFragment : Fragment() {
     private var _binding: DetailFragmentBinding? = null
     private val binding get() = _binding!!
     private val parentJob = Job()
-    private lateinit var weatherAdapter: WeatherAdapter
     private val coroutineContext: CoroutineContext
         get() = parentJob + Dispatchers.Default
     private val scope = CoroutineScope(coroutineContext)
+    private lateinit var weatherAdapter: WeatherAdapter
     private var scrollDistancePx: Int = 0
     private var toolbarHeight: Int = 100
     private var mainActivity: MainActivity? = null
@@ -45,9 +46,11 @@ class DetailFragment : Fragment() {
         super.onCreate(savedInstanceState)
         shareViewModel = ViewModelProvider(requireActivity()).get(ShareViewModel::class.java)
         val placeEntity = arguments?.getParcelable<PlaceEntity>("place")
+        val isFavorite = arguments?.getBoolean("isFavorite")
         viewModel =
             ViewModelProvider(this, ViewModelFactory(placeEntity)).get(DetailViewModel::class.java)
-        logD("arguments $placeEntity")
+        logD("arguments placeEntity $placeEntity  isFavorite $isFavorite")
+        viewModel.showSetting.value=isFavorite
         mainActivity = requireActivity() as MainActivity
     }
 
@@ -69,9 +72,12 @@ class DetailFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel.weatherData.observe(viewLifecycleOwner, Observer {
+            logDAnonim("onActivityCreated ${it?.forecasts?.size}")
             binding.swipeLayout.isRefreshing = false
             refreshRecycler(it)
-
+            if (it?.forecasts?.size!=7){
+                viewModel.fetchFreshWeather()
+            }
         })
 
 
@@ -86,38 +92,37 @@ class DetailFragment : Fragment() {
                 logD("title refreshed $it")
                 binding.toolbarCityTitle.text = it.cityTitle
 
-                binding.favoriteCheckBox.isChecked = when (it.isFavorite) {
-                    0 -> false
-                    else -> true
-                }
+                //todo
+//                binding.favoriteCheckBox.isChecked = when (it.isFavorite) {
+//                    0 -> false
+//                    else -> true
+//                }
             }
         })
-        val showSettingObserver = object : Observer<PlaceEntity?> {
-            override fun onChanged(place: PlaceEntity?) {
-                place?.let {
-                    val showOptions =it.favorite()||it.current()
-                    setupFavoriteState(showOptions)
-                    viewModel.weatherPlace.removeObserver(this)
-                }
-            }
 
-        }
-        viewModel.weatherPlace.observe(viewLifecycleOwner, showSettingObserver)
+        viewModel.showSetting.observe(viewLifecycleOwner, Observer {
+            it?.let {
+                setupFavoriteState(it)
+            }
+        })
 
 
 
     }
-
+    override fun onDestroy() {
+        coroutineContext.cancel()
+        super.onDestroy()
+    }
     private fun setupFavoriteState(showSetting: Boolean) {
         logDAnonim("showSetting $showSetting")
         return when (showSetting) {
             true -> {
-                binding.favoriteCheckBox.visibility = View.GONE
+                binding.favoriteCheckBox.visibility = View.INVISIBLE
                 binding.settingButton.visibility = View.VISIBLE
             }
             false -> {
                 binding.favoriteCheckBox.visibility = View.VISIBLE
-                binding.settingButton.visibility = View.GONE
+                binding.settingButton.visibility = View.INVISIBLE
             }
         }
     }

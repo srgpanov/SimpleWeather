@@ -27,7 +27,12 @@ class ForecastPagerAdapter() : RecyclerView.Adapter<ForecastPagerAdapter.Forecas
     }
 
     override fun onBindViewHolder(holder: ForecastHolder, position: Int) {
-        holder.bind(forecasts[position])
+        val twoDayForecast = if(position+1<forecasts.size){
+            TwoDayForecast(forecasts[position], forecasts[position + 1])
+        }else{
+            TwoDayForecast(forecasts[position], forecasts[position]) //на последнюю ночь прогноза, данные предыдущей ночи
+        }
+        holder.bind(twoDayForecast)
     }
 
     override fun getItemCount(): Int {
@@ -65,7 +70,7 @@ class ForecastPagerAdapter() : RecyclerView.Adapter<ForecastPagerAdapter.Forecas
             }
         }
 
-        fun bind(forecasts: Forecast) {
+        fun bind(forecasts: TwoDayForecast) {
             adapter.setData(forecasts)
         }
     }

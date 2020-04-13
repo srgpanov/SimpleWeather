@@ -2,6 +2,7 @@ package com.srgpanov.simpleweather.data.models.entity
 
 import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.data.models.weather.WeatherResponse
@@ -14,5 +15,7 @@ data class WeatherEntity (
     val response: WeatherResponse,
     val time:Long
 ){
+    @Ignore
+    var simple:Boolean = response.forecasts.size!=7
 
 }

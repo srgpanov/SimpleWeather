@@ -3,11 +3,10 @@ package com.srgpanov.simpleweather.ui.forecast_screen
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.srgpanov.simpleweather.data.models.weather.Forecast
 import com.srgpanov.simpleweather.databinding.*
 
 class ForecastDayAdapter() : RecyclerView.Adapter<DayHolders>() {
-    lateinit var forecasts: Forecast
+    lateinit var forecasts: TwoDayForecast
     companion object {
         private const val TYPE_CONDITION = 0
         private const val TYPE_WIND = 1
@@ -46,8 +45,8 @@ class ForecastDayAdapter() : RecyclerView.Adapter<DayHolders>() {
             is DayHolders.WindHolder -> holder.bind(forecasts)
             is DayHolders.HumidityHolder -> holder.bind(forecasts)
             is DayHolders.PressureHolder -> holder.bind(forecasts)
-            is DayHolders.SunHolder -> holder.bind(forecasts)
-            is DayHolders.MoonHolder -> holder.bind(forecasts)
+            is DayHolders.SunHolder -> holder.bind(forecasts.todayForecast)
+            is DayHolders.MoonHolder -> holder.bind(forecasts.todayForecast)
         }
     }
     override fun getItemCount(): Int {
@@ -64,7 +63,7 @@ class ForecastDayAdapter() : RecyclerView.Adapter<DayHolders>() {
             else -> throw IllegalStateException("Wrong item type")
         }
     }
-    fun setData(forecasts: Forecast){
+    fun setData(forecasts: TwoDayForecast){
         this.forecasts=forecasts
         notifyDataSetChanged()
     }

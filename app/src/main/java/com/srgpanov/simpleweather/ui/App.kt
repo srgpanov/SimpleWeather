@@ -2,6 +2,8 @@ package com.srgpanov.simpleweather.ui
 
 import android.app.Application
 import com.facebook.stetho.Stetho
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 class App : Application() {
 
@@ -14,6 +16,5 @@ class App : Application() {
         super.onCreate()
         instance = this
         Stetho.initializeWithDefaults(this);
-
     }
 }

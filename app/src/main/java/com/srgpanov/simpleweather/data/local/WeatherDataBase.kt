@@ -5,15 +5,17 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
-import com.srgpanov.simpleweather.data.models.entity.WeatherEntity
+import com.srgpanov.simpleweather.data.models.entity.*
 
 @Database(entities = arrayOf(
-    PlaceEntity::class,
+    FavoriteTable::class,
+    SearchHistoryTable::class,
+    CurrentTable::class,
     WeatherEntity::class),version = 1)
 @TypeConverters(RoomConverter::class)
 abstract class WeatherDataBase: RoomDatabase() {
     abstract fun weatherDataDao(): WeatherDao
+
 
     companion object {
         private lateinit var INSTANCE: WeatherDataBase
