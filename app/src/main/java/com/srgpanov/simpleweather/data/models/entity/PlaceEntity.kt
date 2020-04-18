@@ -26,6 +26,9 @@ data class PlaceEntity (
     fun toGeoPoint():GeoPoint{
         return GeoPoint(lat,lon)
     }
+    fun toPlaceId():String{
+        return toGeoPoint().pointToId()
+    }
     fun toCurrentTable(): CurrentTable {
         return CurrentTable(
             id = toGeoPoint().pointToId(),

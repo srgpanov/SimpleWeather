@@ -1,8 +1,10 @@
 package com.srgpanov.simpleweather.ui.weather_screen
 
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
+import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.DataRepository
 import com.srgpanov.simpleweather.data.DataRepositoryImpl
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
@@ -25,6 +27,8 @@ class DetailViewModel(place: PlaceEntity?) : ViewModel() {
     val navEvent = NavLiveEvent()
     val weatherPlace = MutableLiveData<PlaceEntity?>()
     val showSetting = MutableLiveData<Boolean>()
+    val loadingState = MutableLiveData<Boolean>()
+    val showSnackbar=SingleLiveEvent<String>()
     val showOptionsEvent = SingleLiveEvent<Boolean>()
 
 
@@ -97,12 +101,13 @@ class DetailViewModel(place: PlaceEntity?) : ViewModel() {
         lat: Double = 45.035470,
         lon: Double = 38.975313
     ) {
-
         val geoPoint = GeoPoint(lat, lon)
         val response = repository.getWeather(geoPoint)
         response?.let {
             weatherData.postValue(it)
-
+            if (it.forecasts.size!=7){
+                fetchFreshWeather()
+            }
         }
 
 
@@ -110,11 +115,13 @@ class DetailViewModel(place: PlaceEntity?) : ViewModel() {
 
 
     fun fetchFreshWeather() {
+        loadingState.value=true
         scope.launch {
             weatherPlace.value?.let {
                 val freshWeather = repository.getFreshWeather(
                     it.toGeoPoint()
                 )
+                loadingState.postValue(false)
                 freshWeather?.let {
                     weatherData.postValue(it)
                 }
@@ -123,11 +130,12 @@ class DetailViewModel(place: PlaceEntity?) : ViewModel() {
     }
 
     fun changeFavoriteStatus(checked: Boolean) {
+
         weatherPlace.value?.let {
             scope.launch {
                 if (checked){
                     repository.saveFavoritePlace(it)
-
+                    showSnackbar.postValue(App.instance.getString(R.string.location_added_to_favorites))
                 }else{
                     repository.removeFavoritePlace(it)
                 }

@@ -62,4 +62,6 @@
     <string name="favorite">Favorite</string>
     <string name="rename">Rename</string>
     <string name="remove">Remove</string>
+    <string name="location_added_to_favorites">Location added to favorites</string>
+    <string name="something_goes_wrong">Something goes wrong</string>
 </resources>

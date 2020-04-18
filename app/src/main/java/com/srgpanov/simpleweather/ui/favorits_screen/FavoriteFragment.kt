@@ -13,6 +13,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.PopupWindow
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
@@ -33,6 +34,7 @@ import com.srgpanov.simpleweather.ui.weather_screen.DetailFragment
 import kotlinx.coroutines.*
 import java.util.*
 import kotlin.coroutines.CoroutineContext
+import kotlin.system.measureTimeMillis
 
 
 class FavoriteFragment : Fragment() {
@@ -65,6 +67,7 @@ class FavoriteFragment : Fragment() {
         shareViewModel = ViewModelProvider(requireActivity()).get(ShareViewModel::class.java)
         viewModel = ViewModelProvider(this).get(FavoriteViewModel::class.java)
         mainActivity = requireActivity() as MainActivity
+        logD("lifecycle onCreate  ${this}")
     }
 
     override fun onCreateView(
@@ -73,12 +76,8 @@ class FavoriteFragment : Fragment() {
     ): View? {
         _binding = FragmentFavoriteBinding.inflate(layoutInflater, container, false)
         prepareViews()
+        logD("lifecycle onCreateView  ${this}")
         return binding.root
-    }
-
-    private fun prepareViews() {
-        setupInsets()
-        setupToolbar()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -103,9 +102,23 @@ class FavoriteFragment : Fragment() {
     override fun onDestroyView() {
         coroutineContext.cancel()
         _binding = null
-
         super.onDestroyView()
     }
+
+    override fun onStart() {
+        super.onStart()
+        logD("lifecycle onStart ${this}")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        logD("lifecycle onResume  ${this}")
+    }
+
+    private fun prepareViews() {
+        setupInsets()
+        setupToolbar()
+           }
 
 
     private fun setupRecyclerView() {
@@ -114,11 +127,7 @@ class FavoriteFragment : Fragment() {
         favoritesAdapter.listener = object : MyClickListener {
             override fun onClick(view: View?, position: Int) {
                 val place = favoritesAdapter.places[position]
-                mainActivity?.navigate(
-                    DetailFragment::class.java,
-                    Bundle().apply { putParcelable("place", place) },
-                    false
-                )
+                goToDetailFragment(place)
 
             }
         }
@@ -164,12 +173,9 @@ class FavoriteFragment : Fragment() {
         }
         favoritesHeaderAdapter.listener = object : MyClickListener {
             override fun onClick(view: View?, position: Int) {
-                val place = favoritesHeaderAdapter.current
-                mainActivity?.navigate(
-                    DetailFragment::class.java,
-                    Bundle().apply { putParcelable("place", place) },
-                    false
-                )
+              favoritesHeaderAdapter.current?.let {
+                  goToDetailFragment(it)
+              }
             }
         }
         favoritesHeaderAdapter.scope = scope
@@ -222,7 +228,7 @@ class FavoriteFragment : Fragment() {
         params.rightMargin = dpToPx(16)
         params.topMargin = dpToPx(16)
         editText.setLayoutParams(params)
-        editText.isSingleLine=true
+        editText.isSingleLine = true
         editText.imeOptions = EditorInfo.IME_ACTION_DONE
         container.addView(editText)
         AlertDialog.Builder(requireActivity())
@@ -230,7 +236,7 @@ class FavoriteFragment : Fragment() {
             .setPositiveButton(android.R.string.ok, object : DialogInterface.OnClickListener {
                 override fun onClick(dialog: DialogInterface?, which: Int) {
                     logDAnonim("DialogInterface ${editText.text}")
-                    if (placeEntity.cityTitle!=editText.text.toString()){
+                    if (placeEntity.cityTitle != editText.text.toString()) {
                         viewModel.renamePlace(placeEntity.copy(cityTitle = editText.text.toString()))
                     }
                 }
@@ -242,20 +248,35 @@ class FavoriteFragment : Fragment() {
 
     private fun onSelectPlace(placeEntity: PlaceEntity) {
         shareViewModel.savePlaceToHistory(placeEntity)
-        mainActivity?.navigate(
-            DetailFragment::class.java,
-            Bundle().apply {
-                putParcelable("place", placeEntity)
-                putBoolean("isFavorite", false)
-            },
-            true
-        )
+        binding.searchView.isIconified = true
+        var  favoriteOrCurrent= viewModel.placeFavoriteOrCurrent(placeEntity)
+        if (favoriteOrCurrent) {
+            goToDetailFragment(placeEntity)
+        } else {
+            val detailFragment = DetailFragment.newInstance().apply {
+                this.arguments = Bundle().apply { putParcelable("place", placeEntity) }
+            }
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.container, detailFragment, detailFragment::class.java.simpleName)
+                .addToBackStack(null)
+                .commit()
+        }
+    }
+
+    private fun goToDetailFragment(place: PlaceEntity) {
+        shareViewModel.weatherPlace.value = place
+        mainActivity?.navigateToDetailFragment()
     }
 
 
     private fun setupToolbar() {
         binding.backButton.setOnClickListener {
-            mainActivity?.onBackPressed()
+            if (binding.searchView.isIconified) {
+                mainActivity?.navigateToDetailFragment()
+            } else {
+                binding.searchView.isIconified = true
+
+            }
         }
 
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -330,5 +351,14 @@ class FavoriteFragment : Fragment() {
         }
         statusView.requestApplyInsetsWhenAttached()
         binding.recyclerView.addSystemWindowInsetToPadding(bottom = true)
+    }
+
+    fun onBackPressed() {
+        logD("back fragment")
+        if (binding.searchView.isIconified) {
+            mainActivity?.navigateToDetailFragment()
+        } else {
+            binding.searchView.isIconified = true
+        }
     }
 }

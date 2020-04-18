@@ -65,4 +65,16 @@ class FavoriteViewModel:ViewModel() {
             favoritePlaces.postValue(repository.getFavoritePlaces())
         }
     }
+
+    fun placeFavoriteOrCurrent(placeEntity: PlaceEntity): Boolean {
+        val id = placeEntity.toPlaceId()
+        if (currentPlace.value?.toPlaceId()==id) return true
+        favoritePlaces.value?.forEach {
+            if (it.toPlaceId()==id){
+                return true
+            }
+        }
+        return false
+    }
+
 }

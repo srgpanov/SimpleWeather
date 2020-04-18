@@ -9,6 +9,7 @@ import com.srgpanov.simpleweather.data.local.LocalDataSourceImpl
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.data.models.places.FeatureMember
 import com.srgpanov.simpleweather.data.models.weather.WeatherResponse
+import com.srgpanov.simpleweather.other.SingleLiveEvent
 import com.srgpanov.simpleweather.other.logD
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
@@ -22,6 +23,7 @@ class ShareViewModel: ViewModel(){
     private val coroutineContext: CoroutineContext
         get() = parentJob + Dispatchers.IO
     private val scope = CoroutineScope(coroutineContext)
+    val weatherPlace = SingleLiveEvent<PlaceEntity>()
 
     override fun onCleared() {
         coroutineContext.cancel()

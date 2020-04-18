@@ -4,21 +4,27 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import com.srgpanov.simpleweather.ui.weather_screen.DetailFragment
+import com.srgpanov.simpleweather.other.OnBackPressedListener
+import com.srgpanov.simpleweather.other.logD
+import com.srgpanov.simpleweather.other.logDAnonim
+import com.srgpanov.simpleweather.ui.pager_screen.PagerFragment
+
 
 class MainActivity : AppCompatActivity() {
+    var pagerFragment: PagerFragment? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                .replace(R.id.container, DetailFragment.newInstance())
+                .replace(R.id.container, PagerFragment.newInstance(),PagerFragment::class.java.simpleName)
                 .commitNow()
         }
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                 View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
 
     }
+
 
     fun navigate(
         fragment: Class<out Fragment>,
@@ -47,5 +53,29 @@ class MainActivity : AppCompatActivity() {
         }
 
         //todo Доделать навигацию
+    }
+    fun navigateToFavoriteFragment(){
+        val pagerFragment = supportFragmentManager.findFragmentByTag(PagerFragment::class.java.simpleName) as? PagerFragment
+        logD("pagerFragment $pagerFragment  TAG ${PagerFragment::class.java.simpleName}")
+        pagerFragment?.showFavoriteFragment()
+    }
+    fun navigateToDetailFragment(){
+        val pagerFragment = supportFragmentManager.findFragmentByTag(PagerFragment::class.java.simpleName) as? PagerFragment
+        logD("pagerFragment $pagerFragment  TAG ${PagerFragment::class.java.simpleName}")
+        pagerFragment?.showDetailFragment()
+    }
+
+    override fun onBackPressed() {
+        supportFragmentManager.fragments.forEach {
+            if (it is OnBackPressedListener){
+                it.onBackPressed()
+            }else{
+                super.onBackPressed()
+            }
+        }
+
+    }
+    fun onBackPressedSuper(){
+        super.onBackPressed()
     }
 }

@@ -26,13 +26,14 @@ class DataRepositoryImpl(val context: Context) : DataRepository {
             logD("getWeather return null ")
             return getFreshWeather(geoPoint)
         } else {
-            if (needRefresh(cachedResponse)) {
-                logD("getWeather return getFreshWeather ")
-                return getFreshWeather(geoPoint)
-            } else {
+            //todo
+//            if (needRefresh(cachedResponse)) {
+//                logD("getWeather return getFreshWeather ")
+//                return getFreshWeather(geoPoint)
+//            } else {
                 logD("getWeather return cachedResponse ${cachedResponse.response.now_dt} ")
                 return cachedResponse.response
-            }
+//            }
         }
     }
 

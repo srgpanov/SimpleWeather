@@ -1,8 +1,11 @@
 package com.srgpanov.simpleweather.ui.weather_screen
 
+import android.R.attr.x
+import android.R.attr.y
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -12,9 +15,12 @@ import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.liveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.srgpanov.simpleweather.MainActivity
+import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.data.models.weather.WeatherResponse
 import com.srgpanov.simpleweather.databinding.DetailFragmentBinding
@@ -27,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlin.coroutines.CoroutineContext
+
 
 class DetailFragment : Fragment() {
     private lateinit var viewModel: DetailViewModel
@@ -50,8 +57,9 @@ class DetailFragment : Fragment() {
         viewModel =
             ViewModelProvider(this, ViewModelFactory(placeEntity)).get(DetailViewModel::class.java)
         logD("arguments placeEntity $placeEntity  isFavorite $isFavorite")
-        viewModel.showSetting.value=isFavorite
+        viewModel.showSetting.value = isFavorite
         mainActivity = requireActivity() as MainActivity
+        logD("lifecycle onCreate  ${this}")
     }
 
     companion object {
@@ -65,7 +73,13 @@ class DetailFragment : Fragment() {
     ): View {
         _binding = DetailFragmentBinding.inflate(layoutInflater, container, false)
         prepareViews()
+        liveData<> {  }
         return binding.root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        logD("lifecycle onResume  ${this}")
     }
 
 
@@ -73,13 +87,12 @@ class DetailFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel.weatherData.observe(viewLifecycleOwner, Observer {
             logDAnonim("onActivityCreated ${it?.forecasts?.size}")
-            binding.swipeLayout.isRefreshing = false
             refreshRecycler(it)
-            if (it?.forecasts?.size!=7){
-                viewModel.fetchFreshWeather()
-            }
-        })
 
+        })
+        viewModel.loadingState.observe(viewLifecycleOwner, Observer {
+            binding.swipeLayout.isRefreshing=it
+        })
 
         viewModel.navEvent.observe(viewLifecycleOwner, Observer {
             it?.let {
@@ -91,12 +104,6 @@ class DetailFragment : Fragment() {
             it?.let {
                 logD("title refreshed $it")
                 binding.toolbarCityTitle.text = it.cityTitle
-
-                //todo
-//                binding.favoriteCheckBox.isChecked = when (it.isFavorite) {
-//                    0 -> false
-//                    else -> true
-//                }
             }
         })
 
@@ -105,24 +112,40 @@ class DetailFragment : Fragment() {
                 setupFavoriteState(it)
             }
         })
-
-
+        viewModel.showSnackbar.observe(viewLifecycleOwner, Observer {
+            val snackbar = Snackbar.make(
+                binding.root,
+                it ?: getString(R.string.something_goes_wrong),
+                Snackbar.LENGTH_SHORT
+            )
+            snackbar.animationMode=Snackbar.ANIMATION_MODE_SLIDE
+            snackbar.show()
+        })
+        shareViewModel.weatherPlace.observe(viewLifecycleOwner, Observer { it->
+            viewModel.weatherPlace.value=it
+        })
 
     }
+
     override fun onDestroy() {
         coroutineContext.cancel()
         super.onDestroy()
     }
+
     private fun setupFavoriteState(showSetting: Boolean) {
         logDAnonim("showSetting $showSetting")
         return when (showSetting) {
             true -> {
-                binding.favoriteCheckBox.visibility = View.INVISIBLE
+                binding.burgerButton.visibility = View.VISIBLE
                 binding.settingButton.visibility = View.VISIBLE
+                binding.favoriteCheckBox.visibility = View.INVISIBLE
+                binding.backButton.visibility = View.INVISIBLE
             }
             false -> {
                 binding.favoriteCheckBox.visibility = View.VISIBLE
+                binding.backButton.visibility = View.VISIBLE
                 binding.settingButton.visibility = View.INVISIBLE
+                binding.burgerButton.visibility = View.INVISIBLE
             }
         }
     }
@@ -195,17 +218,29 @@ class DetailFragment : Fragment() {
                 Color.WHITE, Color.BLACK, progress
             )
         )
-        binding.burgerButton.setColorFilter(
-            blendColors(
-                Color.WHITE, Color.parseColor("#FF7E00"), progress
+        if (viewModel.showSetting.value==true){
+            binding.burgerButton.setColorFilter(
+                blendColors(
+                    Color.WHITE, Color.parseColor("#FF7E00"), progress
+                )
             )
-        )
-        binding.settingButton.setColorFilter(
-            blendColors(
-                Color.WHITE, Color.parseColor("#FF7E00"), progress
+            binding.settingButton.setColorFilter(
+                blendColors(
+                    Color.WHITE, Color.parseColor("#FF7E00"), progress
+                )
             )
-        )
-
+        }else{
+            binding.backButton.setColorFilter(
+                blendColors(
+                    Color.WHITE, Color.parseColor("#FF7E00"), progress
+                )
+            )
+            binding.favoriteCheckBox.setColorFilter(
+                blendColors(
+                    Color.WHITE, Color.parseColor("#FF7E00"), progress
+                )
+            )
+        }
     }
 
     private fun blendColors(from: Int, to: Int, ratio: Float): Int {
@@ -219,13 +254,17 @@ class DetailFragment : Fragment() {
     private fun setupToolbar() {
         binding.toolbar.doOnPreDraw { toolbarHeight = binding.toolbar.height }
         binding.burgerButton.setOnClickListener {
-            (activity as MainActivity).navigate(FavoriteFragment::class.java)
+            logD("burger click")
+            //todo
+            (activity as MainActivity).navigateToFavoriteFragment()
         }
+
         binding.favoriteCheckBox.setOnClickListener {
             val isChecked = binding.favoriteCheckBox.isChecked
-
             viewModel.changeFavoriteStatus(isChecked)
-
+        }
+        binding.backButton.setOnClickListener {
+            mainActivity?.onBackPressed()
         }
     }
 
@@ -239,5 +278,12 @@ class DetailFragment : Fragment() {
             }
         }
     }
+
+    fun onBackPressed() {
+        logD("back fragment")
+        mainActivity?.onBackPressedSuper()
+    }
+
+
 }
 
