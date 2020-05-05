@@ -14,5 +14,5 @@ interface PlacesService {
         @Query("apikey") apikey: String ,
         @Query("kind") kind: String="locality" ,
         @Query("results") results: Int = 15
-    ): Response<Places>
+    ): ResponseResult<Places>
 }

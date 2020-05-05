@@ -29,7 +29,7 @@
     <string name="Tomorrow">Tomorrow</string>
     <string name="feels_like">Feels like</string>
     <string name="m_in_s">m/s</string>
-    <string name="hPa">" hPa"</string>
+    <string name="hPa">"hPa"</string>
     <string name="m_s">m/s</string>
     <string name="mock_text">В конструктор передаем старые данные и новые данные. Они понадобятся для сравнения. В методах getOldListSize и getNewListSize просто возвращаем количество записей в старом списке и в новом. А в методах areItemsTheSame и areContentsTheSame нам дают две позиции: одну из старого списка (oldItemPosition) и одну из нового (newItemPosition). Соответственно, мы из списка oldList берем Product с позицией oldItemPosition, а из newList - Product с позицией newItemPosition, и сравниваем их. В чем ключевая разница между areItemsTheSame и areContentsTheSame? Рассмотрим на примере товаров. У Product есть три поля: id, name и price. Для каждой пары сравниваемых товаров DiffUtil сначала вызовет метод areItemsTheSame, чтобы определить, надо ли в принципе сравнивать эти товары. Т.е. cначала достаточно сравнить их по id. Если id не равны, значит это разные товары и сравнивать их цены и наименование нет смысла - скорее всего они также будут отличаться. А вот если id равны, значит товар из старого списка и товар из нового списка - это один и тот же товар и надо определить изменился ли он. В этом случае DiffUtil вызывает метод areContentsTheSame, чтобы определить, есть ли отличия между старым товаром и новым. В этом методе мы сравниваем товары по цене и наименованию. Если они одинаковы, значит товары по указанным позициям в старом и новом списке одинаковы. И биндинг для строки, отображающей этот товар, вызывать не надо, потому что не будет там никаких изменений. А если цена или наименование у нового товара отличается от старого, значит товар изменился и для строки, отображающей этот товар надо будет вызвать биндинг. Т.е. в areItemsTheSame вы сравниваете поля, чтобы в принципе определить, разные ли это объекты. А в areContentsTheSame уже сравниваете детали, чтобы определить, поменялось ли что-то из того, что вы отображаете на экране. Давайте представим, что в Product есть еще одно поле, например - дата поставки. Но в списке отображать это поле не нужно. Учитывать ли это поле в areContentsTheSame? Если вы будете его учитывать, то при изменении только этого поля, строка списка с товаром будет перерисована, но при этом визуально никаких изменений не будет. Это будет лишняя работа. Поэтому в areContentsTheSame имеет смысл использовать только те поля объекта, изменение которых приведет к видимым изменениям строки в списке.</string>
     <string name="wind_header">Wind</string>
@@ -64,4 +64,36 @@
     <string name="remove">Remove</string>
     <string name="location_added_to_favorites">Location added to favorites</string>
     <string name="something_goes_wrong">Something goes wrong</string>
+    <string name="refresh">Refresh</string>
+    <string name="check_your_internet_connection">Check your internet connection</string>
+    <string name="no_internet_connection">No internet connection</string>
+    <string name="update">UPDATE</string>
+    <string name="check_your_connection">Forecast is out of date — check your connection</string>
+    <string name="temperature">Temperature</string>
+    <string name="wind_speed">Wind speed</string>
+    <string name="pressure">Pressure</string>
+    <string name="units_of_measurement">Units of measurement</string>
+    <string name="c">°C</string>
+    <string name="f">°F</string>
+    <string name="km_h">km/h</string>
+    <string name="mmhg">mmHg</string>
+    <string name="location">Location</string>
+    <string name="about">About</string>
+    <string name="settings">Settings</string>
+    <string name="select_current_place">Select current place</string>
+    <string name="other">Other</string>
+    <string name="application_needs_to_know">Application needs to know your location in order to show you a precise forecast</string>
+    <string name="_continue">CONTINUE</string>
+    <string name="select_place">Select place</string>
+    <string name="permission">Permission</string>
+    <string name="permission_not_granted_message">Application needs to know your location in order to show you a forecast. Allow the app to determine Your location or select a specific location for the forecast?</string>
+    <string name="permission_not_granted">Permission not granted</string>
+    <string name="geolocation">Geolocation</string>
+    <string name="if_you_enable_it_your_forecast_will_be_more_precise">If you enable it, your forecast will be more precise</string>
+    <string name="empty_vaforite_text_1">Add a city, area or specific address to your \</string>
+    <string name="empty_vaforite_text_2">Favorites</string>
+    <string name="empty_vaforite_text_3">\ to quickly see what the weather is like there.</string>
+    <string name="empty_vaforite_text_4">\To add Favorites, first search for them, view their forecast and then tap \</string>
+    <string name="enter_location_name_or_exact_address">Enter location name or exact address</string>
+
 </resources>

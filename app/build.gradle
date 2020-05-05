@@ -43,16 +43,15 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.core:core-ktx:1.2.0'
+    implementation "androidx.preference:preference-ktx:1.1.1"
 
     //coroutenes android
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-alpha01'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.3.0-alpha01'
 
 
-
-
     //design
-    implementation 'com.google.android.material:material:1.2.0-alpha05'
+    implementation 'com.google.android.material:material:1.2.0-alpha06'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta4'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
     implementation "androidx.recyclerview:recyclerview:1.2.0-alpha02"
@@ -70,6 +69,7 @@ dependencies {
     //room
     def room_version = "2.2.5"
     implementation "androidx.room:room-runtime:$room_version"
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
 

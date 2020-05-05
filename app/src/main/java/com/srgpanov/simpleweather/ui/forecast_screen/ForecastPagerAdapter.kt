@@ -1,10 +1,11 @@
 package com.srgpanov.simpleweather.ui.forecast_screen
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.srgpanov.simpleweather.data.models.weather.Forecast
+import com.srgpanov.simpleweather.data.models.weather.Daily
 import com.srgpanov.simpleweather.databinding.ForecastPagerItemNewBinding
 import com.srgpanov.simpleweather.other.FirstItemCompletelyVisibleListener
 import com.srgpanov.simpleweather.other.MyClickListener
@@ -12,7 +13,7 @@ import com.srgpanov.simpleweather.other.addSystemWindowInsetToPadding
 import com.srgpanov.simpleweather.other.logD
 
 class ForecastPagerAdapter() : RecyclerView.Adapter<ForecastPagerAdapter.ForecastHolder>() {
-    var forecasts = mutableListOf<Forecast>()
+    var forecasts = mutableListOf<Daily>()
         set(value) {
             field.clear()
             field.addAll(value)
@@ -27,12 +28,7 @@ class ForecastPagerAdapter() : RecyclerView.Adapter<ForecastPagerAdapter.Forecas
     }
 
     override fun onBindViewHolder(holder: ForecastHolder, position: Int) {
-        val twoDayForecast = if(position+1<forecasts.size){
-            TwoDayForecast(forecasts[position], forecasts[position + 1])
-        }else{
-            TwoDayForecast(forecasts[position], forecasts[position]) //на последнюю ночь прогноза, данные предыдущей ночи
-        }
-        holder.bind(twoDayForecast)
+        holder.bind(forecasts[position])
     }
 
     override fun getItemCount(): Int {
@@ -49,6 +45,7 @@ class ForecastPagerAdapter() : RecyclerView.Adapter<ForecastPagerAdapter.Forecas
             binding.recyclerView.addSystemWindowInsetToPadding(bottom = true)
             val decorator = CustomForecastItemDecoration(context)
             binding.recyclerView.addItemDecoration(decorator)
+            binding.recyclerView.overScrollMode= View.OVER_SCROLL_NEVER
             binding.recyclerView.layoutManager = object : LinearLayoutManager(context) {
                 override fun onLayoutCompleted(state: RecyclerView.State?) {
                     super.onLayoutCompleted(state)
@@ -70,8 +67,8 @@ class ForecastPagerAdapter() : RecyclerView.Adapter<ForecastPagerAdapter.Forecas
             }
         }
 
-        fun bind(forecasts: TwoDayForecast) {
-            adapter.setData(forecasts)
+        fun bind(daily: Daily) {
+            adapter.setData(daily)
         }
     }
 }

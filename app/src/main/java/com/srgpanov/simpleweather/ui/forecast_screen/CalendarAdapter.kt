@@ -4,16 +4,19 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.data.models.other.CalendarItem
 import com.srgpanov.simpleweather.databinding.CalendarDayItemBinding
 import com.srgpanov.simpleweather.other.MyClickListener
+import com.srgpanov.simpleweather.other.logD
 import java.text.SimpleDateFormat
 import java.util.*
 
 class CalendarAdapter() : RecyclerView.Adapter<CalendarAdapter.DateViewHolder>() {
     private var  dates :MutableList<CalendarItem> = mutableListOf()
     var listener: MyClickListener? = null
+    private var recyclerView:RecyclerView?=null
     private val DAYS_IN_WEEK=7
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DateViewHolder {
@@ -32,6 +35,17 @@ class CalendarAdapter() : RecyclerView.Adapter<CalendarAdapter.DateViewHolder>()
     override fun getItemCount(): Int {
         return dates.size
     }
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        this.recyclerView=recyclerView
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView)
+        this.recyclerView==null
+    }
+
     fun setData(data:List<CalendarItem>){
         dates.clear()
         dates.addAll(data)
@@ -46,6 +60,10 @@ class CalendarAdapter() : RecyclerView.Adapter<CalendarAdapter.DateViewHolder>()
             }
         }
         dates[position].isSelected=true
+        if (position >= itemCount - 2)
+            recyclerView?.scrollToPosition(itemCount-1)
+        if (position <= 1)
+            recyclerView?.scrollToPosition(0)
         notifyItemChanged(wasSelected)
         notifyItemChanged(position)
     }

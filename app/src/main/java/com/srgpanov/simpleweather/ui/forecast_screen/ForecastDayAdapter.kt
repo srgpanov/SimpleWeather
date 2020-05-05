@@ -3,10 +3,11 @@ package com.srgpanov.simpleweather.ui.forecast_screen
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.srgpanov.simpleweather.data.models.weather.Daily
 import com.srgpanov.simpleweather.databinding.*
 
 class ForecastDayAdapter() : RecyclerView.Adapter<DayHolders>() {
-    lateinit var forecasts: TwoDayForecast
+    lateinit var daily: Daily
     companion object {
         private const val TYPE_CONDITION = 0
         private const val TYPE_WIND = 1
@@ -33,20 +34,20 @@ class ForecastDayAdapter() : RecyclerView.Adapter<DayHolders>() {
             TYPE_SUN -> DayHolders.SunHolder(
                 ForecastSunItemBinding.inflate(inflater, parent, false)
             )
-            TYPE_MOON -> DayHolders.MoonHolder(
-                ForecastMoonItemBinding.inflate(inflater, parent, false)
+            TYPE_MOON -> DayHolders.MagneticHolder(
+                ForecastMagneticItemBinding.inflate(inflater, parent, false)
             )
             else -> throw IllegalStateException("Type error")
         }
     }
     override fun onBindViewHolder(holder: DayHolders, position: Int) {
         return when(holder){
-            is DayHolders.ConditionHolder -> holder.bind(forecasts)
-            is DayHolders.WindHolder -> holder.bind(forecasts)
-            is DayHolders.HumidityHolder -> holder.bind(forecasts)
-            is DayHolders.PressureHolder -> holder.bind(forecasts)
-            is DayHolders.SunHolder -> holder.bind(forecasts.todayForecast)
-            is DayHolders.MoonHolder -> holder.bind(forecasts.todayForecast)
+            is DayHolders.ConditionHolder -> holder.bind(daily)
+            is DayHolders.WindHolder -> holder.bind(daily)
+            is DayHolders.HumidityHolder -> holder.bind(daily)
+            is DayHolders.PressureHolder -> holder.bind(daily)
+            is DayHolders.SunHolder -> holder.bind(daily)
+            is DayHolders.MagneticHolder -> holder.bind(daily)
         }
     }
     override fun getItemCount(): Int {
@@ -63,8 +64,8 @@ class ForecastDayAdapter() : RecyclerView.Adapter<DayHolders>() {
             else -> throw IllegalStateException("Wrong item type")
         }
     }
-    fun setData(forecasts: TwoDayForecast){
-        this.forecasts=forecasts
+    fun setData(daily: Daily){
+        this.daily=daily
         notifyDataSetChanged()
     }
 

@@ -3,7 +3,7 @@
     <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
-        <item name="colorAccent">@color/accent</item>
+        <item name="colorAccent">@android:color/holo_red_light</item>
 
 
         <item name="android:statusBarColor">@android:color/transparent</item>
@@ -24,6 +24,12 @@
         <!--        <item name="android:windowDrawsSystemBarBackgrounds">true</item>-->
 
     </style>
+    <style name="ToolbarTheme" parent="@style/ThemeOverlay.AppCompat.ActionBar">
+        <!-- Customize color of navigation drawer icon and back arrow -->
+        <item name="homeAsUpIndicator">@drawable/ic_arrow_back</item>
+    </style>
+
+
     <style name="AnimationPopupBottom">
         <item name="android:windowEnterAnimation">@anim/popup_top</item>
         <item name="android:windowExitAnimation">@anim/disappear</item>

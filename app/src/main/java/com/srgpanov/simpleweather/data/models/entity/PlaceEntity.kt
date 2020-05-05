@@ -3,6 +3,8 @@ package com.srgpanov.simpleweather.data.models.entity
 import android.os.Parcelable
 import androidx.room.*
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
+import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
+import com.srgpanov.simpleweather.data.models.weather.current_weather.CurrentWeatherResponse
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
@@ -21,6 +23,10 @@ data class PlaceEntity (
     var favorite:Boolean=false
     @Ignore
     var current :Boolean=false
+    @Ignore
+    var simpleWeatherTable:SimpleWeatherTable?=null
+    @Ignore
+    var oneCallResponse : OneCallResponse? =null
 
 
     fun toGeoPoint():GeoPoint{

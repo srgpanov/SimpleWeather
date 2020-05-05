@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager2.widget.ViewPager2
 import com.srgpanov.simpleweather.other.logD
-import com.srgpanov.simpleweather.other.logDAnonim
 
 
 class PagerTransformer : ViewPager.PageTransformer {

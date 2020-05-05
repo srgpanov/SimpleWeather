@@ -8,88 +8,84 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.models.weather.Forecast
-import com.srgpanov.simpleweather.data.models.weather.WeatherResponse
+import com.srgpanov.simpleweather.data.models.weather.Daily
+import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
+import com.srgpanov.simpleweather.databinding.DayErrorItemBinding
 import com.srgpanov.simpleweather.databinding.DayWeatherItemBinding
 import com.srgpanov.simpleweather.databinding.MainWeatherItemBinding
+import com.srgpanov.simpleweather.databinding.WeatherErrorItemBinding
 import com.srgpanov.simpleweather.other.MyClickListener
-import com.srgpanov.simpleweather.other.formatTemp
-import com.srgpanov.simpleweather.other.getWeatherIcon
 import com.srgpanov.simpleweather.other.logE
-import com.srgpanov.simpleweather.ui.weather_screen.WeatherAdapter.Companion.HEADER
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
 sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) {
     class HeaderHolder(var binding: MainWeatherItemBinding) : WeatherHolders(binding.root) {
         var adapter: WeatherDetailAdapter
-        var context:Context
+        var context: Context
 
         init {
             adapter = WeatherDetailAdapter()
-            context=binding.root.context
+            context = binding.root.context
         }
 
-        fun bind(weatherRequest: WeatherResponse) {
-            val fact = weatherRequest.fact
-            binding.temperatureTv.text = formatTemp(fact.temp)
-            binding.weatherIconIv.setImageResource(getWeatherIcon(fact.icon))
-            val fellsLike =
-                context.getString(R.string.feels_like) + ": " + formatTemp(fact.feels_like)
-            binding.feelsLikeTv.text = fellsLike
-            binding.conditionTv.text = firstLetterToUpperCase(fact.condition)
-            adapter.setData(weatherRequest)
-            binding.detailWeatherRv.adapter = adapter
-            binding.detailWeatherRv.layoutManager =
-                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        }
-
-        private fun firstLetterToUpperCase(fact: String): String {
-            val condition = fact.toCharArray()
-            condition.set(0, condition[0].toUpperCase())
-            return String(condition)
+        fun bind(
+            weatherRequest: OneCallResponse?,
+            scope: CoroutineScope?
+        ) {
+            if (weatherRequest != null) {
+                val current = weatherRequest.current
+                binding.weatherIconIv.setImageResource(current.weather[0].getWeatherIcon())
+                binding.temperatureTv.text = current.tempFormatted()
+                val fellsLike =
+                    context.getString(R.string.feels_like) + ": " + current.feelsLikeFormatted()
+                binding.feelsLikeTv.text = fellsLike
+                binding.conditionTv.text = current.weatherFormated()
+                binding.detailWeatherRv.adapter = adapter
+                scope?.launch(Dispatchers.Main) {
+                    adapter.setData(weatherRequest)
+                    if (isActive) {
+                        adapter.notifyDataSetChanged()
+                    }
+                }
+            }
         }
     }
 
     class DaysHolder(var binding: DayWeatherItemBinding) : WeatherHolders(binding.root) {
         val context = binding.root.context
         var listener: MyClickListener? = null
-        fun bind(
-            forecasts: List<Forecast>,
-            position: Int,
-            listener: MyClickListener?
-        ) {
-            val nextNight = position + HEADER
-            val forecast = forecasts.get(position)
-            binding.dataTv.text = formatDate(forecast.date)
-            binding.dayWeekTv.text = when (position) {
-                0 -> context.getString(R.string.Today)
-                1 -> context.getString(R.string.Tomorrow)
-                else -> getDayOfWeek(forecast.date)
-            }
-            when (getDayOfWeekInt(forecast.date)) {
-                1, 7 -> binding.dayWeekTv.setTextColor(Color.RED)
-                else -> binding.dayWeekTv.setTextColor(
-                    ContextCompat.getColor(
-                        context,
-                        R.color.primary_text
-                    )
-                )
-            }
-            binding.tempDayTv.text = formatTemp(forecast.parts.day.temp_max)
-            val nightTemp =
-                when (nextNight < forecasts.size) {//показываем температуру ночи следующих суток, для последних известных суток показываем темературу текущих суток
-                    true -> forecasts.get(position).parts.night.temp_min
-                    false -> forecasts.get(position - HEADER).parts.night.temp_min
+        fun bind(daily: Daily?, listener: MyClickListener?) {
+            if (daily!=null) {
+                binding.dataTv.text = monthDay(daily.date())
+                binding.dayWeekTv.text = when (bindingAdapterPosition) {
+                    1 -> context.getString(R.string.Today)
+                    2 -> context.getString(R.string.Tomorrow)
+                    else -> getDayOfWeek(daily.date())
                 }
-            binding.tempNightTv.text = formatTemp(nightTemp)
-            val image = forecast.parts.day.icon
-            binding.weatherIconDayIv.setImageResource(getWeatherIcon(image))
-            this.listener=listener
-            binding.dayWeatherRoot.setOnClickListener(View.OnClickListener { view: View? ->
-                listener?.onClick(view, adapterPosition)
-            })
+                when (getDayOfWeekInt(daily.date())) {
+                    1, 7 -> binding.dayWeekTv.setTextColor(Color.RED)
+                    else -> binding.dayWeekTv.setTextColor(
+                        ContextCompat.getColor(
+                            context,
+                            R.color.primary_text
+                        )
+                    )
+                }
+                binding.tempDayTv.text = daily.temp.dayFormated()
+                binding.tempNightTv.text = daily.temp.nightFormated()
+                binding.weatherIconDayIv.setImageResource(daily.weather[0].getWeatherIcon())
+                this.listener = listener
+                binding.dayWeatherRoot.setOnClickListener(View.OnClickListener { view: View? ->
+                    listener?.onClick(view, adapterPosition)
+                })
+            }
         }
+
 
         private fun formatDate(date: String): String {
             try {
@@ -116,7 +112,16 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
             }
         }
 
-        private fun getDayOfWeek(date: String): String {
+        private fun monthDay(date: Date): String {
+            val simpleDateFormat = SimpleDateFormat("MMMM dd", Locale.getDefault())
+            val str = simpleDateFormat.format(date)
+            val string = str.toCharArray()
+            string.set(0, string[0].toUpperCase())
+            return String(string)
+
+        }
+
+        private fun getDayOfWeek(date: Date): String {
             try {
                 return when (getDayOfWeekInt(date)) {
                     1 -> context.getString(R.string.Sunday)
@@ -130,21 +135,75 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
                 }
             } catch (e: Exception) {
                 e.logE()
-                return date
+                return date.day.toString()
             }
         }
 
-        private fun getDayOfWeekInt(date: String): Int {
+        private fun getDayOfWeekInt(date: Date): Int {
             try {
                 val c: Calendar = Calendar.getInstance()
-                val format1 = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                val dt1 = format1.parse(date)
-                c.setTime(dt1)
+                c.setTime(date)
                 return c.get(Calendar.DAY_OF_WEEK)
             } catch (e: Exception) {
                 e.logE()
                 return 0
             }
         }
+    }
+
+    class HeaderErrorHolder(val binding: WeatherErrorItemBinding) :
+        WeatherHolders(binding.root) {
+        fun bind() {
+            binding.errorActionButton.setOnClickListener {
+                //todo
+                //listener?.onClick(it, bindingAdapterPosition)
+            }
+        }
+
+
+    }
+
+    class DayErrorHolder(val binding: DayErrorItemBinding) :
+        WeatherHolders(binding.root) {
+        val context = binding.root.context
+        fun bind() {
+            val calendar = Calendar.getInstance()
+            calendar.time = Date()
+            calendar.add(Calendar.DAY_OF_MONTH, bindingAdapterPosition - 1)
+            binding.dataTv.text = monthDay(Date(calendar.timeInMillis))
+            binding.dayWeekTv.text = when (bindingAdapterPosition) {
+                1 -> context.getString(R.string.Today)
+                2 -> context.getString(R.string.Tomorrow)
+                else -> getDayOfWeek(calendar.timeInMillis)
+            }
+            when (calendar.get(Calendar.DAY_OF_WEEK)) {
+                1, 7 -> binding.dayWeekTv.setTextColor(Color.RED)
+                else -> binding.dayWeekTv.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.primary_text
+                    )
+                )
+            }
+        }
+
+        private fun getDayOfWeek(time: Long): CharSequence? {
+            val simpleDateFormat = SimpleDateFormat("EEEE", Locale.getDefault())
+
+            val str = simpleDateFormat.format(Date(time))
+            val string = str.toCharArray()
+            string.set(0, string[0].toUpperCase())
+            return String(string)
+        }
+
+        private fun monthDay(date: Date): String {
+            val simpleDateFormat = SimpleDateFormat("MMMM dd", Locale.getDefault())
+            val str = simpleDateFormat.format(date)
+            val string = str.toCharArray()
+            string.set(0, string[0].toUpperCase())
+            return String(string)
+
+        }
+
     }
 }

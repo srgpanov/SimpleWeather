@@ -5,31 +5,20 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.*
+import com.srgpanov.simpleweather.BuildConfig
 import com.srgpanov.simpleweather.R
+import kotlin.reflect.KClass
 
-fun Any.logD(message: String= "TAG $this") {
-    Log.d(this.className, message)
+ fun Any.logD(message: String= "TAG $this") {
+    Log.d(getClassSimpleName(this::class), message)
 }
-fun logDAnonim(message: String= "") {
-    Log.d("TAG", message)
-}
+
 fun Any.logE(message: String= "TAG $this") {
-    Log.e(this.className, message)
+    Log.e(getClassSimpleName(this::class), message)
 }
-private val Any.className: String
-    get() = (this::class.java.simpleName)
 
-fun formatTemp(temp: Int): String {
-    if (temp > 0) {
-        return "+${temp}°"
-    } else {
-        if (temp < 0) {
-            return "${temp}°"
-        }
-        return "${temp}°"
-    }
 
-}
+
 fun getWeatherIcon(weather: String): Int {
     return when (weather) {
         "bkn_-ra_d" -> R.drawable.ic_bkn__ra_d
@@ -58,20 +47,7 @@ fun getWeatherIcon(weather: String): Int {
         }
     }
 }
-fun getWindDirectionIcon(direction:String):Int{
-    return when(direction){
-        "nw"->R.drawable.ic_se
-        "n" ->R.drawable.ic_south
-        "ne"->R.drawable.ic_ne
-        "e" ->R.drawable.ic_east
-        "se"->R.drawable.ic_nw
-        "s" ->R.drawable.ic_north
-        "sw"->R.drawable.ic_sw
-        "w" ->R.drawable.ic_west
-        "с"->R.drawable.ic_calm
-        else -> throw IllegalStateException("Wind icon")
-    }
-}
+
 fun View.addSystemWindowInsetToPadding(
     left: Boolean = false,
     top: Boolean = false,
@@ -119,6 +95,7 @@ fun View.addSystemWindowInsetToMargin(
     }
     requestApplyInsetsWhenAttached()
 }
+
 fun View.requestApplyInsetsWhenAttached() {
     if (isAttachedToWindow) {
         // We're already attached, just request as normal
@@ -142,3 +119,15 @@ fun dpToPx(dp:Int):Int{
 fun pxToDp(px: Int): Int {
     return (px / Resources.getSystem().displayMetrics.density).toInt()
 }
+
+
+
+
+inline fun <reified T> T.getClassSimpleName(enclosingClass: KClass<*>?): String =
+
+    if(T::class.java.simpleName.isNotBlank()) {
+        T::class.java.simpleName
+    }
+    else { // Enforce the caller to pass a class to retrieve its simple name
+        enclosingClass?.simpleName ?: "TAG"
+    }

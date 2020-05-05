@@ -61,12 +61,16 @@ abstract class WeatherDao {
     abstract suspend fun saveFavoritePlace(placeEntity: FavoriteTable)
 
     @Insert(onConflict = REPLACE)
-    abstract suspend fun saveResponse(weatherEntity: WeatherEntity)
+    abstract suspend fun saveOneCallResponse(weatherEntity: OneCallTable)
 
-    @Query("SELECT * from weatherentity")
-    abstract suspend fun getLastResponse(): List<WeatherEntity>
+    @Query("SELECT * from OneCallTable")
+    abstract suspend fun getLastResponse(): List<OneCallTable>
 
-    @Query("SELECT * from  weatherentity WHERE id=:geoPoint")
-    abstract suspend fun getResponse(geoPoint: String): WeatherEntity?
+    @Query("SELECT * from  onecalltable WHERE id=:geoPoint")
+    abstract suspend fun getOnceCallResponse(geoPoint: String): OneCallTable?
+    @Query("SELECT * from  SimpleWeatherTable WHERE id=:geoPoint")
+    abstract suspend fun getCurrentResponse(geoPoint: String): SimpleWeatherTable?
+    @Insert(onConflict = REPLACE)
+    abstract suspend fun saveCurrentResponse(response: SimpleWeatherTable)
 
 }

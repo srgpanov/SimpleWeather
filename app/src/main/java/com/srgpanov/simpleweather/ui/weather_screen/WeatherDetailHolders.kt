@@ -4,40 +4,65 @@ package com.srgpanov.simpleweather.ui.weather_screen
 import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.View
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.models.weather.Fact
-import com.srgpanov.simpleweather.data.models.weather.Hour
+import com.srgpanov.simpleweather.data.models.weather.Current
+import com.srgpanov.simpleweather.data.models.weather.Hourly
 import com.srgpanov.simpleweather.data.models.weather.Sunrise
 import com.srgpanov.simpleweather.databinding.DetailWeatherItemBinding
 import com.srgpanov.simpleweather.databinding.HourlyWeatherItemBinding
-import com.srgpanov.simpleweather.other.formatTemp
-import com.srgpanov.simpleweather.other.getWeatherIcon
-import com.srgpanov.simpleweather.other.getWindDirectionIcon
 import com.srgpanov.simpleweather.other.logE
+import com.srgpanov.simpleweather.ui.setting_screen.Pressure
+import com.srgpanov.simpleweather.ui.setting_screen.SettingFragment
+import com.srgpanov.simpleweather.ui.setting_screen.Wind
 import com.srgpanov.simpleweather.ui.weather_screen.WeatherDetailAdapter.Companion.HEADER
-import java.util.*
+import kotlin.math.roundToInt
 
 sealed class WeatherDetailHolders(itemView: View) : RecyclerView.ViewHolder(itemView) {
     class HeaderHolder(private var binding: DetailWeatherItemBinding) :
         WeatherDetailHolders(binding.root) {
         val context = binding.root.context
-        fun bind(fact: Fact) {
-            val windString =
-                " ${context.getString(R.string.m_in_s)}, ${fact.wind_dir.toUpperCase(
-                    Locale.getDefault()
-                )} "
-            binding.windSpeedValueTv.text = fact.wind_speed.toInt().toString()
+        var preferences = PreferenceManager.getDefaultSharedPreferences(context)
+        var windMeasurement = preferences.getInt(SettingFragment.WIND_MEASUREMENT, 0)
+        var windSpeed = if (windMeasurement == 0) Wind.M_S else Wind.KM_H
+        private val pressureMeasurement = preferences.getInt(SettingFragment.PRESSURE_MEASUREMENT, 0)
+        var pressure=if(pressureMeasurement==0)Pressure.MM_HG else Pressure.H_PA
+        fun bind(current: Current) {
+            val measure = if (windSpeed == Wind.M_S) {
+                context.getString(R.string.m_in_s)
+            } else {
+                context.getString(R.string.km_h)
+            }
+            val windString = " ${measure}, ${current.windDirection()} "
             binding.windSpeedTextTv.text = windString
-            binding.windDirectionIconIv.setImageResource(getWindDirectionIcon(fact.wind_dir))
-            binding.pressureValueTv.text = fact.pressure_pa.toString()
-            binding.humidityValueTv.text = fact.humidity.toString()
+            val speedValue = if (windSpeed == Wind.M_S) {
+                current.windSpeed.roundToInt().toString()
+            } else {
+                (current.windSpeed*3.6).roundToInt().toString()
+            }
+            binding.windSpeedValueTv.text = speedValue
+            binding.windDirectionIconIv.setImageResource(current.windDirectionIcon())
+            val pressureValue = if (pressure == Pressure.MM_HG) {
+                (current.pressure*0.7501).roundToInt().toString()
+            } else {
+                current.pressure.toString()
+            }
+            val pressureMeasurement = if (pressure == Pressure.MM_HG){
+                " "+context.getString(R.string.mmhg)
+            }else{
+                " "+context.getString(R.string.hPa)
+            }
+            binding.pressureValueTv.text = pressureValue
+            binding.pressureTextTv.text=pressureMeasurement
+            binding.humidityValueTv.text = current.humidity.toString()
         }
     }
 
     class HourlyHolder(private var binding: HourlyWeatherItemBinding) :
         WeatherDetailHolders(binding.root) {
         val context = binding.root.context
+
         fun bind(list: MutableList<Any>, position: Int) {
             val context = binding.root.context
             val item = list[position]
@@ -57,28 +82,22 @@ sealed class WeatherDetailHolders(itemView: View) : RecyclerView.ViewHolder(item
                         }
                     }
                 }
-                is Hour -> {
+                is Hourly -> {
                     binding.hourTimeTv.text =
                         when (position == HEADER) {//костылёк, чтобы для первого текущего часа выводилось "now"
                             true -> context.getString(R.string.now_text)
                             false -> {
-                                when ((item.hour == 0) and (position != HEADER)) {
+                                when ((item.hour() == 0) and (position != HEADER)) {
                                     true -> {
-                                        var date = ""
-                                        list.forEach {
-                                            if (it is Sunrise) {
-                                                date = formatDate(it.date)
-                                                return@forEach
-                                            }
-                                        }
-                                        formatHours(item.hour) + "\n$date"
+
+                                        formatHours(item.hour()) + "\n${item.getDate()}"
                                     }
-                                    false -> formatHours(item.hour)
+                                    false -> formatHours(item.hour())
                                 }
                             }
                         }
-                    binding.hourTempTv.text = formatTemp(item.temp)
-                    binding.windIconIv.setImageResource(getWeatherIcon(item.icon))
+                    binding.hourTempTv.text = item.tempFormated()
+                    binding.windIconIv.setImageResource(item.weather[0].getWeatherIcon())
                 }
             }
         }

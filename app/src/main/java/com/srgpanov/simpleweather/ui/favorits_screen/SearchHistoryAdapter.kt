@@ -5,12 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
-import com.srgpanov.simpleweather.data.models.entity.SearchHistoryTable
-import com.srgpanov.simpleweather.data.models.places.FeatureMember
 import com.srgpanov.simpleweather.databinding.FavoriteSearchHeaderItemBinding
 import com.srgpanov.simpleweather.databinding.FavoriteSearchItemBinding
+import com.srgpanov.simpleweather.databinding.SearchHistoryEmptyItemBinding
 import com.srgpanov.simpleweather.other.MyClickListener
-import com.srgpanov.simpleweather.other.logD
 import java.lang.IllegalStateException
 
 class SearchHistoryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -36,8 +34,15 @@ class SearchHistoryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                     false
                 )
             )
-            R.layout.favorite_search_header_item->SearchHeaderVIewHolder(
+            R.layout.favorite_search_header_item->SearchHeaderViewHolder(
                 FavoriteSearchHeaderItemBinding.inflate(
+                    inflater,
+                    parent,
+                    false
+                )
+            )
+            R.layout.search_history_empty_item->SearchEmptyViewHolder(
+                SearchHistoryEmptyItemBinding.inflate(
                     inflater,
                     parent,
                     false
@@ -55,14 +60,23 @@ class SearchHistoryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     override fun getItemCount(): Int {
-        return searchHistoryList.size + HEADER
+        if (searchHistoryList.isEmpty()){
+            return 1
+        }else{
+            return searchHistoryList.size + HEADER
+        }
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (position == 0) {
-            R.layout.favorite_search_header_item
-        } else
-            R.layout.favorite_search_item
+        if (searchHistoryList.isEmpty()){
+            return R.layout.search_history_empty_item
+        }else{
+            return if (position == 0) {
+                R.layout.favorite_search_header_item
+            } else
+                R.layout.favorite_search_item
+        }
+
     }
 
     fun setData(data: List<PlaceEntity>) {
@@ -77,13 +91,14 @@ class SearchHistoryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             binding.placesTv.text = item.cityFullName
             binding.searchContainer.setOnClickListener {
                 //todo
-                listener?.onClick(it, adapterPosition - HEADER)
+                listener?.onClick(it, bindingAdapterPosition - HEADER)
             }
         }
     }
 
-    inner class SearchHeaderVIewHolder(val binding: FavoriteSearchHeaderItemBinding) :
+    inner class SearchHeaderViewHolder(val binding: FavoriteSearchHeaderItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-
     }
+    inner class SearchEmptyViewHolder(binding: SearchHistoryEmptyItemBinding):
+            RecyclerView.ViewHolder(binding.root)
 }

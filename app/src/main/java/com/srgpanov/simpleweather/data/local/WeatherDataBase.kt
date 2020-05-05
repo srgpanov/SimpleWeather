@@ -7,13 +7,17 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.srgpanov.simpleweather.data.models.entity.*
 
-@Database(entities = arrayOf(
-    FavoriteTable::class,
-    SearchHistoryTable::class,
-    CurrentTable::class,
-    WeatherEntity::class),version = 1)
+@Database(
+    entities = arrayOf(
+        FavoriteTable::class,
+        SearchHistoryTable::class,
+        CurrentTable::class,
+        OneCallTable::class,
+        SimpleWeatherTable::class
+    ), version = 1
+)
 @TypeConverters(RoomConverter::class)
-abstract class WeatherDataBase: RoomDatabase() {
+abstract class WeatherDataBase : RoomDatabase() {
     abstract fun weatherDataDao(): WeatherDao
 
 
@@ -23,8 +27,10 @@ abstract class WeatherDataBase: RoomDatabase() {
         fun getInstance(context: Context): WeatherDataBase {
             if (!Companion::INSTANCE.isInitialized) {
                 synchronized(WeatherDataBase::class) {
-                    INSTANCE = Room.databaseBuilder(context,
-                        WeatherDataBase::class.java, "weatherDb")
+                    INSTANCE = Room.databaseBuilder(
+                        context,
+                        WeatherDataBase::class.java, "weatherDb"
+                    )
                         .build()
                 }
             }

@@ -2,192 +2,97 @@ package com.srgpanov.simpleweather.ui.forecast_screen
 
 import android.content.Context
 import android.view.View
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.models.weather.Forecast
+import com.srgpanov.simpleweather.data.models.weather.Daily
 import com.srgpanov.simpleweather.databinding.*
-import com.srgpanov.simpleweather.other.formatTemp
-import com.srgpanov.simpleweather.other.getWeatherIcon
-import com.srgpanov.simpleweather.other.getWindDirectionIcon
-import com.srgpanov.simpleweather.other.logE
-import java.util.*
+import com.srgpanov.simpleweather.ui.setting_screen.Pressure
+import com.srgpanov.simpleweather.ui.setting_screen.SettingFragment
+import com.srgpanov.simpleweather.ui.setting_screen.Wind
+import kotlin.math.roundToInt
 
 sealed class DayHolders(itemView: View) : RecyclerView.ViewHolder(itemView) {
     class ConditionHolder(var binding: ForecastConditionItemBinding) : DayHolders(binding.root) {
-        fun bind(forecasts: TwoDayForecast) {
-            binding.cloudnessTempMorningTv.text = formatTemp(forecasts.todayForecast.parts.morning.temp_avg)
-            binding.cloudnessTempDayTv.text = formatTemp(forecasts.todayForecast.parts.day.temp_avg)
-            binding.cloudnessTempEveningTv.text = formatTemp(forecasts.todayForecast.parts.evening.temp_avg)
-            binding.cloudnessTempNightTv.text = formatTemp(forecasts.tomorrowForecast.parts.night.temp_avg)
-//
-            binding.cloudnessFeelsMorningTv.text = formatTemp(forecasts.todayForecast.parts.morning.feels_like)
-            binding.cloudnessFeelsDayTv.text = formatTemp(forecasts.todayForecast.parts.day.feels_like)
-            binding.cloudnessFeelsEveningTv.text = formatTemp(forecasts.todayForecast.parts.evening.feels_like)
-            binding.cloudnessFeelsNightTv.text = formatTemp(forecasts.tomorrowForecast.parts.night.feels_like)
-            val morningCondition = getWeatherIcon(forecasts.todayForecast.parts.morning.icon)
-            val dayCondition = getWeatherIcon(forecasts.todayForecast.parts.day.icon)
-            val eveningCondition = getWeatherIcon(forecasts.todayForecast.parts.evening.icon)
-            val nightCondition = getWeatherIcon(forecasts.tomorrowForecast.parts.night.icon)
-            binding.cloudnessMorningIv.setImageResource(morningCondition)
-            binding.cloudnessDayIv.setImageResource(dayCondition)
-            binding.cloudnessEveningIv.setImageResource(eveningCondition)
-            binding.cloudnessNightIv.setImageResource(nightCondition)
+        fun bind(daily: Daily) {
+            binding.cloudnessTempMorningTv.text = daily.temp.mornFormated()
+            binding.cloudnessTempDayTv.text =daily.temp.dayFormated()
+            binding.cloudnessTempEveningTv.text =daily.temp.eveFormated()
+            binding.cloudnessTempNightTv.text =daily.temp.nightFormated()
+            binding.cloudnessFeelsMorningTv.text = daily.feelsLike.mornFormated()
+            binding.cloudnessFeelsDayTv.text = daily.feelsLike.dayFormated()
+            binding.cloudnessFeelsEveningTv.text = daily.feelsLike.eveFormated()
+            binding.cloudnessFeelsNightTv.text = daily.feelsLike.nightFormated()
+            binding.cloudnessIv.setImageResource(daily.weather[0].getWeatherIcon())
+            binding.cloudStateTv.text=daily.weatherFormated()
         }
     }
 
     class WindHolder(var binding: ForecastWindItemBinding) : DayHolders(binding.root) {
-        var context: Context
-
-        init {
-            context = binding.root.context
-        }
-
-        fun bind(forecasts: TwoDayForecast) {
+        var context: Context=binding.root.context
+        var preferences = PreferenceManager.getDefaultSharedPreferences(context)
+        var windMeasurement = preferences.getInt(SettingFragment.WIND_MEASUREMENT, 0)
+        var windSpeed = if (windMeasurement == 0) Wind.M_S else Wind.KM_H
+        fun bind(daily: Daily) {
+            val measure = if (windSpeed == Wind.M_S) {
+                context.getString(R.string.m_in_s)
+            } else {
+                context.getString(R.string.km_h)
+            }
+            val speedValue = if (windSpeed == Wind.M_S) {
+                daily.windSpeed.roundToInt().toString()
+            } else {
+                (daily.windSpeed*3.6).roundToInt().toString()
+            }
             binding.windSpeedMorningTv.text =
-                StringBuilder("${forecasts.todayForecast.parts.morning.wind_speed.toInt()} ${context.getString(R.string.m_in_s)}")
-            binding.windSpeedDayTv.text =
-                StringBuilder("${forecasts.todayForecast.parts.day.wind_speed.toInt()} ${context.getString(R.string.m_in_s)}")
-            binding.windSpeedEveningTv.text =
-                StringBuilder("${forecasts.todayForecast.parts.evening.wind_speed.toInt()} ${context.getString(R.string.m_in_s)}")
-
-            binding.windSpeedNightTv.text =
-                StringBuilder("${forecasts.tomorrowForecast.parts.night.wind_speed.toInt()} ${context.getString(R.string.m_in_s)}")
-//
-            binding.windSpeedUpMorningTv.text =
-                StringBuilder(
-                    "${context.getString(R.string.to)} ${forecasts.todayForecast.parts.morning.wind_gust.toInt()} ${context.getString(
-                        R.string.m_in_s
-                    )}"
-                )
-            binding.windSpeedUpDayTv.text = StringBuilder(
-                "${context.getString(R.string.to)} ${forecasts.todayForecast.parts.day.wind_gust.toInt()} ${context.getString(
-                    R.string.m_in_s
-                )}"
-            )
-            binding.windSpeedUpEveningTv.text = StringBuilder(
-                "${context.getString(R.string.to)} ${forecasts.todayForecast.parts.evening.wind_gust.toInt()} ${context.getString(
-                    R.string.m_in_s
-                )}"
-            )
-            binding.windSpeedUpNightTv.text = StringBuilder(
-                "${context.getString(R.string.to)} ${forecasts.tomorrowForecast.parts.night.wind_gust.toInt()} ${context.getString(
-                    R.string.m_in_s
-                )}"
-            )
-//
-            binding.windDirectionMorningTv.text =
-                forecasts.todayForecast.parts.morning.wind_dir.toUpperCase(Locale.getDefault())
-            binding.windDirectionDayTv.text =
-                forecasts.todayForecast.parts.day.wind_dir.toUpperCase(Locale.getDefault())
-            binding.windDirectionEveningTv.text =
-                forecasts.todayForecast.parts.evening.wind_dir.toUpperCase(Locale.getDefault())
-            binding.windDirectionNightTv.text =
-                forecasts.tomorrowForecast.parts.night.wind_dir.toUpperCase(Locale.getDefault())
-//
-            binding.windDirectionMorningIv.setImageResource(
-                getWindDirectionIcon(
-                    forecasts.todayForecast.parts.morning.wind_dir
-                )
-            )
-            binding.windDirectionDayIv.setImageResource(
-                getWindDirectionIcon(
-                    forecasts.todayForecast.parts.day.wind_dir
-                )
-            )
-            binding.windDirectionEveningIv.setImageResource(
-                getWindDirectionIcon(
-                    forecasts.todayForecast.parts.evening.wind_dir
-                )
-            )
-            binding.windDirectionNightIv.setImageResource(
-                getWindDirectionIcon(
-                    forecasts.tomorrowForecast.parts.night.wind_dir
-                )
-            )
+                StringBuilder("${speedValue} ${measure}")
+            binding.windDirectionTv.text =daily.windDirection()
+            binding.windDirectionIv.setImageResource(daily.windDirectionIcon())
         }
     }
 
     class HumidityHolder(var binding: ForecastHumidityItemBinding) : DayHolders(binding.root) {
-        fun bind(forecasts: TwoDayForecast) {
-            val morningHumidity = "${forecasts.todayForecast.parts.morning.humidity}%"
+        fun bind(daily: Daily) {
+            val morningHumidity = "${daily.humidity}%"
             binding.humidityPercentMorningTv.text = morningHumidity
-            val dayHumidity = "${forecasts.todayForecast.parts.morning.humidity}%"
-            binding.humidityPercentDayTv.text = dayHumidity
-            val eveningHumidity = "${forecasts.todayForecast.parts.evening.humidity}%"
-            binding.humidityPercentEveningTv.text = eveningHumidity
-            val nightHumidity = "${forecasts.tomorrowForecast.parts.night.humidity}%"
-            binding.humidityPercentNightTv.text = nightHumidity
+
         }
     }
 
     class PressureHolder(var binding: ForecastPressureItemBinding) : DayHolders(binding.root) {
-        fun bind(forecasts: TwoDayForecast) {
-            binding.pressureValueMorningTv.text = forecasts.todayForecast.parts.morning.pressure_pa.toString()
-            binding.pressureValueDayTv.text = forecasts.todayForecast.parts.day.pressure_pa.toString()
-            binding.pressureValueEveningTv.text = forecasts.todayForecast.parts.evening.pressure_pa.toString()
-            binding.pressureValueNightTv.text = forecasts.tomorrowForecast.parts.night.pressure_pa.toString()
+        val context = binding.root.context
+        var preferences = PreferenceManager.getDefaultSharedPreferences(context)
+        private val pressureMeasurement = preferences.getInt(SettingFragment.PRESSURE_MEASUREMENT, 0)
+        var pressure=if(pressureMeasurement==0) Pressure.MM_HG else Pressure.H_PA
+        fun bind(daily: Daily) {
+            val pressureValue = if (pressure == Pressure.MM_HG) {
+                (daily.pressure*0.7501).roundToInt().toString()
+            } else {
+                daily.pressure.toString()
+            }
+            val pressureMeasurement = if (pressure == Pressure.MM_HG){
+                context.getString(R.string.mmhg)
+            }else{
+                context.getString(R.string.hPa)
+            }
+            binding.pressureValueTv.text = pressureValue
+            binding.pressureScaleTv.text = pressureMeasurement
+
         }
     }
 
     class SunHolder(var binding: ForecastSunItemBinding) : DayHolders(binding.root) {
-        fun bind(forecasts: Forecast) {
-            binding.sunriseTimeTv.text = forecasts.sunrise
-            binding.sunsetTimeTv.text = forecasts.sunset
-            try {
-                val daylightHours =
-                    forecasts.sunset.split(":")[0].toInt() - forecasts.sunrise.split(":")[0].toInt()
-                val daylightMinutes =
-                    forecasts.sunset.split(":")[1].toInt() - forecasts.sunrise.split(":")[1].toInt()
-                val daylight = when (daylightMinutes < 0) {
-                    true -> {
-                        "${daylightHours - 1} h ${60 + daylightMinutes} min"
-                    }
-                    false -> "$daylightHours h $daylightMinutes min"
-                }
-                binding.solarDayValueTv.text = daylight
-            } catch (e: Exception) {
-                logE(e.message.toString())
-            }
+        fun bind(daily: Daily) {
+            binding.sunriseTimeTv.text = daily.getSunriseString()
+            binding.sunsetTimeTv.text = daily.getSunsetString()
+            binding.solarDayValueTv.text = daily.dayLightHours()
         }
     }
 
-    class MoonHolder(var binding: ForecastMoonItemBinding) : DayHolders(binding.root) {
+    class MagneticHolder(var binding: ForecastMagneticItemBinding) : DayHolders(binding.root) {
         val context = binding.root.context
-        fun bind(forecasts: Forecast) {
-            binding.moonStateTextTv.text = when (forecasts.moon_text) {
-                "full-moon" -> context.getString(R.string.full_moon)
-                "decreasing-moon" -> context.getString(R.string.decreasing_moon)
-                "last-quarter" -> context.getString(R.string.last_quarter)
-                "new-moon" -> context.getString(R.string.new_moon)
-                "growing-moon" -> context.getString(R.string.growing_moon)
-                "first-quarter" -> context.getString(R.string.first_quarter)
-                else -> {
-                    logE("Moon code Error")
-                    ""
-                }
-            }
-            val moonIcon = when (forecasts.moon_code) {
-                0 -> R.drawable.moon_state_grow_0
-                1 -> R.drawable.ic_moon_state_7
-                2 -> R.drawable.ic_moon_state_6
-                3 -> R.drawable.ic_moon_state_6
-                4 -> R.drawable.ic_moon_state_5
-                5 -> R.drawable.ic_moon_state_3
-                6 -> R.drawable.ic_moon_state_2
-                8 -> R.drawable.ic_new_moon
-                9 -> R.drawable.moon_state_grow_7
-                10 -> R.drawable.moon_state_grow_6
-                11 -> R.drawable.moon_state_grow_5
-                12 -> R.drawable.moon_state_grow_4
-                13 -> R.drawable.moon_state_grow_3
-                14 -> R.drawable.moon_state_grow_2
-                15 -> R.drawable.moon_state_grow_1
-                else -> {
-                    logE("Error moon icon")
-                    R.drawable.moon_state_grow_0
-                }
-            }
-            binding.moonStateIconIv.setImageResource(moonIcon)
+        fun bind(daily: Daily) {
+            binding.uvIndexValueTv.text =daily.uvi.roundToInt().toString()
         }
     }
 }

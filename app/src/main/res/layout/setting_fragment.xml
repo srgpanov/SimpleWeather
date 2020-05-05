@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<androidx.constraintlayout.widget.ConstraintLayout
+
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/setting_const_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dirty_white_background">
+
+    <View
+        android:id="@+id/status_bar_view"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@color/status_bar_color"
+        android:elevation="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentTop="true"
+        android:background="@android:color/white"
+        android:elevation="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/status_bar_view"
+        app:theme="@style/ToolbarTheme" />
+
+    <TextView
+        android:id="@+id/units_header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="14dp"
+        android:text="@string/units_of_measurement"
+        android:textColor="@color/secondary_text"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+    <View
+        android:id="@+id/temp_background"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="4dp"
+        android:background="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/units_header" />
+
+    <TextView
+        android:id="@+id/temp_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        android:text="@string/temperature"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@id/temp_background"
+        app:layout_constraintStart_toStartOf="@id/temp_background"
+        app:layout_constraintTop_toTopOf="@id/temp_background" />
+
+    <RadioGroup
+        android:id="@+id/temp_switcher"
+        android:layout_width="128dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@id/temp_background"
+        app:layout_constraintEnd_toEndOf="@id/temp_background"
+        app:layout_constraintTop_toTopOf="@id/temp_background">
+
+        <RadioButton
+            android:id="@+id/temp_c_btn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/toggle_button_left_background"
+            android:button="@null"
+            android:checked="true"
+            android:gravity="center"
+            android:text="@string/c"
+            android:textColor="@drawable/radio_button_text_selector"
+            android:textSize="16sp" />
+
+        <RadioButton
+            android:id="@+id/temp_f_btn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/toggle_button_right_background"
+            android:button="@null"
+            android:gravity="center"
+            android:text="@string/f"
+            android:textColor="@drawable/radio_button_text_selector"
+            android:textSize="16sp" />
+    </RadioGroup>
+
+    <View
+        android:id="@+id/wind_background"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="1dp"
+        android:background="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/temp_background" />
+
+    <TextView
+        android:id="@+id/wind_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        android:text="@string/wind_speed"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@id/wind_background"
+        app:layout_constraintStart_toStartOf="@id/wind_background"
+        app:layout_constraintTop_toTopOf="@id/wind_background" />
+
+    <RadioGroup
+        android:id="@+id/wind_switcher"
+        android:layout_width="128dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@id/wind_background"
+        app:layout_constraintEnd_toEndOf="@id/wind_background"
+        app:layout_constraintTop_toTopOf="@id/wind_background">
+
+        <RadioButton
+            android:id="@+id/wind_ms_btn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/toggle_button_left_background"
+            android:button="@null"
+            android:checked="true"
+            android:gravity="center"
+            android:text="@string/m_s"
+            android:textColor="@drawable/radio_button_text_selector"
+            android:textSize="16sp" />
+
+        <RadioButton
+            android:id="@+id/wind_kmh_btn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/toggle_button_right_background"
+            android:button="@null"
+            android:gravity="center"
+            android:text="@string/km_h"
+            android:textColor="@drawable/radio_button_text_selector"
+            android:textSize="16sp" />
+    </RadioGroup>
+
+    <View
+        android:id="@+id/pressure_background"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="1dp"
+        android:background="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/wind_background" />
+
+    <TextView
+        android:id="@+id/pressure_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        android:text="@string/pressure"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@id/pressure_background"
+        app:layout_constraintStart_toStartOf="@id/pressure_background"
+        app:layout_constraintTop_toTopOf="@id/pressure_background" />
+
+    <RadioGroup
+        android:id="@+id/pressure_switcher"
+        android:layout_width="128dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@id/pressure_background"
+        app:layout_constraintEnd_toEndOf="@id/pressure_background"
+        app:layout_constraintTop_toTopOf="@id/pressure_background">
+
+        <RadioButton
+            android:id="@+id/pressure_mmhg_btn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/toggle_button_left_background"
+            android:button="@null"
+            android:checked="true"
+            android:gravity="center"
+            android:text="@string/mmhg"
+            android:textColor="@drawable/radio_button_text_selector"
+            android:textSize="16sp" />
+
+        <RadioButton
+            android:id="@+id/pressure_hpa_btn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/toggle_button_right_background"
+            android:button="@null"
+            android:gravity="center"
+            android:text="@string/hpa"
+            android:textColor="@drawable/radio_button_text_selector"
+            android:textSize="16sp" />
+    </RadioGroup>
+
+    <View
+        android:id="@+id/location_permission_background"
+        android:layout_width="0dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="16dp"
+        android:background="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pressure_background" />
+
+    <TextView
+        android:id="@+id/location_permission_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        android:text="@string/geolocation"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@id/location_permission_description_tv"
+        app:layout_constraintStart_toStartOf="@id/location_permission_background"
+        app:layout_constraintTop_toTopOf="@id/location_permission_background" />
+
+    <TextView
+        android:id="@+id/location_permission_description_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        android:textColor="@color/secondary_text"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@id/location_permission_background"
+        app:layout_constraintStart_toStartOf="@id/location_permission_background"
+        app:layout_constraintTop_toBottomOf="@id/location_permission_tv"
+        android:text="@string/if_you_enable_it_your_forecast_will_be_more_precise" />
+    <Switch
+        android:id="@+id/location_permission_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="@id/location_permission_background"
+        app:layout_constraintTop_toTopOf="@id/location_permission_tv"
+        app:layout_constraintBottom_toBottomOf="@id/location_permission_tv"
+        android:layout_marginEnd="16dp"
+        />
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/location_permission_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="location_permission_background,location_permission_description_tv,location_permission_tv,location_permission_switch"
+        />
+
+    <View
+        android:id="@+id/location_background"
+        android:layout_width="0dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="16dp"
+        android:background="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/location_permission_background" />
+
+    <TextView
+        android:id="@+id/location_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        android:text="@string/location"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@id/location_description_tv"
+        app:layout_constraintStart_toStartOf="@id/location_background"
+        app:layout_constraintTop_toTopOf="@id/location_background" />
+
+    <TextView
+        android:id="@+id/location_description_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        android:textColor="@color/secondary_text"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@id/location_background"
+        app:layout_constraintStart_toStartOf="@id/location_background"
+        app:layout_constraintTop_toBottomOf="@id/location_tv"
+        tools:text="Your city" />
+
+    <ImageButton
+        android:id="@+id/location_selector"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_keyboard_arrow_down_black_24dp"
+        app:layout_constraintBottom_toBottomOf="@id/location_tv"
+        app:layout_constraintEnd_toEndOf="@id/location_background"
+        app:layout_constraintTop_toTopOf="@id/location_tv" />
+
+    <View
+        android:id="@+id/about_background"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:background="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/location_background" />
+
+    <TextView
+        android:id="@+id/about_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        android:text="@string/about"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@id/about_background"
+        app:layout_constraintStart_toStartOf="@id/about_background"
+        app:layout_constraintTop_toTopOf="@id/about_background" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

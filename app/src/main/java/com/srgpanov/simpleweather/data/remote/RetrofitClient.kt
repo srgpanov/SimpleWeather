@@ -1,17 +1,18 @@
 package com.srgpanov.simpleweather.data.remote
 
 import android.util.Log
-import com.facebook.stetho.okhttp.StethoInterceptor
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.srgpanov.simpleweather.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    private const val baseUrlWeather = "https://api.weather.yandex.ru/v1/"
+    private const val baseUrlWeather = "https://api.openweathermap.org/data/2.5/"
     private const val baseUrlPlaces = "https://geocode-maps.yandex.ru/"
+    private const val baseUrlIpToLocation = "http://ip-api.com/"
     private fun getInterceptor(): HttpLoggingInterceptor {
         val loggingInterceptor=HttpLoggingInterceptor();
         if (BuildConfig.DEBUG){
@@ -19,48 +20,39 @@ object RetrofitClient {
         }
         return loggingInterceptor;
     }
-    private fun getHttpClient(isWeather:Boolean):OkHttpClient{
-        return when (isWeather){
-            true -> OkHttpClient.Builder()
-                .addInterceptor {
-                    val original = it.request()
-                    val request = original.newBuilder()
-                        .addHeader("X-Yandex-API-Key", "098f7b10-efc0-48af-8fbe-a8f62507cb99")
-                        .build()
-                    it.proceed(request)
-                }
+    private fun getHttpClient():OkHttpClient{
+        return OkHttpClient.Builder()
                 .addInterceptor(getInterceptor())
                 .build()
-            false -> OkHttpClient.Builder()
-                .addInterceptor(getInterceptor())
-                .build()
-        }}
+        }
 
 
-    private fun createRetrofit(baseUrl:String, httpClient:OkHttpClient):Retrofit{
+    private fun createRetrofit(baseUrl:String):Retrofit{
         return Retrofit.Builder()
             .baseUrl(baseUrl)
-            .client(httpClient)
+            .client(getHttpClient())
             .addConverterFactory(GsonConverterFactory.create())
-            .addCallAdapterFactory(CoroutineCallAdapterFactory())
+            .addCallAdapterFactory(ResponseResultAdapterFactory())
             .build()
     }
 
 
     fun createWeatherService(): WeatherService {
         return createRetrofit(
-            baseUrlWeather,
-            getHttpClient(
-                true
-            )
+            baseUrlWeather
         ).create(WeatherService::class.java)
     }
     fun createPlacesService(): PlacesService {
         return createRetrofit(
-            baseUrlPlaces,
-            getHttpClient(
-                false
-            )
+            baseUrlPlaces
         ).create(PlacesService::class.java)
+    }
+    fun createIpToLocationService():IpToLocationService{
+        return Retrofit.Builder()
+            .baseUrl(baseUrlIpToLocation)
+            .client(getHttpClient())
+            .addConverterFactory(GsonConverterFactory.create())
+            .addCallAdapterFactory(ResponseResultAdapterFactory())
+            .build().create(IpToLocationService::class.java)
     }
 }

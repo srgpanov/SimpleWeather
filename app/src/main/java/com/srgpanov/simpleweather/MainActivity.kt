@@ -1,13 +1,14 @@
 package com.srgpanov.simpleweather
 
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.srgpanov.simpleweather.other.OnBackPressedListener
 import com.srgpanov.simpleweather.other.logD
-import com.srgpanov.simpleweather.other.logDAnonim
 import com.srgpanov.simpleweather.ui.pager_screen.PagerFragment
+import com.srgpanov.simpleweather.ui.weather_screen.DetailFragment
 
 
 class MainActivity : AppCompatActivity() {
@@ -64,6 +65,8 @@ class MainActivity : AppCompatActivity() {
         logD("pagerFragment $pagerFragment  TAG ${PagerFragment::class.java.simpleName}")
         pagerFragment?.showDetailFragment()
     }
+
+
 
     override fun onBackPressed() {
         supportFragmentManager.fragments.forEach {

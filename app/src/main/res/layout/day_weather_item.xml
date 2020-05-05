@@ -40,9 +40,10 @@
         app:layout_constraintEnd_toStartOf="@id/temp_day_tv"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
+
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        android:src="@drawable/ic_sunny_48px"
+        android:src="@drawable/ic_skc_d"
         android:layout_marginEnd="16dp"
         android:textColor="@color/primary_text"
         android:textSize="18sp"
@@ -73,5 +74,6 @@
         android:textColor="@color/secondary_text"
         android:textSize="14sp"
         />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

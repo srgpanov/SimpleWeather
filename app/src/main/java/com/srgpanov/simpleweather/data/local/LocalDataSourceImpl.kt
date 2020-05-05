@@ -5,66 +5,73 @@ import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.other.logD
 import com.srgpanov.simpleweather.ui.App
 
-class LocalDataSourceImpl :
-    LocalDataSource {
+class LocalDataSourceImpl  {
     private val dao = WeatherDataBase.getInstance(
         App.instance
     ).weatherDataDao()
-    override suspend fun getFavoritesPlaces(): List<PlaceEntity> {
+suspend fun getFavoritesPlaces(): List<PlaceEntity> {
         return dao.getFavoritesPlaces()
     }
-    override suspend fun getCurrentLocation(): PlaceEntity? {
+     suspend fun getCurrentLocation(): PlaceEntity? {
         val currentList = dao.getCurrentLocation()
         return if (currentList.isNotEmpty()){
             currentList[0]
         }else null
     }
 
-    override suspend fun getSearchHistory(): List<PlaceEntity> {
+     suspend fun getSearchHistory(): List<PlaceEntity> {
        return dao.getSearchHistory()
     }
 
-    override suspend fun saveCurrentPlace(placeEntity: CurrentTable) {
+     suspend fun saveCurrentPlace(placeEntity: CurrentTable) {
             dao.saveCurrentPlaceWithReplace(placeEntity)
             logD("saved  current place")
 
 
     }
 
-    override suspend fun saveFavoritePlace(placeEntity: FavoriteTable) {
+     suspend fun saveFavoritePlace(placeEntity: FavoriteTable) {
         dao.saveFavoritePlace(placeEntity)
         logD("saved  favorite place")
     }
 
 
-    override suspend fun getLastRequest(): List<WeatherEntity> {
+     suspend fun getLastRequest(): List<OneCallTable> {
         val lastResponse = dao.getLastResponse()
         logD(lastResponse.toString())
         return dao.getLastResponse()
     }
 
-    override suspend fun saveRequest(weatherEntity: WeatherEntity) {
-        dao.saveResponse(weatherEntity)
+     suspend fun saveOneCallResponse(weatherEntity: OneCallTable) {
+        dao.saveOneCallResponse(weatherEntity)
     }
 
-    override suspend fun getResponse(geoPoint: GeoPoint): WeatherEntity? {
-        return dao.getResponse(geoPoint.pointToId())
+     suspend fun getOneCallResponse(geoPoint: GeoPoint): OneCallTable? {
+        return dao.getOnceCallResponse(geoPoint.pointToId())
     }
 
-    override suspend fun placeIsFavorite(placeEntity: PlaceEntity): Boolean {
+     suspend fun placeIsFavorite(placeEntity: PlaceEntity): Boolean {
         val isFavorite = dao.placeIsFavorite(placeEntity.toGeoPoint().pointToId())
         logD("placeIsFavorite ${isFavorite != null}")
         return isFavorite != null
     }
 
-    override suspend fun removeFavoritePlace(placeEntity: PlaceEntity) {
+     suspend fun removeFavoritePlace(placeEntity: PlaceEntity) {
         val favoriteDeleted =dao.removeFavoritePlace(placeEntity.toGeoPoint().pointToId())
         logD("removeFavoritePlace $favoriteDeleted")
     }
 
-    override suspend fun savePlaceToHistory(placeEntity: PlaceEntity) {
+     suspend fun savePlaceToHistory(placeEntity: PlaceEntity) {
         dao.savePlaceToHistoryMaxPlace(placeEntity.toSearchHistoryTable())
         logD("savePlaceToHistory ")
+    }
+
+    suspend fun getCurrentResponse(geoPoint: GeoPoint): SimpleWeatherTable? {
+        return dao.getCurrentResponse(geoPoint.pointToId())
+    }
+
+    suspend fun saveCurrentResponse(response: SimpleWeatherTable) {
+        dao.saveCurrentResponse(response)
     }
 
 

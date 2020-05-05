@@ -4,12 +4,10 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListUpdateCallback
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.other.logD
-import com.srgpanov.simpleweather.other.logDAnonim
 
 class PlaceDiffCallBack(private val oldList: List<PlaceEntity>, private val newList: List<PlaceEntity>):
     DiffUtil.Callback() {
     override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        logDAnonim("areItemsTheSame oldItemPosition $oldItemPosition newItemPosition $newItemPosition")
         val oldPlace = oldList[oldItemPosition]
         val newPlace = newList[newItemPosition]
         return  oldPlace.toGeoPoint().pointToId() == newPlace.toGeoPoint().pointToId()
@@ -24,10 +22,15 @@ class PlaceDiffCallBack(private val oldList: List<PlaceEntity>, private val newL
     }
 
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        val oldPlace = oldList[oldItemPosition] as? PlaceEntity
-        val newPlace = newList[newItemPosition]as? PlaceEntity
-        return oldPlace?.cityTitle==newPlace?.cityTitle&&
-                oldPlace?.toGeoPoint()?.pointToId()==newPlace?.toGeoPoint()?.pointToId()
+        val oldPlace = oldList[oldItemPosition]
+        val newPlace = newList[newItemPosition]
+        logD("areContentsTheSame ${oldPlace.toGeoPoint().pointToId() == newPlace.toGeoPoint().pointToId()&&
+                oldPlace.simpleWeatherTable?.time==newPlace.simpleWeatherTable?.time}")
+        return oldPlace.toGeoPoint().pointToId() == newPlace.toGeoPoint().pointToId()
+                &&
+                oldPlace.simpleWeatherTable?.time==newPlace.simpleWeatherTable?.time
+                &&
+                oldPlace.simpleWeatherTable?.currentWeatherResponse?.main?.temp==newPlace.simpleWeatherTable?.currentWeatherResponse?.main?.temp
     }
 
 

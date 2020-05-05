@@ -4,16 +4,19 @@ package com.srgpanov.simpleweather.ui.weather_screen
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.srgpanov.simpleweather.data.models.weather.Fact
-import com.srgpanov.simpleweather.data.models.weather.Hour
+import com.srgpanov.simpleweather.data.models.weather.Current
+import com.srgpanov.simpleweather.data.models.weather.Hourly
 import com.srgpanov.simpleweather.data.models.weather.Sunrise
-import com.srgpanov.simpleweather.data.models.weather.WeatherResponse
+import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.databinding.DetailWeatherItemBinding
 import com.srgpanov.simpleweather.databinding.HourlyWeatherItemBinding
-import com.srgpanov.simpleweather.other.logD
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class WeatherDetailAdapter() : RecyclerView.Adapter<WeatherDetailHolders>() {
     var list: MutableList<Any> = ArrayList()
+    val scope: CoroutineScope? = null
 
     companion object {
         private const val TYPE_HEADER = 0
@@ -42,7 +45,7 @@ class WeatherDetailAdapter() : RecyclerView.Adapter<WeatherDetailHolders>() {
     override fun onBindViewHolder(holder: WeatherDetailHolders, position: Int) {
         return when (holder) {
             is WeatherDetailHolders.HeaderHolder -> {
-                holder.bind(list[0] as Fact)
+                holder.bind(list[0] as Current)
             }
             is WeatherDetailHolders.HourlyHolder -> holder.bind(list, position)
         }
@@ -50,66 +53,48 @@ class WeatherDetailAdapter() : RecyclerView.Adapter<WeatherDetailHolders>() {
 
     override fun getItemViewType(position: Int): Int {
         return when (list[position]) {
-            is Fact -> TYPE_HEADER
-            is Hour -> TYPE_HOURS
+            is Current -> TYPE_HEADER
+            is Hourly -> TYPE_HOURS
             is Sunrise -> TYPE_SUNSET
             else -> throw IllegalStateException("Wrong type")
         }
     }
 
-    fun setData(request: WeatherResponse) {
-        val listFromRequest: MutableList<Any> = getDataListFromRequest(request)
-        logD("request is refreshed")
-        list.clear()
-        list.addAll(listFromRequest)
-        notifyDataSetChanged()
+    suspend fun setData(request: OneCallResponse) {
+        withContext(Dispatchers.Default) {
+            val listFromRequest: MutableList<Any> = getDataListFromRequest(request)
+            list.clear()
+            list.addAll(listFromRequest)
+        }
     }
 
-    private fun getDataListFromRequest(request: WeatherResponse): MutableList<Any> {
-        val listFromRequest: MutableList<Any> = ArrayList<Any>()
-        listFromRequest.add(request.fact)
-        val todaySunrise = request.forecasts[0].sunrise.take(2).toInt()
-        val todaySunset = request.forecasts[0].sunset.take(2).toInt()
-        val tomorrowSunrise = request.forecasts[1].sunrise.take(2).toInt()
-        val tomorrowSunset = request.forecasts[1].sunset.take(2).toInt()
-        for (hours in request.forecasts[0].hours) {
-            if ((hours.hour >= request.getServerHour())) {
-                listFromRequest.add(hours)
-                if (hours.hour == todaySunrise) listFromRequest.add(
+
+private fun getDataListFromRequest(request: OneCallResponse): MutableList<Any> {
+    val listFromRequest: MutableList<Any> = mutableListOf()
+    request.setOffsets()
+    listFromRequest.add(request.current)
+    for (hours in request.hourly) {
+        listFromRequest.add(hours)
+        for (daily in request.daily) {
+            if (daily.getDay() == hours.day()) {
+                val hourOfSunrise = hours.hour() == daily.getHourSunrise()
+                val hourOfSunset = hours.hour() == daily.getHourSunset()
+                if (hourOfSunrise) listFromRequest.add(
                     Sunrise(
-                        request.forecasts[0].sunrise,
-                        true,
-                        request.forecasts[1].date
+                        daily.getSunriseString(),
+                        true
                     )
                 )
-                if (hours.hour == todaySunset) listFromRequest.add(
+                if (hourOfSunset) listFromRequest.add(
                     Sunrise(
-                        request.forecasts[0].sunset,
-                        false,
-                        request.forecasts[1].date
-                    )
-                )
-            }
-        }
-        for (hours in request.forecasts[1].hours) {
-            if ((hours.hour <= request.getServerHour())) {
-                listFromRequest.add(hours)
-                if (hours.hour == tomorrowSunrise) listFromRequest.add(
-                    Sunrise(
-                        request.forecasts[1].sunrise,
-                        true,
-                        request.forecasts[1].date
-                    )
-                )
-                if (hours.hour == tomorrowSunset) listFromRequest.add(
-                    Sunrise(
-                        request.forecasts[1].sunset,
-                        false,
-                        request.forecasts[1].date
+                        daily.getSunsetString(),
+                        false
                     )
                 )
             }
         }
-        return listFromRequest
     }
+
+    return listFromRequest
+}
 }

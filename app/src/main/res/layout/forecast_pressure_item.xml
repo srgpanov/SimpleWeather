@@ -6,26 +6,6 @@
     android:padding="16dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_25"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.25" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_50"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.5" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_75"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.75" />
 
 
     <ImageView
@@ -44,99 +24,21 @@
         app:layout_constraintStart_toEndOf="@id/pressure_icon_iv"
         app:layout_constraintTop_toTopOf="@id/pressure_icon_iv" />
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/pressure_time_morning_tv"
-        style="@style/forecast_secondary_tv"
-        android:layout_marginTop="16dp"
-        android:text="@string/forecast_morning"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pressure_icon_iv" />
+
 
     <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/pressure_time_day_tv"
-        style="@style/forecast_secondary_tv"
-        android:text="@string/forecast_day"
-        app:layout_constraintBottom_toBottomOf="@id/pressure_time_morning_tv"
-        app:layout_constraintStart_toStartOf="@id/guideline_25"
-        app:layout_constraintTop_toTopOf="@id/pressure_time_morning_tv" />
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/pressure_time_evening_tv"
-        style="@style/forecast_secondary_tv"
-        android:text="@string/forecast_evening"
-        app:layout_constraintBottom_toBottomOf="@id/pressure_time_morning_tv"
-        app:layout_constraintStart_toStartOf="@id/guideline_50"
-        app:layout_constraintTop_toTopOf="@id/pressure_time_morning_tv" />
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/pressure_time_night_tv"
-        style="@style/forecast_secondary_tv"
-        android:text="@string/forecast_night"
-        app:layout_constraintBottom_toBottomOf="@id/pressure_time_morning_tv"
-        app:layout_constraintStart_toStartOf="@id/guideline_75"
-        app:layout_constraintTop_toTopOf="@id/pressure_time_morning_tv" />
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/pressure_value_morning_tv"
+        android:id="@+id/pressure_value_tv"
         style="@style/forecast_primary_tv"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pressure_time_morning_tv"
+        app:layout_constraintBaseline_toBaselineOf="@id/pressure_header_tv"
+        app:layout_constraintEnd_toStartOf="@id/pressure_scale_tv"
+        android:layout_marginEnd="8dp"
         tools:text="1018" />
 
     <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/pressure_value_day_tv"
-        style="@style/forecast_primary_tv"
-        app:layout_constraintBottom_toBottomOf="@id/pressure_value_morning_tv"
-        app:layout_constraintStart_toStartOf="@id/guideline_25"
-        app:layout_constraintTop_toTopOf="@id/pressure_value_morning_tv"
-        tools:text="1018" />
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/pressure_value_evening_tv"
-        style="@style/forecast_primary_tv"
-        app:layout_constraintBottom_toBottomOf="@id/pressure_value_day_tv"
-        app:layout_constraintStart_toStartOf="@id/guideline_50"
-        app:layout_constraintTop_toTopOf="@id/pressure_value_day_tv"
-        tools:text="1018" />
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/pressure_value_night_tv"
-        style="@style/forecast_primary_tv"
-        app:layout_constraintBottom_toBottomOf="@id/pressure_value_evening_tv"
-        app:layout_constraintStart_toStartOf="@id/guideline_75"
-        app:layout_constraintTop_toTopOf="@id/pressure_value_evening_tv"
-        tools:text="1018" />
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/pressure_scale_morning_tv"
+        android:id="@+id/pressure_scale_tv"
         style="@style/forecast_secondary_small_tv"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pressure_value_morning_tv"
-        android:text="@string/hpa" />
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/pressure_scale_day_tv"
-        style="@style/forecast_secondary_small_tv"
-        app:layout_constraintBottom_toBottomOf="@id/pressure_scale_morning_tv"
-        app:layout_constraintStart_toStartOf="@id/guideline_25"
-        app:layout_constraintTop_toTopOf="@id/pressure_scale_morning_tv"
-        android:text="@string/hpa" />
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/pressure_scale_evening_tv"
-        style="@style/forecast_secondary_small_tv"
-        app:layout_constraintBottom_toBottomOf="@id/pressure_scale_day_tv"
-        app:layout_constraintStart_toStartOf="@id/guideline_50"
-        app:layout_constraintTop_toTopOf="@id/pressure_scale_day_tv"
-        android:text="@string/hpa" />
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/pressure_scale_night_tv"
-        style="@style/forecast_secondary_small_tv"
-        app:layout_constraintBottom_toBottomOf="@id/pressure_scale_evening_tv"
-        app:layout_constraintStart_toStartOf="@id/guideline_75"
-        app:layout_constraintTop_toTopOf="@id/pressure_scale_evening_tv"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBaseline_toBaselineOf="@id/pressure_header_tv"
         android:text="@string/hpa" />
 
 

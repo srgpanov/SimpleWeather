@@ -4,25 +4,28 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.models.other.CalendarItem
+import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.databinding.ForecastPagerFragmentBinding
 import com.srgpanov.simpleweather.other.*
-import com.srgpanov.simpleweather.ui.ShareViewModel
 
 class ForecastPagerFragment : Fragment() {
     private lateinit var viewModel: ForecastPagerViewModel
-    private lateinit var shareViewModel: ShareViewModel
     private lateinit var dateAdapter: CalendarAdapter
     private lateinit var forecastAdapter: ForecastPagerAdapter
     private var _binding: ForecastPagerFragmentBinding? = null
     private val binding get() = _binding!!
-    var itemCompletelyVisibleListener:FirstItemCompletelyVisibleListener?=null
+    var itemCompletelyVisibleListener: FirstItemCompletelyVisibleListener? = null
 
     companion object {
         fun newInstance() = ForecastPagerFragment()
@@ -30,8 +33,15 @@ class ForecastPagerFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(ForecastPagerViewModel::class.java)
-        shareViewModel = ViewModelProvider(requireActivity()).get(ShareViewModel::class.java)
+        val position = arguments?.getInt("position", 0) ?: 0
+        val oneCall = arguments?.getParcelable<OneCallResponse>("oneCall")
+        oneCall?.hourly?.forEach {
+            logD("hours ${it.hour()}")
+        }
+        viewModel =
+            ViewModelProvider(this, ForecastViewModelFactory(position, oneCall)).get(
+                ForecastPagerViewModel::class.java
+            )
     }
 
     override fun onCreateView(
@@ -39,8 +49,13 @@ class ForecastPagerFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         _binding = ForecastPagerFragmentBinding.inflate(layoutInflater, container, false)
-        prepareViews()
+
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        prepareViews()
     }
 
     private fun prepareViews() {
@@ -79,38 +94,37 @@ class ForecastPagerFragment : Fragment() {
             }
         })
         forecastAdapter = ForecastPagerAdapter()
-        forecastAdapter.itemVisibleListener=itemCompletelyVisibleListener
+        forecastAdapter.itemVisibleListener = itemCompletelyVisibleListener
         binding.viewPager.adapter = forecastAdapter
         binding.viewPager.offscreenPageLimit = 3
         binding.viewPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
-        if (shareViewModel.daySelected >= 0) {
-            logD("daySelected ${shareViewModel.daySelected}")
-            viewModel.daySelected = shareViewModel.daySelected
-            viewModel.request.value = shareViewModel.request
-            shareViewModel.daySelected = -1
-        }
-        val request = viewModel.request.value
-        request?.let {
-            forecastAdapter.forecasts = it.forecasts.toMutableList()
+        viewModel.oneCallResponse.observe(viewLifecycleOwner, Observer {
+            forecastAdapter.forecasts = it.daily.toMutableList()
             val dateList: MutableList<CalendarItem> = mutableListOf()
-            it.forecasts.forEach { forecast ->
+            it.daily.forEach { forecast ->
                 dateList.add(
                     CalendarItem(
-                        forecast.getDate()
+                        forecast.date()
                     )
                 )
             }
             dateAdapter.setData(dateList.toList())
-        }
-        val currentDay = viewModel.daySelected
-        binding.viewPager.setCurrentItem(currentDay, false)
-        dateAdapter.selectDay(currentDay)
+            val currentDay = viewModel.daySelected
+            binding.viewPager.setCurrentItem(currentDay, false)
+            logD("selectDay")
+            dateAdapter.selectDay(currentDay)
+        })
+    }
+
+    override fun onStart() {
+        super.onStart()
+        logD("lifecycle onStart")
     }
 
     private fun setupToolbar() {
         binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back);
         binding.toolbar.setNavigationOnClickListener { activity?.onBackPressed() }
-        itemCompletelyVisibleListener= object : FirstItemCompletelyVisibleListener {
+        itemCompletelyVisibleListener = object : FirstItemCompletelyVisibleListener {
             override fun isVisible(isVisible: Boolean) {
                 if (isVisible) {
                     binding.appbarLayout.elevation = 0f
@@ -123,4 +137,5 @@ class ForecastPagerFragment : Fragment() {
                 }
             }
         }
-    }}
+    }
+}

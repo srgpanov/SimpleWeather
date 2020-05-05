@@ -2,8 +2,9 @@ package com.srgpanov.simpleweather.ui.favorits_screen
 
 import android.content.Context
 import android.content.DialogInterface
+import android.graphics.Color
 import android.graphics.Point
-import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Display
 import android.view.LayoutInflater
@@ -13,7 +14,6 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.PopupWindow
-import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
@@ -25,8 +25,8 @@ import androidx.recyclerview.widget.MergeAdapter
 import com.srgpanov.simpleweather.MainActivity
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
-import com.srgpanov.simpleweather.data.remote.RemoteDataSource
 import com.srgpanov.simpleweather.data.remote.RemoteDataSourceImpl
+import com.srgpanov.simpleweather.data.remote.ResponseResult.*
 import com.srgpanov.simpleweather.databinding.FragmentFavoriteBinding
 import com.srgpanov.simpleweather.other.*
 import com.srgpanov.simpleweather.ui.ShareViewModel
@@ -34,7 +34,6 @@ import com.srgpanov.simpleweather.ui.weather_screen.DetailFragment
 import kotlinx.coroutines.*
 import java.util.*
 import kotlin.coroutines.CoroutineContext
-import kotlin.system.measureTimeMillis
 
 
 class FavoriteFragment : Fragment() {
@@ -46,10 +45,11 @@ class FavoriteFragment : Fragment() {
     private val coroutineContext: CoroutineContext
         get() = parentJob + Dispatchers.Default
     private val scope = CoroutineScope(coroutineContext)
-    private val remoteDataSource: RemoteDataSource by lazy { RemoteDataSourceImpl() }
+    private val remoteDataSource by lazy { RemoteDataSourceImpl() }
     private val historyAdapter: SearchHistoryAdapter by lazy { SearchHistoryAdapter() }
     private val favoritesAdapter: FavoritesAdapter by lazy { FavoritesAdapter() }
     private val favoritesHeaderAdapter: FavoritesHeaderAdapter by lazy { FavoritesHeaderAdapter() }
+    private val emptyFavoriteAdapter: EmptyFavoriteAdapter by lazy { EmptyFavoriteAdapter() }
     private val searchAdapter: SearchAdapter by lazy { SearchAdapter() }
     lateinit var mergeAdapter: MergeAdapter
     private var mainActivity: MainActivity? = null
@@ -85,101 +85,97 @@ class FavoriteFragment : Fragment() {
         setupRecyclerView()
         viewModel.searchHistory.observe(viewLifecycleOwner, Observer {
             it.forEach { place ->
-                logDAnonim("searchHistory ${place}")
+                logD("searchHistory ${place}")
             }
             historyAdapter.setData(it)
         })
-        viewModel.favoritePlaces.observe(viewLifecycleOwner, Observer {
-            favoritesAdapter.setData(it)
+        viewModel.favoritePlaces.observe(viewLifecycleOwner, Observer {places->
+            logD("favoritePlaces.observe ${places.size}")
+            favoritesAdapter.setData(places)
+            if (places.isEmpty()){
+                mergeAdapter.addAdapter(emptyFavoriteAdapter)
+            }else{
+                mergeAdapter.removeAdapter(emptyFavoriteAdapter)
+            }
         })
         viewModel.currentPlace.observe(viewLifecycleOwner, Observer {
             logD("current value $it ")
             favoritesHeaderAdapter.current = it
             favoritesHeaderAdapter.notifyDataSetChanged()
         })
+        shareViewModel.currentPlace.observe(viewLifecycleOwner, Observer {
+            viewModel.currentPlace.value = it
+        })
+        shareViewModel.refreshWeather.observe(viewLifecycleOwner, Observer {
+            logD("refreshWeather")
+            viewModel.refreshWeather()
+        })
+    }
+
+    override fun onPause() {
+        super.onPause()
+        logD("lifecycle onPause ${this}")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        logD("lifecycle onStop ${this}")
+
     }
 
     override fun onDestroyView() {
-        coroutineContext.cancel()
         _binding = null
+        logD("lifecycle onDestroyView ${this}")
         super.onDestroyView()
+    }
+
+    override fun onDestroy() {
+        scope.cancel()
+        logD("lifecycle onDestroy ${this}")
+        super.onDestroy()
     }
 
     override fun onStart() {
         super.onStart()
         logD("lifecycle onStart ${this}")
+        viewModel.refreshPlaces()
+        binding.searchView.isIconified = !viewModel.searchViewOpen
     }
 
     override fun onResume() {
         super.onResume()
+        logD("searchview ${binding.searchView.isIconified} searchViewOpen ${viewModel.searchViewOpen}")
         logD("lifecycle onResume  ${this}")
     }
 
     private fun prepareViews() {
         setupInsets()
         setupToolbar()
-           }
+    }
 
 
     private fun setupRecyclerView() {
         favoritesAdapter.scope = scope
-        favoritesAdapter.repository = viewModel.repository
         favoritesAdapter.listener = object : MyClickListener {
             override fun onClick(view: View?, position: Int) {
                 val place = favoritesAdapter.places[position]
                 goToDetailFragment(place)
-
             }
         }
         favoritesAdapter.optionsListener = object : MyClickListener {
             override fun onClick(view: View?, position: Int) {
                 view?.let {
-                    val inflater =
-                        requireActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-                    val layout = inflater.inflate(R.layout.favorite_popup_menu_layout, null)
-                    val menu = PopupWindow(requireContext())
-                    val menuHeight = dpToPx(96)
-                    menu.contentView = layout
-                    menu.height = menuHeight
-                    menu.width = dpToPx(180)
-                    menu.isFocusable = true
-                    menu.setBackgroundDrawable(BitmapDrawable())
-                    menu.animationStyle = android.R.style.Widget_Material_PopupMenu
-                    val location = IntArray(2)
-                    it.getLocationOnScreen(location)
-                    val display: Display = requireActivity().getWindowManager().getDefaultDisplay()
-                    val size = Point()
-                    display.getSize(size)
-                    val displayHeight: Int = size.y
-                    val menuPinnedTop = (location[1] + it.height + menu.height) > displayHeight
-                    if (menuPinnedTop) {
-                        menu.animationStyle = R.style.AnimationPopupTop
-                    } else {
-                        menu.animationStyle = R.style.AnimationPopupBottom
-                    }
-                    menu.showAsDropDown(it)
-                    val removeView = layout.findViewById<View>(R.id.menu_remove_tv)
-                    val renameView = layout.findViewById<View>(R.id.menu_rename_tv)
-                    removeView.setOnClickListener {
-                        menu.dismiss()
-                        removeFavoritePlace(favoritesAdapter.places[position])
-                    }
-                    renameView.setOnClickListener {
-                        menu.dismiss()
-                        renamePlace(favoritesAdapter.places[position])
-                    }
+                    showPopUpMenu(it, position)
                 }
             }
         }
         favoritesHeaderAdapter.listener = object : MyClickListener {
             override fun onClick(view: View?, position: Int) {
-              favoritesHeaderAdapter.current?.let {
-                  goToDetailFragment(it)
-              }
+                favoritesHeaderAdapter.current?.let {
+                    goToDetailFragment(it)
+                }
             }
         }
-        favoritesHeaderAdapter.scope = scope
-        favoritesHeaderAdapter.repository = viewModel.repository
         mergeAdapter = MergeAdapter(favoritesHeaderAdapter, favoritesAdapter)
         binding.recyclerView.adapter = mergeAdapter
         historyAdapter.listener = object : MyClickListener {
@@ -187,7 +183,6 @@ class FavoriteFragment : Fragment() {
                 onSelectPlace(historyAdapter.searchHistoryList[position])
             }
         }
-
         searchAdapter.listener = object : MyClickListener {
             override fun onClick(view: View?, position: Int) {
                 val featureMember = searchAdapter.featureMember[position]
@@ -200,15 +195,54 @@ class FavoriteFragment : Fragment() {
                 onSelectPlace(place)
             }
         }
+
+    }
+
+    private fun showPopUpMenu(it: View, position: Int) {
+        val inflater =
+            requireActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val layout = inflater.inflate(R.layout.favorite_popup_menu_layout, null)
+        val menu = PopupWindow(requireContext())
+        val menuHeight = dpToPx(96)
+        menu.contentView = layout
+        menu.height = menuHeight
+        menu.width = dpToPx(180)
+        menu.isFocusable = true
+        menu.elevation = 8F;
+        menu.setBackgroundDrawable(ColorDrawable(Color.WHITE))
+        menu.animationStyle = android.R.style.Widget_Material_PopupMenu
+        val location = IntArray(2)
+        it.getLocationOnScreen(location)
+        val display: Display = requireActivity().getWindowManager().getDefaultDisplay()
+        val size = Point()
+        display.getSize(size)
+        val displayHeight: Int = size.y
+        val menuPinnedTop = (location[1] + it.height + menu.height) > displayHeight
+        if (menuPinnedTop) {
+            menu.animationStyle = R.style.AnimationPopupTop
+        } else {
+            menu.animationStyle = R.style.AnimationPopupBottom
+        }
+        menu.showAsDropDown(it)
+        val removeView = layout.findViewById<View>(R.id.menu_remove_tv)
+        val renameView = layout.findViewById<View>(R.id.menu_rename_tv)
+        removeView.setOnClickListener {
+            menu.dismiss()
+            removeFavoritePlace(favoritesAdapter.places[position])
+        }
+        renameView.setOnClickListener {
+            menu.dismiss()
+            renamePlace(favoritesAdapter.places[position])
+        }
     }
 
     private fun removeFavoritePlace(placeEntity: PlaceEntity) {
-        logDAnonim("menu ${placeEntity.cityTitle}")
+        logD("menu ${placeEntity.cityTitle}")
         viewModel.removeFavoritePlace(placeEntity)
     }
 
     private fun renamePlace(placeEntity: PlaceEntity) {
-        logDAnonim("menu ${placeEntity.cityTitle}")
+        logD("menu ${placeEntity.cityTitle}")
         showAlertDialog(placeEntity)
 
     }
@@ -235,7 +269,7 @@ class FavoriteFragment : Fragment() {
             .setTitle(R.string.rename)
             .setPositiveButton(android.R.string.ok, object : DialogInterface.OnClickListener {
                 override fun onClick(dialog: DialogInterface?, which: Int) {
-                    logDAnonim("DialogInterface ${editText.text}")
+                    logD("DialogInterface ${editText.text}")
                     if (placeEntity.cityTitle != editText.text.toString()) {
                         viewModel.renamePlace(placeEntity.copy(cityTitle = editText.text.toString()))
                     }
@@ -247,9 +281,10 @@ class FavoriteFragment : Fragment() {
     }
 
     private fun onSelectPlace(placeEntity: PlaceEntity) {
+        viewModel.searchViewOpen = false
         shareViewModel.savePlaceToHistory(placeEntity)
         binding.searchView.isIconified = true
-        var  favoriteOrCurrent= viewModel.placeFavoriteOrCurrent(placeEntity)
+        var favoriteOrCurrent = viewModel.placeFavoriteOrCurrent(placeEntity)
         if (favoriteOrCurrent) {
             goToDetailFragment(placeEntity)
         } else {
@@ -286,7 +321,7 @@ class FavoriteFragment : Fragment() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                setAdapterData(newText)
+                setAdapterData(newText.toString())
                 return false
             }
         })
@@ -300,27 +335,32 @@ class FavoriteFragment : Fragment() {
 
     }
 
-    private fun setAdapterData(query: String?) {
+    private fun setAdapterData(query: String) {
+        logD("searchview ${binding.searchView.isIconified} searchViewOpen ${viewModel.searchViewOpen} setAdapterData")
         searchJob?.cancel()
         searchJob = scope.launch(Dispatchers.IO) {
             delay(500)
-            if (query != null && query.length > 1) {
+            if (query.length > 1) {
                 val placesResponse = when (Locale.getDefault().language) {
                     "en" -> remoteDataSource.getPlaces(query = query, lang = "en_US")
                     else -> remoteDataSource.getPlaces(query = query)
                 }
-                if (placesResponse != null) {
-                    withContext(Dispatchers.Main) {
-                        searchAdapter.setData(placesResponse.response.GeoObjectCollection.featureMember)
+                when (placesResponse) {
+                    is Success -> {
+                        searchAdapter.setData(placesResponse.data.response.GeoObjectCollection.featureMember)
                         if (binding.recyclerView.adapter != searchAdapter) {
                             binding.recyclerView.adapter = searchAdapter
                         }
                     }
+                    is Failure -> logE("searchJob ${placesResponse}")
+
                 }
             } else {
-                withContext(Dispatchers.Main) {
-                    if (binding.recyclerView.adapter != historyAdapter) {
-                        binding.recyclerView.adapter = historyAdapter
+                if (viewModel.searchViewOpen) {
+                    withContext(Dispatchers.Main) {
+                        if (binding.recyclerView.adapter != historyAdapter) {
+                            binding.recyclerView.adapter = historyAdapter
+                        }
                     }
                 }
             }
@@ -329,11 +369,13 @@ class FavoriteFragment : Fragment() {
 
 
     private fun openSearch() {
+        viewModel.searchViewOpen = true
         binding.titleTv.visibility = View.INVISIBLE
         binding.recyclerView.adapter = historyAdapter
     }
 
     private fun closeSearch() {
+        viewModel.searchViewOpen = false
         binding.titleTv.visibility = View.VISIBLE
         binding.recyclerView.adapter = mergeAdapter
     }
@@ -359,6 +401,7 @@ class FavoriteFragment : Fragment() {
             mainActivity?.navigateToDetailFragment()
         } else {
             binding.searchView.isIconified = true
+            viewModel.searchViewOpen = false
         }
     }
 }
