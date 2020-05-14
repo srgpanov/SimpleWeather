@@ -25,6 +25,8 @@ class WeatherDetailAdapter() : RecyclerView.Adapter<WeatherDetailHolders>() {
         val HEADER: Int = 1
     }
 
+
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WeatherDetailHolders {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {

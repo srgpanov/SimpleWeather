@@ -22,17 +22,18 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.MergeAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.MainActivity
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.data.remote.RemoteDataSourceImpl
-import com.srgpanov.simpleweather.data.remote.ResponseResult.*
+import com.srgpanov.simpleweather.data.remote.ResponseResult.Failure
+import com.srgpanov.simpleweather.data.remote.ResponseResult.Success
 import com.srgpanov.simpleweather.databinding.FragmentFavoriteBinding
 import com.srgpanov.simpleweather.other.*
 import com.srgpanov.simpleweather.ui.ShareViewModel
 import com.srgpanov.simpleweather.ui.weather_screen.DetailFragment
 import kotlinx.coroutines.*
-import java.util.*
 import kotlin.coroutines.CoroutineContext
 
 
@@ -89,12 +90,12 @@ class FavoriteFragment : Fragment() {
             }
             historyAdapter.setData(it)
         })
-        viewModel.favoritePlaces.observe(viewLifecycleOwner, Observer {places->
+        viewModel.favoritePlaces.observe(viewLifecycleOwner, Observer { places ->
             logD("favoritePlaces.observe ${places.size}")
             favoritesAdapter.setData(places)
-            if (places.isEmpty()){
+            if (places.isEmpty()) {
                 mergeAdapter.addAdapter(emptyFavoriteAdapter)
-            }else{
+            } else {
                 mergeAdapter.removeAdapter(emptyFavoriteAdapter)
             }
         })
@@ -131,21 +132,17 @@ class FavoriteFragment : Fragment() {
 
     override fun onDestroy() {
         scope.cancel()
-        logD("lifecycle onDestroy ${this}")
         super.onDestroy()
     }
 
     override fun onStart() {
         super.onStart()
-        logD("lifecycle onStart ${this}")
         viewModel.refreshPlaces()
         binding.searchView.isIconified = !viewModel.searchViewOpen
     }
 
     override fun onResume() {
         super.onResume()
-        logD("searchview ${binding.searchView.isIconified} searchViewOpen ${viewModel.searchViewOpen}")
-        logD("lifecycle onResume  ${this}")
     }
 
     private fun prepareViews() {
@@ -155,7 +152,12 @@ class FavoriteFragment : Fragment() {
 
 
     private fun setupRecyclerView() {
+        setupRvListeners()
         favoritesAdapter.scope = scope
+        mergeAdapter = MergeAdapter(favoritesHeaderAdapter, favoritesAdapter)
+        binding.recyclerView.adapter = mergeAdapter
+    }
+    private fun setupRvListeners(){
         favoritesAdapter.listener = object : MyClickListener {
             override fun onClick(view: View?, position: Int) {
                 val place = favoritesAdapter.places[position]
@@ -176,8 +178,6 @@ class FavoriteFragment : Fragment() {
                 }
             }
         }
-        mergeAdapter = MergeAdapter(favoritesHeaderAdapter, favoritesAdapter)
-        binding.recyclerView.adapter = mergeAdapter
         historyAdapter.listener = object : MyClickListener {
             override fun onClick(view: View?, position: Int) {
                 onSelectPlace(historyAdapter.searchHistoryList[position])
@@ -195,7 +195,6 @@ class FavoriteFragment : Fragment() {
                 onSelectPlace(place)
             }
         }
-
     }
 
     private fun showPopUpMenu(it: View, position: Int) {
@@ -338,32 +337,29 @@ class FavoriteFragment : Fragment() {
     private fun setAdapterData(query: String) {
         logD("searchview ${binding.searchView.isIconified} searchViewOpen ${viewModel.searchViewOpen} setAdapterData")
         searchJob?.cancel()
-        searchJob = scope.launch(Dispatchers.IO) {
+        searchJob = scope.launch(Dispatchers.Main) {
             delay(500)
             if (query.length > 1) {
-                val placesResponse = when (Locale.getDefault().language) {
-                    "en" -> remoteDataSource.getPlaces(query = query, lang = "en_US")
-                    else -> remoteDataSource.getPlaces(query = query)
-                }
+                val placesResponse = remoteDataSource.getPlaces(query = query)
                 when (placesResponse) {
                     is Success -> {
                         searchAdapter.setData(placesResponse.data.response.GeoObjectCollection.featureMember)
-                        if (binding.recyclerView.adapter != searchAdapter) {
-                            binding.recyclerView.adapter = searchAdapter
-                        }
+                        setAdapterToRv(searchAdapter)
                     }
                     is Failure -> logE("searchJob ${placesResponse}")
 
                 }
             } else {
                 if (viewModel.searchViewOpen) {
-                    withContext(Dispatchers.Main) {
-                        if (binding.recyclerView.adapter != historyAdapter) {
-                            binding.recyclerView.adapter = historyAdapter
-                        }
-                    }
+                    setAdapterToRv(historyAdapter)
                 }
             }
+        }
+    }
+
+    private fun setAdapterToRv(adapter: RecyclerView.Adapter<*>) {
+        if (binding.recyclerView.adapter != adapter) {
+            binding.recyclerView.adapter = adapter
         }
     }
 

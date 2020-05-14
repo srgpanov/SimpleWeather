@@ -53,7 +53,7 @@ data class Current(
     fun getDate():Date{
         return Date(dt*1000L)
     }
-    fun weatherFormated():String{
+    fun weatherFormatted():String{
         try {
             val builder = StringBuilder()
             weather.forEachIndexed { index, weather ->

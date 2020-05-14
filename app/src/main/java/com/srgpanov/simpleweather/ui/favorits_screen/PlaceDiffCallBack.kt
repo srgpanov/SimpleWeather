@@ -24,13 +24,14 @@ class PlaceDiffCallBack(private val oldList: List<PlaceEntity>, private val newL
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
         val oldPlace = oldList[oldItemPosition]
         val newPlace = newList[newItemPosition]
-        logD("areContentsTheSame ${oldPlace.toGeoPoint().pointToId() == newPlace.toGeoPoint().pointToId()&&
-                oldPlace.simpleWeatherTable?.time==newPlace.simpleWeatherTable?.time}")
-        return oldPlace.toGeoPoint().pointToId() == newPlace.toGeoPoint().pointToId()
+        logD("areContentsTheSame oldPlace ${oldPlace.simpleWeatherTable?.currentWeatherResponse?.main}")
+        logD("areContentsTheSame newPlace ${newPlace.simpleWeatherTable?.currentWeatherResponse?.main}")
+        logD("areContentsTheSame ${oldPlace.toGeoPoint().pointToId() == newPlace.toGeoPoint().pointToId()
                 &&
                 oldPlace.simpleWeatherTable?.time==newPlace.simpleWeatherTable?.time
                 &&
-                oldPlace.simpleWeatherTable?.currentWeatherResponse?.main?.temp==newPlace.simpleWeatherTable?.currentWeatherResponse?.main?.temp
+                oldPlace.simpleWeatherTable?.currentWeatherResponse?.main?.temp==newPlace.simpleWeatherTable?.currentWeatherResponse?.main?.temp}")
+        return oldPlace.toGeoPoint().pointToId() == newPlace.toGeoPoint().pointToId()&&oldPlace.simpleWeatherTable?.time==newPlace.simpleWeatherTable?.time
     }
 
 

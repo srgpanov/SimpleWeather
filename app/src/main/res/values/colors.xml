@@ -12,4 +12,10 @@
     <color name="dirty_white_background">#f5f3f2</color>
     <color name="status_bar_color">#c2c2c2</color>
 
+    <color name="widget_black">#222222</color>
+    <color name="widget_black_title">#000000</color>
+    <color name="widget_white">#ffffff</color>
+    <color name="widget_white_title">#efefef</color>
+    <color name="widget_white_night_text">#c4c7f3</color>
+    <color name="widget_black_night_text">#9194c4</color>
 </resources>

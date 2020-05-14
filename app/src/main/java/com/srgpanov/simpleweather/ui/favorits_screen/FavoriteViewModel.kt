@@ -35,15 +35,6 @@ class FavoriteViewModel : ViewModel() {
             loadWeather(placesList)
             logD("placesList ${placesList.size}")
         }
-//        scope.launch {
-//            val place = repository.getCurrentPlace()
-//            place?.let {
-//                place.current = true
-//                currentPlace.postValue(place)
-//                loadMainWeather(it)
-//            }
-//            logD("currentPlace ${place?.cityTitle} ${place?.current}")
-//        }
         scope.launch {
             val history = repository.getSearchHistory()
             searchHistory.postValue(history)
@@ -93,7 +84,7 @@ class FavoriteViewModel : ViewModel() {
 //        loadMainWeather()
     }
 
-    fun loadWeather(placeList: List<PlaceEntity>? = favoritePlaces.value) {
+    private fun loadWeather(placeList: List<PlaceEntity>? = favoritePlaces.value) {
         if (placeList != null) {
             loadWeather(placeList, false)
         }

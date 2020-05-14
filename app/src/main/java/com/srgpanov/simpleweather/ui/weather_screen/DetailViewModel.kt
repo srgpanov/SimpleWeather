@@ -2,9 +2,10 @@ package com.srgpanov.simpleweather.ui.weather_screen
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
+import android.content.Context.LOCATION_SERVICE
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.location.Location
 import android.location.LocationManager
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
@@ -25,6 +26,9 @@ import com.srgpanov.simpleweather.other.SingleLiveEvent
 import com.srgpanov.simpleweather.other.logD
 import com.srgpanov.simpleweather.ui.App
 import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment
+import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment
+import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.*
+import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.*
 import com.srgpanov.simpleweather.ui.setting_screen.SettingFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,7 +37,9 @@ import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
+
 class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
+
     private val parentJob = Job()
     private val coroutineContext: CoroutineContext
         get() = parentJob + Dispatchers.IO
@@ -70,6 +76,16 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
 
     }
 
+    init {
+        weatherData.value=null
+        if (argPlace!=null){
+            weatherPlace.value = argPlace
+        }
+        logD("second constructor argPlace is favorite${argPlace?.favorite} response ")
+        weatherPlace.observeForever(placeObserver)
+        showSetting.value = true
+    }
+
     private fun setupToolbarStatus(place: PlaceEntity) {
         logD("setupToolbarStatus place isFavorite ${place.favorite} isCurrent ${place.current} ")
         if (place.favorite || place.current) {
@@ -82,11 +98,6 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
                 showSetting.postValue(favorite || current)
             }
         }
-    }
-
-    init {
-        weatherPlace.observeForever(placeObserver)
-        showSetting.value = true
     }
 
     override fun onCleared() {
@@ -211,8 +222,9 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
         }
     }
 
-    private fun locationTypeIsCurrent(): Boolean {
-        return sharedPreferences.getBoolean(SettingFragment.LOCATION_TYPE_IS_CURRENT, true)
+    private fun locationTypeIsCurrent(): LocationType {
+        val int = sharedPreferences.getInt(SettingFragment.LOCATION_TYPE, 0)
+        return values()[int]
     }
 
     private fun firstStart(): Boolean {
@@ -230,7 +242,6 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
 
     fun setCurrentPlace() {
         if (argPlace != null) {
-            weatherPlace.value = argPlace
             return
         }
         isFirstStart = firstStart()
@@ -242,7 +253,7 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
     }
 
     private fun setupWeatherPlace() {
-        if (locationTypeIsCurrent()) {
+        if (locationTypeIsCurrent()==CURRENT) {
             setupCurrentLocation()
         } else {
             loadCurrentPlace()
@@ -266,19 +277,12 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
                     is Success -> {
                         val placeEntity = response.data.toEntity()
                         placeEntity.current = true
-                        saveLastLocation(placeEntity)
                         weatherPlace.postValue(placeEntity)
                         currentPlace.postValue(placeEntity)
                     }
                     is Failure.ServerError -> {
-                        val lastLocation = getLastLocation()
-                        if (lastLocation != null) {
-                            weatherPlace.postValue(lastLocation)
-                            currentPlace.postValue(lastLocation)
-                        } else {
                             weatherData.postValue(null)
                             currentPlace.postValue(null)
-                        }
 
                     }
                     is Failure.NetworkError -> {
@@ -293,33 +297,35 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
 
     }
 
-    private fun saveLastLocation(placeEntity: PlaceEntity) {
-        val placeJson = Gson().toJson(placeEntity)
-        sharedPreferences.edit().putString("lastLocation", placeJson).apply()
-    }
 
-    private fun getLastLocation(): PlaceEntity? {
-        val string = sharedPreferences.getString("lastLocation", null)
-        if (string != null) {
-            return Gson().fromJson(string, PlaceEntity::class.java)
+
+
+    private suspend fun getLocation(): GeoPoint? {
+        val location = getGeoPointFromLocationManger()
+        logD("getLocation lat ${location?.latitude} lon ${location?.longitude}")
+        if (location != null) {
+            return GeoPoint(location.latitude, location.longitude)
         } else {
-            return null
+            return when (val geoPoint=repository.getGeoPointFromIp()){
+                is Success -> geoPoint.data.toGeoPoint()
+                is Failure->null
+            }.also { logD("getLocation returned GeoPointFromIp()") }
         }
     }
-
-
     @SuppressLint("MissingPermission")
-    private fun getLocation(): GeoPoint? {
-        val locationManager =
-            context.getSystemService(Context.LOCATION_SERVICE) as LocationManager;
-        val loc = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-        logD("getLocation lat ${loc?.latitude} lon ${loc?.longitude}")
-        if (loc != null) {
-            return GeoPoint(loc.latitude, loc.longitude)
-        } else {
-            return null
+    private fun getGeoPointFromLocationManger(): Location? {
+        val locationManager =context.getSystemService(LOCATION_SERVICE) as LocationManager;
+        val providers: List<String> = locationManager.getProviders(true)
+        var bestLocation:Location? = null
+        for (provider in providers) {
+            val location = locationManager.getLastKnownLocation(provider) ?: continue
+            if (bestLocation == null || location.getAccuracy() < bestLocation.getAccuracy()) {
+                bestLocation = location
+            }
         }
+        return bestLocation
     }
+
 
 
     private fun locationPermissionIsGranted(): Boolean {

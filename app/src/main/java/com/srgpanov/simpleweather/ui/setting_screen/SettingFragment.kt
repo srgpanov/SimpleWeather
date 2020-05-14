@@ -1,6 +1,7 @@
 package com.srgpanov.simpleweather.ui.setting_screen
 
-import android.Manifest
+import android.Manifest.permission.ACCESS_COARSE_LOCATION
+import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -11,19 +12,35 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.invoke
+import androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.appcompat.app.ActionBar
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentResultListener
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.srgpanov.simpleweather.MainActivity
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.local.LocalDataSourceImpl
+import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.databinding.SettingFragmentBinding
+import com.srgpanov.simpleweather.other.NavigationActivity
 import com.srgpanov.simpleweather.other.logD
 import com.srgpanov.simpleweather.other.requestApplyInsetsWhenAttached
+import com.srgpanov.simpleweather.ui.ShareViewModel
+import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment
+import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment.Companion.REQUEST_PLACE
+import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType
+import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.*
+import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.OnLocationTypeChoiceCallback
+import com.srgpanov.simpleweather.ui.setting_widget_screen.SettingWidgetFragment
 import kotlinx.coroutines.launch
 
 
@@ -31,16 +48,31 @@ class SettingFragment : Fragment() {
     private var _binding: SettingFragmentBinding? = null
     private val binding get() = _binding!!
     private lateinit var sharedPreferences: SharedPreferences
-    private var mainActivity: MainActivity?=null
-    private var actionBar: ActionBar?=null
-    private val repository:LocalDataSourceImpl by lazy { LocalDataSourceImpl() }
-    private val PERMISSION=15
+    private lateinit var shareViewModel: ShareViewModel
+    private var mainActivity: MainActivity? = null
+    private var actionBar: ActionBar? = null
+    private val localDataSource: LocalDataSourceImpl by lazy { LocalDataSourceImpl() }
+    private val registerForLocationPermission =
+        registerForActivityResult(RequestMultiplePermissions()) { map ->
+            var permissionGranted = true
+            for (entry in map.entries) {
+                logD("entry.value ${entry.value}")
+                if (entry.value == false) {
+                    permissionGranted = false
+                }
+            }
+            setupLocationPermissionSetting(permissionGranted)
+        }
+    private val registerForAppSettings = registerForActivityResult(StartActivityForResult()) {
+        logD("ActivityResult $it")
+        setupLocationPermissionSetting(locationPermissionIsGranted())
+    }
 
     companion object {
         const val TEMP_MEASUREMENT = "TEMP_MEASUREMENT"
         const val WIND_MEASUREMENT = "WIND_MEASUREMENT"
         const val PRESSURE_MEASUREMENT = "PRESSURE_MEASUREMENT"
-        const val LOCATION_TYPE_IS_CURRENT = "LOCATION_TYPE_IS_CURRENT"
+        const val LOCATION_TYPE = "LOCATION_TYPE"
         val TAG = this::class.java.simpleName
 
         @JvmStatic
@@ -50,9 +82,21 @@ class SettingFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        shareViewModel = ViewModelProvider(requireActivity()).get(ShareViewModel::class.java)
         sharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(requireActivity());
-        mainActivity=requireActivity() as? MainActivity
+        mainActivity = requireActivity() as? MainActivity
+        requireActivity().supportFragmentManager.setFragmentResultListener(
+            REQUEST_PLACE,
+            this,
+            FragmentResultListener { requestKey, result ->
+                if (requestKey == REQUEST_PLACE) {
+                    val place = result.getParcelable<PlaceEntity>(REQUEST_PLACE)
+                    if (place != null) {
+                        onOtherLocationChoice(place)
+                    }
+                }
+            })
     }
 
     override fun onCreateView(
@@ -64,14 +108,20 @@ class SettingFragment : Fragment() {
     }
 
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupListeners()
         setupInsets()
         setupOtherView()
         setupToolbar()
+        setupLocationPermissionSetting(locationPermissionIsGranted())
+        viewLifecycleOwnerLiveData.observe(viewLifecycleOwner, Observer {
+            lifecycle.addObserver(object : LifecycleObserver {
+
+            })
+        })
     }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // handle arrow click here
         if (item.itemId == android.R.id.home) {
@@ -89,7 +139,7 @@ class SettingFragment : Fragment() {
         setHasOptionsMenu(true)
     }
 
-    private fun setupInsets(){
+    private fun setupInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(binding.statusBarView) { view, insets ->
             view.updateLayoutParams {
                 if (insets.systemWindowInsetTop != 0) {
@@ -121,48 +171,52 @@ class SettingFragment : Fragment() {
         } else {
             binding.pressureHpaBtn.isChecked = true
         }
-        setupLocationType()
-        setupLocationPermissionSetting()
+        lifecycleScope.launch {
+            binding.locationDescriptionTv.text = getLocationTypeText()
+        }
+
         logD("setting ${sharedPreferences.all}")
+
     }
 
-    private fun setupLocationPermissionSetting() {
-        if (locationPermissionIsGranted()){
-            binding.locationPermissionGroup.visibility=View.GONE
-            binding.locationPermissionSwitch.isChecked=true
-        }else{
-            binding.locationPermissionGroup.visibility=View.VISIBLE
-            binding.locationPermissionSwitch.isChecked=false
+    private fun setupLocationPermissionSetting(permissionsGranted: Boolean) {
+        if (permissionsGranted) {
+            binding.locationPermissionGroup.visibility = View.GONE
+            binding.locationPermissionSwitch.isChecked = true
+        } else {
+            binding.locationPermissionGroup.visibility = View.VISIBLE
+            binding.locationPermissionSwitch.isChecked = false
         }
     }
+
     private fun locationPermissionIsGranted(): Boolean {
         val permissionCoarseLocation =
             ContextCompat.checkSelfPermission(
                 requireActivity(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
+                ACCESS_COARSE_LOCATION
             )
         val permissionFineLocation =
             ContextCompat.checkSelfPermission(
                 requireActivity(),
-                Manifest.permission.ACCESS_FINE_LOCATION
+                ACCESS_FINE_LOCATION
             )
         logD("location permissionCoarseLocation $permissionCoarseLocation permissionFineLocation $permissionFineLocation")
         return permissionCoarseLocation == PackageManager.PERMISSION_GRANTED &&
                 permissionFineLocation == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun setupLocationType() {
-        val typeIsCurrent = sharedPreferences.getBoolean(LOCATION_TYPE_IS_CURRENT, true)
-        if (typeIsCurrent) {
-            binding.locationDescriptionTv.text = getString(R.string.current_location)
+    private suspend fun getLocationTypeText(): String {
+        return if (getLocationType() == CURRENT) {
+            getString(R.string.current_location)
         } else {
-            lifecycleScope.launch {
-                val currentLocation = repository.getCurrentLocation()
-                currentLocation?.let {
-                    binding.locationDescriptionTv.text = currentLocation.cityFullName
-                }
-            }
+            localDataSource.getCurrentLocation()?.cityFullName ?: ""
         }
+    }
+
+
+    private fun getLocationType(): LocationType {
+        val int = sharedPreferences.getInt(LOCATION_TYPE, 0)
+        return values()[int]
     }
 
     private fun setupListeners() {
@@ -206,71 +260,82 @@ class SettingFragment : Fragment() {
             showDialog()
         }
         binding.locationPermissionBackground.setOnClickListener {
-            requestLocationPermission(PERMISSION)
+            requestLocationPermission()
         }
         binding.locationPermissionSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isChecked){
-                requestLocationPermission(PERMISSION)
+            if (isChecked) {
+                requestLocationPermission()
             }
         }
+        binding.widgetSettingBackground.setOnClickListener {
+            val navigationActivity = requireActivity() as? NavigationActivity
+            navigationActivity?.navigateToFragment(SettingWidgetFragment())
+        }
+        binding.aboutBackground.setOnClickListener {
+        }
     }
-    private fun requestLocationPermission(requestCode: Int) {
+
+    private fun requestLocationPermission() {
         if (locationPermissionIsGranted()) {
-            setupLocationPermissionSetting()
+            setupLocationPermissionSetting(true)
         } else {
-            if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)){
-                requestPermissions(
+            logD("locationPermission not Granted")
+            if (shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)) {
+                registerForLocationPermission(
                     arrayOf(
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ),
-                    requestCode
+                        ACCESS_FINE_LOCATION,
+                        ACCESS_COARSE_LOCATION
+                    )
                 )
             } else {
+                logD("openApplicationSettings")
                 openApplicationSettings();
             }
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        if (requestCode==PERMISSION){
-            setupLocationPermissionSetting()
-        }
-
-    }
 
     private fun openApplicationSettings() {
         val appSettingsIntent = Intent(
             Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
             Uri.parse("package:" + requireContext().packageName)
         )
-        startActivityForResult(appSettingsIntent, PERMISSION)
+        registerForAppSettings(appSettingsIntent)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == PERMISSION) {
-            setupLocationPermissionSetting()
-            return;
-        }
-        super.onActivityResult(requestCode, resultCode, data)
-    }
 
     private fun showDialog() {
         val locationSettingDialog = LocationSettingDialogFragment()
-        locationSettingDialog.onLocationTypeChoiceCallback= object : LocationSettingDialogFragment.OnLocationTypeChoiceCallback {
-            override fun onLocationTypeChoice() {
+        locationSettingDialog.onLocationTypeChoiceCallback = object : OnLocationTypeChoiceCallback {
+            override fun onLocationTypeChoice(type: LocationType) {
+                when (type) {
+                    CURRENT -> onCurrentLocationChoice()
+                    OTHER -> mainActivity?.navigate(SelectPlaceFragment::class.java)
+                }
                 logD("onLocationTypeChoice")
-                setupLocationType()
+
             }
 
         }
-        locationSettingDialog.show(childFragmentManager,
+        locationSettingDialog.show(
+            childFragmentManager,
             LocationSettingDialogFragment.TAG
         )
+    }
+
+    private fun onCurrentLocationChoice() {
+        binding.locationDescriptionTv.text = getString(R.string.current_location)
+        sharedPreferences.edit().putInt(LOCATION_TYPE, CURRENT.ordinal).apply()
+    }
+
+    private fun onOtherLocationChoice(placeEntity: PlaceEntity) {
+        lifecycleScope.launch {
+            sharedPreferences.edit().putInt(LOCATION_TYPE, OTHER.ordinal).apply()
+            localDataSource.savePlaceToHistory(placeEntity)
+            localDataSource.saveCurrentPlace(placeEntity.toCurrentTable())
+            binding.locationDescriptionTv.text = getLocationTypeText()
+            shareViewModel.weatherPlace.value = placeEntity
+        }
     }
 
     override fun onDestroyView() {

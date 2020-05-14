@@ -3,6 +3,7 @@ package com.srgpanov.simpleweather.ui.weather_screen
 import android.Manifest
 import android.animation.ValueAnimator
 import android.content.DialogInterface
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -20,6 +21,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.srgpanov.simpleweather.MainActivity
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
+import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.databinding.DetailFragmentBinding
 import com.srgpanov.simpleweather.other.MyClickListener
 import com.srgpanov.simpleweather.other.addSystemWindowInsetToPadding
@@ -29,6 +31,8 @@ import com.srgpanov.simpleweather.ui.ShareViewModel
 import com.srgpanov.simpleweather.ui.forecast_screen.ForecastPagerFragment
 import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment
 import com.srgpanov.simpleweather.ui.setting_screen.SettingFragment
+import com.srgpanov.simpleweather.ui.weather_widget.WeatherWidget.Companion.ACTION_SHOW_WEATHER
+import com.srgpanov.simpleweather.ui.weather_widget.WeatherWidget.Companion.PLACE_ENTITY_KEY
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -55,16 +59,16 @@ class DetailFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requireActivity().intent
         shareViewModel = ViewModelProvider(requireActivity()).get(ShareViewModel::class.java)
-        val placeEntity = arguments?.getParcelable<PlaceEntity>("place")
-        viewModel =
-            ViewModelProvider(
-                this,
-                WeatherViewModelFactory(placeEntity)
-            ).get(DetailViewModel::class.java)
+        val placeEntity=getStartPlace( requireActivity().intent)
+        viewModel =ViewModelProvider(this,WeatherViewModelFactory(placeEntity))
+            .get(DetailViewModel::class.java)
         mainActivity = requireActivity() as MainActivity
         logD("lifecycle onCreate  $this")
+        logD("test hash Fragment ${this.hashCode()}")
     }
+
 
     companion object {
         fun newInstance() = DetailFragment()
@@ -83,8 +87,11 @@ class DetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         prepareViews()
-        viewModel.setCurrentPlace()
+        if (viewModel.currentPlace.value==null) {
+            viewModel.setCurrentPlace()
+        }
     }
+
 
     private fun requestLocationPermission(requestCode: Int) {
         requestPermissions(
@@ -214,6 +221,31 @@ class DetailFragment : Fragment() {
     override fun onDestroy() {
         scope.cancel()
         super.onDestroy()
+    }
+
+    private fun getIntentFromWidget(savedInstanceState: Bundle?): Intent? {
+        return if (savedInstanceState != null) {
+            null
+        } else {
+            requireActivity().intent
+        }
+    }
+
+    private fun getStartPlace(activityIntent: Intent?):PlaceEntity?{
+        val extras = activityIntent?.extras
+        val action = requireActivity().intent.action
+        if (action!=null&&action.equals(ACTION_SHOW_WEATHER,true)){
+            if (extras!=null){
+                val intentPlace = extras.getParcelable<PlaceEntity>(PLACE_ENTITY_KEY)
+                logD("intentPlace $intentPlace")
+                requireActivity().intent.action=""
+                intentPlace?.favorite=true
+                return intentPlace
+            }
+        }
+        val placeEntity = arguments?.getParcelable<PlaceEntity>("place")
+        logD("argPlace  $placeEntity")
+        return placeEntity
     }
 
     private fun setupFavoriteState(showSetting: Boolean) {

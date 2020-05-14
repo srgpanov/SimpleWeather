@@ -236,7 +236,7 @@
         app:layout_constraintTop_toBottomOf="@id/pressure_background" />
 
     <TextView
-        android:id="@+id/location_permission_tv"
+        android:id="@+id/icons_setting_tv"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_marginStart="16dp"
@@ -257,22 +257,22 @@
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="@id/location_permission_background"
         app:layout_constraintStart_toStartOf="@id/location_permission_background"
-        app:layout_constraintTop_toBottomOf="@id/location_permission_tv"
+        app:layout_constraintTop_toBottomOf="@id/icons_setting_tv"
         android:text="@string/if_you_enable_it_your_forecast_will_be_more_precise" />
     <Switch
         android:id="@+id/location_permission_switch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="@id/location_permission_background"
-        app:layout_constraintTop_toTopOf="@id/location_permission_tv"
-        app:layout_constraintBottom_toBottomOf="@id/location_permission_tv"
+        app:layout_constraintTop_toTopOf="@id/icons_setting_tv"
+        app:layout_constraintBottom_toBottomOf="@id/icons_setting_tv"
         android:layout_marginEnd="16dp"
         />
     <androidx.constraintlayout.widget.Group
         android:id="@+id/location_permission_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="location_permission_background,location_permission_description_tv,location_permission_tv,location_permission_switch"
+        app:constraint_referenced_ids="location_permission_background,location_permission_description_tv,icons_setting_tv,location_permission_switch"
         />
 
     <View
@@ -320,6 +320,29 @@
         app:layout_constraintBottom_toBottomOf="@id/location_tv"
         app:layout_constraintEnd_toEndOf="@id/location_background"
         app:layout_constraintTop_toTopOf="@id/location_tv" />
+    <View
+        android:id="@+id/widget_setting_background"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:background="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/location_background" />
+
+    <TextView
+        android:id="@+id/widget_setting_text_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:gravity="center_vertical"
+        android:text="@string/widget_settings"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@id/widget_setting_background"
+        app:layout_constraintStart_toStartOf="@id/widget_setting_background"
+        app:layout_constraintTop_toTopOf="@id/widget_setting_background" />
+
+
 
     <View
         android:id="@+id/about_background"
@@ -329,7 +352,7 @@
         android:background="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/location_background" />
+        app:layout_constraintTop_toBottomOf="@id/widget_setting_background" />
 
     <TextView
         android:id="@+id/about_tv"

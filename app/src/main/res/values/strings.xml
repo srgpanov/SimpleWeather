@@ -95,5 +95,16 @@
     <string name="empty_vaforite_text_3">\ to quickly see what the weather is like there.</string>
     <string name="empty_vaforite_text_4">\To add Favorites, first search for them, view their forecast and then tap \</string>
     <string name="enter_location_name_or_exact_address">Enter location name or exact address</string>
+    <string name="widget_name">simple weather widget</string>
+    <string name="background_color">Background color</string>
+    <string name="black_and_white_icons">Black-and-white icons</string>
+    <string name="light_theme">Light theme</string>
+    <string name="background_transparency">Background transparency</string>
+    <string name="opaque">Opaque</string>
+    <string name="transparent">Transparent</string>
+    <string name="show_time_of_update">Show time of update</string>
+    <string name="create_widget">Create widget</string>
+    <string name="refresh_required">Refresh required</string>
+    <string name="widget_settings">Widget settings</string>
 
 </resources>

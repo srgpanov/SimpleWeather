@@ -67,7 +67,7 @@ abstract class WeatherDao {
     abstract suspend fun getLastResponse(): List<OneCallTable>
 
     @Query("SELECT * from  onecalltable WHERE id=:geoPoint")
-    abstract suspend fun getOnceCallResponse(geoPoint: String): OneCallTable?
+    abstract suspend fun getOneCallResponse(geoPoint: String): OneCallTable?
     @Query("SELECT * from  SimpleWeatherTable WHERE id=:geoPoint")
     abstract suspend fun getCurrentResponse(geoPoint: String): SimpleWeatherTable?
     @Insert(onConflict = REPLACE)

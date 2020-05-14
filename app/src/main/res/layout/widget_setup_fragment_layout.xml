@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/widget_setup_fragment_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragment_settings_list_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/status_bar_view"
+        android:tag="WeatherWidgetSettingListFragment"
+        android:name="com.srgpanov.simpleweather.ui.weather_widget.WeatherWidgetSettingListFragment"
+        />
+    <View
+        android:id="@+id/status_bar_view"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentTop="true"
+        android:background="@color/status_bar_color" />
+
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/create_widget_button"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        android:text="@string/create_widget"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        app:cornerRadius="0dp"
+        android:background="@android:color/holo_red_light"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_alignParentBottom="true"
+ />
+
+</RelativeLayout>

@@ -7,17 +7,15 @@ import android.view.ViewGroup
 import androidx.core.view.*
 import com.srgpanov.simpleweather.BuildConfig
 import com.srgpanov.simpleweather.R
+import java.math.RoundingMode
 import kotlin.reflect.KClass
 
- fun Any.logD(message: String= "TAG $this") {
-    Log.d(getClassSimpleName(this::class), message)
-}
-
-fun Any.logE(message: String= "TAG $this") {
-    Log.e(getClassSimpleName(this::class), message)
-}
 
 
+
+
+inline fun <reified T> T.logD(message: String= "TAG $this") = Log.d(getClassSimpleName(T::class),message )
+inline fun <reified T> T.logE(message: String= "TAG $this") = Log.e(getClassSimpleName(T::class),message )
 
 fun getWeatherIcon(weather: String): Int {
     return when (weather) {
@@ -47,6 +45,7 @@ fun getWeatherIcon(weather: String): Int {
         }
     }
 }
+
 
 fun View.addSystemWindowInsetToPadding(
     left: Boolean = false,
@@ -119,6 +118,9 @@ fun dpToPx(dp:Int):Int{
 fun pxToDp(px: Int): Int {
     return (px / Resources.getSystem().displayMetrics.density).toInt()
 }
+fun Double.numbersAfterDot(numbers:Int=2):Double{
+    return this.toBigDecimal().setScale(numbers, RoundingMode.DOWN).toDouble()
+}
 
 
 
@@ -129,5 +131,5 @@ inline fun <reified T> T.getClassSimpleName(enclosingClass: KClass<*>?): String 
         T::class.java.simpleName
     }
     else { // Enforce the caller to pass a class to retrieve its simple name
-        enclosingClass?.simpleName ?: "TAG"
+        enclosingClass?.simpleName ?: "Anonymous"
     }

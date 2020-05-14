@@ -39,15 +39,16 @@ suspend fun getFavoritesPlaces(): List<PlaceEntity> {
      suspend fun getLastRequest(): List<OneCallTable> {
         val lastResponse = dao.getLastResponse()
         logD(lastResponse.toString())
-        return dao.getLastResponse()
+        return lastResponse
     }
 
      suspend fun saveOneCallResponse(weatherEntity: OneCallTable) {
+         logD("saveOneCallResponse response saved")
         dao.saveOneCallResponse(weatherEntity)
     }
 
      suspend fun getOneCallResponse(geoPoint: GeoPoint): OneCallTable? {
-        return dao.getOnceCallResponse(geoPoint.pointToId())
+        return dao.getOneCallResponse(geoPoint.pointToId().also { logD("getOneCallResponse id $it") })
     }
 
      suspend fun placeIsFavorite(placeEntity: PlaceEntity): Boolean {

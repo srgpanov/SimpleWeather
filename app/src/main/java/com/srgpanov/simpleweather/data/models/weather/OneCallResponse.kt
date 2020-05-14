@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.other.logD
 import kotlinx.android.parcel.Parcelize
+import java.math.RoundingMode
 import java.util.*
 
 @Parcelize
@@ -39,9 +40,11 @@ data class OneCallResponse(
     }
 
     fun getGeoPoint(): GeoPoint {
+        val latRounded = lat.toBigDecimal().setScale(2, RoundingMode.DOWN).toDouble()
+        val lonRounded = lon.toBigDecimal().setScale(2, RoundingMode.DOWN).toDouble()
         return GeoPoint(
-            lat = lat,
-            lon = lon
+            lat = latRounded,
+            lon = lonRounded
         )
     }
 }

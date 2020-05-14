@@ -103,7 +103,7 @@ class DataRepositoryImpl() {
 
     suspend fun saveWeatherResponse(response: OneCallResponse) {
         val responseEntity = OneCallTable(
-            id = response.getGeoPoint().pointToId(),
+            id = response.getGeoPoint().pointToId().also { logD("saveWeatherResponse getOneCallResponse $it geo point ${response.getGeoPoint()}") },
             oneCallResponse = response,
             time = System.currentTimeMillis()
         )
@@ -168,6 +168,10 @@ class DataRepositoryImpl() {
     suspend fun getCachedWeather(geoPoint: GeoPoint):OneCallResponse? {
         val oneCallResponse = localDataSource.getOneCallResponse(geoPoint)
         return oneCallResponse?.oneCallResponse
+
+    }
+    suspend fun getOneCallTable(geoPoint: GeoPoint): OneCallTable? {
+        return localDataSource.getOneCallResponse(geoPoint)
 
     }
 

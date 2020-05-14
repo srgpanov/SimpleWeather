@@ -17,10 +17,7 @@ import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.data.remote.RemoteDataSourceImpl
 import com.srgpanov.simpleweather.data.remote.ResponseResult.*
 import com.srgpanov.simpleweather.databinding.SelectPlaceFragmentBinding
-import com.srgpanov.simpleweather.other.MyClickListener
-import com.srgpanov.simpleweather.other.addSystemWindowInsetToPadding
-import com.srgpanov.simpleweather.other.logE
-import com.srgpanov.simpleweather.other.requestApplyInsetsWhenAttached
+import com.srgpanov.simpleweather.other.*
 import com.srgpanov.simpleweather.ui.ShareViewModel
 import com.srgpanov.simpleweather.ui.favorits_screen.SearchAdapter
 import com.srgpanov.simpleweather.ui.favorits_screen.SearchHistoryAdapter
@@ -46,6 +43,7 @@ class SelectPlaceFragment : Fragment() {
         @JvmStatic
         fun newInstance() =
             SelectPlaceFragment()
+        const val REQUEST_PLACE="REQUEST_PLACE"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -157,7 +155,7 @@ class SelectPlaceFragment : Fragment() {
     }
 
     private fun selectAdapter(query: String) {
-        if (query.length > 0) {
+        if (query.isNotEmpty()) {
             if (binding.recyclerView.adapter != searchAdapter) {
                 binding.recyclerView.adapter = searchAdapter
             }
@@ -176,13 +174,11 @@ class SelectPlaceFragment : Fragment() {
     }
 
     private fun onSelectPlace(placeEntity: PlaceEntity) {
-        shareViewModel.savePlaceToHistory(placeEntity)
-        shareViewModel.savePreferences(false)
-        lifecycleScope.launch {
-            viewModel.repository.saveCurrentPlace(placeEntity)
-            shareViewModel.weatherPlace.value = placeEntity
-            mainActivity?.onBackPressedSuper()
-        }
+        val bundle = Bundle()
+        bundle.putParcelable(REQUEST_PLACE,placeEntity)
+        parentFragmentManager.setFragmentResult(REQUEST_PLACE,bundle)
+        parentFragmentManager.popBackStack()
+
     }
 
     private fun showKeyboard() {

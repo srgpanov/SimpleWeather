@@ -1,18 +1,22 @@
 package com.srgpanov.simpleweather
 
+import android.appwidget.AppWidgetManager
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
+import com.srgpanov.simpleweather.other.NavigationActivity
 import com.srgpanov.simpleweather.other.OnBackPressedListener
 import com.srgpanov.simpleweather.other.logD
 import com.srgpanov.simpleweather.ui.pager_screen.PagerFragment
 import com.srgpanov.simpleweather.ui.weather_screen.DetailFragment
+import com.srgpanov.simpleweather.ui.weather_widget.WeatherWidget
 
 
-class MainActivity : AppCompatActivity() {
-    var pagerFragment: PagerFragment? = null
+class MainActivity : AppCompatActivity(), NavigationActivity {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
@@ -69,6 +73,7 @@ class MainActivity : AppCompatActivity() {
 
 
     override fun onBackPressed() {
+        logD("MainActivity onBackPressed")
         supportFragmentManager.fragments.forEach {
             if (it is OnBackPressedListener){
                 it.onBackPressed()
@@ -80,5 +85,13 @@ class MainActivity : AppCompatActivity() {
     }
     fun onBackPressedSuper(){
         super.onBackPressed()
+    }
+
+    override fun navigateToFragment(fragment: Fragment) {
+        val tag=fragment::class.java.simpleName
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.container, fragment, tag)
+            .addToBackStack(tag)
+            .commit()
     }
 }

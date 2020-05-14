@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/widget_settings_scroll_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dirty_white"
+    android:clipToPadding="false"
+    tools:context=".ui.weather_widget.WidgetActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/widget_setting_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/status_bar_view"
+
+        >
+
+        <ImageView
+            android:id="@+id/image_background_iv"
+            android:layout_width="0dp"
+            android:layout_height="160dp"
+            android:src="@drawable/widget_preview_background"
+            android:scaleType="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+        <include
+            android:id="@+id/widget_container"
+            android:layout_width="@dimen/widget_width"
+            android:layout_height="@dimen/widget_height"
+            app:layout_constraintTop_toTopOf="@id/image_background_iv"
+            app:layout_constraintBottom_toBottomOf="@id/image_background_iv"
+            app:layout_constraintEnd_toEndOf="@id/image_background_iv"
+            app:layout_constraintStart_toStartOf="@id/image_background_iv"
+            layout="@layout/widget_layout"/>
+        <TextView
+            android:id="@+id/background_colors_tv"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="@string/background_color"
+            android:textColor="@color/secondary_text"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/image_background_iv"
+
+            />
+
+        <View
+            android:id="@+id/icons_setting_background"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
+            android:background="@android:color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/background_colors_tv" />
+
+        <TextView
+            android:id="@+id/icons_setting_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginStart="16dp"
+
+            android:gravity="center_vertical"
+            android:text="@string/black_and_white_icons"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="@id/icons_setting_background"
+            app:layout_constraintStart_toStartOf="@id/icons_setting_background"
+            app:layout_constraintTop_toTopOf="@id/icons_setting_background" />
+
+
+        <Switch
+            android:id="@+id/icons_setting_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintBottom_toBottomOf="@id/icons_setting_background"
+            app:layout_constraintEnd_toEndOf="@id/icons_setting_background"
+            app:layout_constraintTop_toTopOf="@id/icons_setting_background" />
+
+        <View
+            android:id="@+id/light_setting_background"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="1dp"
+            android:background="@android:color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/icons_setting_background" />
+
+        <TextView
+            android:id="@+id/light_setting_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="1dp"
+            android:gravity="center_vertical"
+            android:text="@string/light_theme"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="@id/light_setting_background"
+            app:layout_constraintStart_toStartOf="@id/light_setting_background"
+            app:layout_constraintTop_toTopOf="@id/light_setting_background" />
+
+
+        <Switch
+            android:id="@+id/light_setting_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintBottom_toBottomOf="@id/light_setting_background"
+            app:layout_constraintEnd_toEndOf="@id/light_setting_background"
+            app:layout_constraintTop_toTopOf="@id/light_setting_background" />
+
+        <View
+            android:id="@+id/time_setting_background"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="1dp"
+            android:background="@android:color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/light_setting_background" />
+
+        <TextView
+            android:id="@+id/time_setting_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="1dp"
+            android:gravity="center_vertical"
+            android:text="@string/show_time_of_update"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="@id/time_setting_background"
+            app:layout_constraintStart_toStartOf="@id/time_setting_background"
+            app:layout_constraintTop_toTopOf="@id/time_setting_background" />
+
+
+        <Switch
+            android:id="@+id/time_setting_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintBottom_toBottomOf="@id/time_setting_background"
+            app:layout_constraintEnd_toEndOf="@id/time_setting_background"
+            app:layout_constraintTop_toTopOf="@id/time_setting_background" />
+
+        <View
+            android:id="@+id/transparency_setting_background"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:layout_marginTop="1dp"
+            android:background="@android:color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/time_setting_background" />
+
+        <TextView
+            android:id="@+id/transparency_setting_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:text="@string/background_transparency"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="@id/transparency_setting_background"
+            app:layout_constraintTop_toTopOf="@id/transparency_setting_background" />
+
+        <SeekBar
+            android:id="@+id/transparency_seekbar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
+            android:max="255"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/transparency_setting_tv" />
+
+        <TextView
+            android:id="@+id/transparency_opaque_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:text="@string/opaque"
+            android:textColor="@color/secondary_text"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="@id/transparency_setting_background"
+            app:layout_constraintTop_toBottomOf="@id/transparency_seekbar" />
+
+        <TextView
+            android:id="@+id/transparency_transparent_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:gravity="center_vertical"
+            android:text="@string/transparent"
+            android:textColor="@color/secondary_text"
+            android:textSize="14sp"
+            app:layout_constraintBaseline_toBaselineOf="@id/transparency_opaque_tv"
+            app:layout_constraintEnd_toEndOf="@id/transparency_setting_background" />
+
+        <View
+            android:id="@+id/location_background"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="16dp"
+            android:background="@android:color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/transparency_setting_background" />
+
+        <TextView
+            android:id="@+id/location_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginStart="16dp"
+            android:gravity="center_vertical"
+            android:text="@string/location"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toTopOf="@id/location_description_tv"
+            app:layout_constraintStart_toStartOf="@id/location_background"
+            app:layout_constraintTop_toTopOf="@id/location_background" />
+
+        <TextView
+            android:id="@+id/location_description_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginStart="16dp"
+            android:gravity="center_vertical"
+            android:textColor="@color/secondary_text"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="@id/location_background"
+            app:layout_constraintStart_toStartOf="@id/location_background"
+            app:layout_constraintTop_toBottomOf="@id/location_tv"
+            tools:text="Your city" />
+
+        <ImageButton
+            android:id="@+id/location_selector"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_keyboard_arrow_down_black_24dp"
+            app:layout_constraintBottom_toBottomOf="@id/location_tv"
+            app:layout_constraintEnd_toEndOf="@id/location_background"
+            app:layout_constraintTop_toTopOf="@id/location_tv" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

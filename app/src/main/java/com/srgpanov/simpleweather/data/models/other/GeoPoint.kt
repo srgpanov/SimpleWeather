@@ -10,8 +10,8 @@ data class GeoPoint(
     val lon: Double = 0.0
 ) : Parcelable {
     fun pointToId(): String {
-        val latRounded = lat.toBigDecimal().setScale(2, RoundingMode.HALF_DOWN).toDouble()
-        val lonRounded = lon.toBigDecimal().setScale(2, RoundingMode.HALF_DOWN).toDouble()
+        val latRounded = lat.toBigDecimal().setScale(2, RoundingMode.DOWN).toDouble()
+        val lonRounded = lon.toBigDecimal().setScale(2, RoundingMode.DOWN).toDouble()
         return "lat:$latRounded;lon:$lonRounded"
     }
     fun pointToQuery():String{

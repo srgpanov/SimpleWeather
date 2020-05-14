@@ -7,6 +7,7 @@ import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.data.models.weather.Weather
 import com.srgpanov.simpleweather.other.logD
 import kotlinx.android.parcel.Parcelize
+import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.util.*
 @Parcelize
@@ -46,9 +47,11 @@ data class CurrentWeatherResponse(
         return SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(time))
     }
     fun getGeoPoint(): GeoPoint {
+        val latRounded = coord.lat.toBigDecimal().setScale(2, RoundingMode.DOWN).toDouble()
+        val lonRounded = coord.lon.toBigDecimal().setScale(2, RoundingMode.DOWN).toDouble()
         return GeoPoint(
-            lat = coord.lat,
-            lon = coord.lon
+            lat = latRounded,
+            lon = lonRounded
         )
     }
 }

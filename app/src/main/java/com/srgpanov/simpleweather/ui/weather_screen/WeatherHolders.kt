@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Color
 import android.view.View
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.models.weather.Daily
@@ -44,8 +43,11 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
                 val fellsLike =
                     context.getString(R.string.feels_like) + ": " + current.feelsLikeFormatted()
                 binding.feelsLikeTv.text = fellsLike
-                binding.conditionTv.text = current.weatherFormated()
+                binding.conditionTv.text = current.weatherFormatted()
                 binding.detailWeatherRv.adapter = adapter
+
+                binding.mainWeatherRoot.background =
+                    context.getDrawable(current.weather[0].getWeatherBackground())
                 scope?.launch(Dispatchers.Main) {
                     adapter.setData(weatherRequest)
                     if (isActive) {
@@ -60,7 +62,7 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
         val context = binding.root.context
         var listener: MyClickListener? = null
         fun bind(daily: Daily?, listener: MyClickListener?) {
-            if (daily!=null) {
+            if (daily != null) {
                 binding.dataTv.text = monthDay(daily.date())
                 binding.dayWeekTv.text = when (bindingAdapterPosition) {
                     1 -> context.getString(R.string.Today)

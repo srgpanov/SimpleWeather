@@ -25,7 +25,6 @@ class ShareViewModel: ViewModel(){
     val weatherPlace = SingleLiveEvent<PlaceEntity>()
     val refreshWeather=SingleLiveEvent<Unit>()
     var currentPlace=SingleLiveEvent<PlaceEntity?>()
-    var sharedPreferences:SharedPreferences=PreferenceManager.getDefaultSharedPreferences(App.instance)
 
     override fun onCleared() {
         coroutineContext.cancel()
@@ -38,8 +37,5 @@ class ShareViewModel: ViewModel(){
         }
     }
 
-    fun savePreferences(locationIsCurrent:Boolean) {
-        val editor = sharedPreferences.edit()
-        editor.putBoolean(SettingFragment.LOCATION_TYPE_IS_CURRENT,locationIsCurrent).apply()
-    }
+
 }

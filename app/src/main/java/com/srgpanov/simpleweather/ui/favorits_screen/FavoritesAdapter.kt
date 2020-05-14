@@ -4,11 +4,13 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.databinding.FavoriteLocationItemBinding
 import com.srgpanov.simpleweather.other.MyClickListener
 import com.srgpanov.simpleweather.other.logD
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 
 
 class FavoritesAdapter() : RecyclerView.Adapter<FavoritesAdapter.FavoritesViewHolder>() {
@@ -49,28 +51,39 @@ class FavoritesAdapter() : RecyclerView.Adapter<FavoritesAdapter.FavoritesViewHo
 
 
     fun setData(data: List<PlaceEntity>) {
-        data.forEach {
-            logD("setData ${it.simpleWeatherTable==null} ${it.simpleWeatherTable?.currentWeatherResponse?.main?.temp}")
-        }
-        setDataJob?.cancel()
-        setDataJob = scope?.launch {
-            val oldItems = ArrayList(places)
-            val placeDiffCallBack = PlaceDiffCallBack(oldItems, data)
-            val resultDiff = DiffUtil.calculateDiff(placeDiffCallBack, false)
-            withContext(Dispatchers.Main) {
-                resultDiff.dispatchUpdatesTo(this@FavoritesAdapter)
-                places.clear()
-                places.addAll(data)
-            }
-        }
+        val oldItems = ArrayList(places)
+        val placeDiffCallBack = PlaceDiffCallBack(oldItems, data)
+        val resultDiff = DiffUtil.calculateDiff(placeDiffCallBack, false)
+        resultDiff.dispatchUpdatesTo(this@FavoritesAdapter)
+        places.clear()
+        places.addAll(data)
+//        setDataJob?.cancel()
+//        setDataJob = scope?.launch {
+//            data.forEach {
+//                logD("setData ${it.simpleWeatherTable==null} ${it.simpleWeatherTable?.currentWeatherResponse?.main?.temp}")
+//            }
+//            val oldItems = ArrayList(places)
+//            val placeDiffCallBack = PlaceDiffCallBack(oldItems, data)
+//            val resultDiff = DiffUtil.calculateDiff(placeDiffCallBack, false)
+//            withContext(Dispatchers.Main) {
+//                resultDiff.dispatchUpdatesTo(this@FavoritesAdapter)
+//                places.clear()
+//                places.addAll(data)
+//            }
+//        }
     }
 
 
     inner class FavoritesViewHolder(private val binding: FavoriteLocationItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: PlaceEntity) {
+            logD(item.toString())
             binding.cityNameTv.text = item.cityTitle
+            val background = item.simpleWeatherTable?.currentWeatherResponse?.weather?.get(0)
+                ?.getWeatherBackground() ?: R.drawable.empty_weather_background
+            binding.constraintLayout.background = binding.root.context.getDrawable(background)
             val response = item.simpleWeatherTable?.currentWeatherResponse
+            logD("$response")
             response?.let {
                 binding.cloudnessIv.setImageResource(it.weather[0].getWeatherIcon())
                 binding.tempValueTv.text = it.main.tempFormatted()
