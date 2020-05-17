@@ -51,7 +51,7 @@ class SettingFragment : Fragment() {
     private lateinit var shareViewModel: ShareViewModel
     private var mainActivity: MainActivity? = null
     private var actionBar: ActionBar? = null
-    private val localDataSource: LocalDataSourceImpl by lazy { LocalDataSourceImpl() }
+    private val localDataSource: LocalDataSourceImpl =LocalDataSourceImpl
     private val registerForLocationPermission =
         registerForActivityResult(RequestMultiplePermissions()) { map ->
             var permissionGranted = true
@@ -93,7 +93,7 @@ class SettingFragment : Fragment() {
                 if (requestKey == REQUEST_PLACE) {
                     val place = result.getParcelable<PlaceEntity>(REQUEST_PLACE)
                     if (place != null) {
-                        onOtherLocationChoice(place)
+                        onCertainLocationChoice(place)
                     }
                 }
             })
@@ -115,11 +115,6 @@ class SettingFragment : Fragment() {
         setupOtherView()
         setupToolbar()
         setupLocationPermissionSetting(locationPermissionIsGranted())
-        viewLifecycleOwnerLiveData.observe(viewLifecycleOwner, Observer {
-            lifecycle.addObserver(object : LifecycleObserver {
-
-            })
-        })
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -310,7 +305,7 @@ class SettingFragment : Fragment() {
             override fun onLocationTypeChoice(type: LocationType) {
                 when (type) {
                     CURRENT -> onCurrentLocationChoice()
-                    OTHER -> mainActivity?.navigate(SelectPlaceFragment::class.java)
+                    CERTAIN -> mainActivity?.navigate(SelectPlaceFragment::class.java)
                 }
                 logD("onLocationTypeChoice")
 
@@ -328,12 +323,13 @@ class SettingFragment : Fragment() {
         sharedPreferences.edit().putInt(LOCATION_TYPE, CURRENT.ordinal).apply()
     }
 
-    private fun onOtherLocationChoice(placeEntity: PlaceEntity) {
+    private fun onCertainLocationChoice(placeEntity: PlaceEntity) {
         lifecycleScope.launch {
-            sharedPreferences.edit().putInt(LOCATION_TYPE, OTHER.ordinal).apply()
+            sharedPreferences.edit().putInt(LOCATION_TYPE, CERTAIN.ordinal).apply()
+            localDataSource.savePlace(placeEntity)
             localDataSource.savePlaceToHistory(placeEntity)
             localDataSource.saveCurrentPlace(placeEntity.toCurrentTable())
-            binding.locationDescriptionTv.text = getLocationTypeText()
+            binding.locationDescriptionTv.text = localDataSource.getCurrentLocation()?.cityFullName ?: ""
             shareViewModel.weatherPlace.value = placeEntity
         }
     }

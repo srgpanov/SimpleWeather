@@ -10,7 +10,7 @@ data class Places(
 ) {
     fun toEntity(): PlaceEntity {
         return PlaceEntity(
-            cityTitle = response.GeoObjectCollection.featureMember[0].GeoObject.name,
+            title = response.GeoObjectCollection.featureMember[0].GeoObject.name,
             lat = response.GeoObjectCollection.featureMember[0].GeoObject.Point.getGeoPoint().lat,
             lon = response.GeoObjectCollection.featureMember[0].GeoObject.Point.getGeoPoint().lon
 

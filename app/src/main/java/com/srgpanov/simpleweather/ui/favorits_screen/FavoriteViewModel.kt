@@ -17,13 +17,12 @@ class FavoriteViewModel : ViewModel() {
     private val coroutineContext: CoroutineContext
         get() = parentJob + Dispatchers.IO
     private val scope = CoroutineScope(coroutineContext)
-    val repository = DataRepositoryImpl()
+    private val repository = DataRepositoryImpl()
 
     val favoritePlaces = MutableLiveData<List<PlaceEntity>>()
     val currentPlace = MutableLiveData<PlaceEntity>()
     val searchHistory = MutableLiveData<List<PlaceEntity>>()
     var searchViewOpen = false
-
 
     fun refreshPlaces() {
         scope.launch {
@@ -32,6 +31,7 @@ class FavoriteViewModel : ViewModel() {
                 it.favorite = true
             }
             favoritePlaces.postValue(placesList)
+            logD("favorite weather liveData ${placesList.size}")
             loadWeather(placesList)
             logD("placesList ${placesList.size}")
         }
@@ -78,14 +78,14 @@ class FavoriteViewModel : ViewModel() {
     }
 
     fun refreshWeather(placeList: List<PlaceEntity>? = favoritePlaces.value) {
-        if (placeList != null) {
+        if (!placeList.isNullOrEmpty()) {
             loadWeather(placeList, true)
         }
 //        loadMainWeather()
     }
 
     private fun loadWeather(placeList: List<PlaceEntity>? = favoritePlaces.value) {
-        if (placeList != null) {
+        if (!placeList.isNullOrEmpty()) {
             loadWeather(placeList, false)
         }
     }
@@ -104,19 +104,30 @@ class FavoriteViewModel : ViewModel() {
                 }
                 deferredList.add(async)
             }
-            deferredList.forEachIndexed { index, deferred ->
-                val result = deferred.await()
-                when (result) {
-                    is ResponseResult.Success -> {
-                        placeList[index].simpleWeatherTable =
-                            SimpleWeatherTable(result.data.getGeoPoint().pointToId(), result.data)
-                    }
-                    is ResponseResult.Failure.ServerError ->logE("ServerError errorCode ${result.errorCode} errorBody ${result.errorBody}")
-                    is ResponseResult.Failure.NetworkError ->logE("NetworkError ex ${result.ex}")
-                }
+            deferredList.awaitAll()
+//            deferredList.forEachIndexed { index, deferred ->
+//                val result = deferred.await()
+//                when (result) {
+//                    is ResponseResult.Success -> {
+//                        placeList[index].simpleWeather =
+//                            SimpleWeatherTable(
+//                                placeId = result.data.getGeoPoint().pointToId(),
+//                                currentWeatherResponse = result.data)
+//                    }
+//                    is ResponseResult.Failure.ServerError ->logE("ServerError errorCode ${result.errorCode} errorBody ${result.errorBody}")
+//                    is ResponseResult.Failure.NetworkError ->logE("NetworkError ex ${result.ex}")
+//                }
+//
+//            }
+//            logD("favorite weather refreshed ${placeList.size}")
+            favoritePlaces.postValue(repository.getFavoritePlaces())
+        }
+    }
 
-            }
-            favoritePlaces.postValue(placeList)
+    fun savePlaceToHistory(placeEntity: PlaceEntity) {
+        scope.launch {
+            repository.savePlace(placeEntity)
+            repository.savePlaceToHistory(placeEntity)
         }
     }
 

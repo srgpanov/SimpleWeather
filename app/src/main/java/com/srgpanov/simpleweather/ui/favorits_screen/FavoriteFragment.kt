@@ -19,6 +19,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentResultListener
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.MergeAdapter
@@ -32,6 +33,7 @@ import com.srgpanov.simpleweather.data.remote.ResponseResult.Success
 import com.srgpanov.simpleweather.databinding.FragmentFavoriteBinding
 import com.srgpanov.simpleweather.other.*
 import com.srgpanov.simpleweather.ui.ShareViewModel
+import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment
 import com.srgpanov.simpleweather.ui.weather_screen.DetailFragment
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
@@ -68,6 +70,17 @@ class FavoriteFragment : Fragment() {
         shareViewModel = ViewModelProvider(requireActivity()).get(ShareViewModel::class.java)
         viewModel = ViewModelProvider(this).get(FavoriteViewModel::class.java)
         mainActivity = requireActivity() as MainActivity
+        requireActivity().supportFragmentManager.setFragmentResultListener(
+            SelectPlaceFragment.REQUEST_PLACE,
+            this,
+            FragmentResultListener { requestKey, result ->
+                if (requestKey == SelectPlaceFragment.REQUEST_PLACE) {
+                    val place = result.getParcelable<PlaceEntity>(SelectPlaceFragment.REQUEST_PLACE)
+                    if (place != null) {
+                        onSelectPlace(place)
+                    }
+                }
+            })
         logD("lifecycle onCreate  ${this}")
     }
 
@@ -91,7 +104,6 @@ class FavoriteFragment : Fragment() {
             historyAdapter.setData(it)
         })
         viewModel.favoritePlaces.observe(viewLifecycleOwner, Observer { places ->
-            logD("favoritePlaces.observe ${places.size}")
             favoritesAdapter.setData(places)
             if (places.isEmpty()) {
                 mergeAdapter.addAdapter(emptyFavoriteAdapter)
@@ -187,7 +199,7 @@ class FavoriteFragment : Fragment() {
             override fun onClick(view: View?, position: Int) {
                 val featureMember = searchAdapter.featureMember[position]
                 val place = PlaceEntity(
-                    cityTitle = featureMember.GeoObject.name,
+                    title = featureMember.GeoObject.name,
                     lat = featureMember.GeoObject.Point.getGeoPoint().lat,
                     lon = featureMember.GeoObject.Point.getGeoPoint().lon,
                     cityFullName = featureMember.getFormatedName()
@@ -236,19 +248,19 @@ class FavoriteFragment : Fragment() {
     }
 
     private fun removeFavoritePlace(placeEntity: PlaceEntity) {
-        logD("menu ${placeEntity.cityTitle}")
+        logD("menu ${placeEntity.title}")
         viewModel.removeFavoritePlace(placeEntity)
     }
 
     private fun renamePlace(placeEntity: PlaceEntity) {
-        logD("menu ${placeEntity.cityTitle}")
+        logD("menu ${placeEntity.title}")
         showAlertDialog(placeEntity)
 
     }
 
     private fun showAlertDialog(placeEntity: PlaceEntity) {
         val editText = EditText(requireActivity()).apply {
-            setText(placeEntity.cityTitle)
+            setText(placeEntity.title)
             maxLines = 1
         }
         val container = FrameLayout(requireActivity())
@@ -269,8 +281,8 @@ class FavoriteFragment : Fragment() {
             .setPositiveButton(android.R.string.ok, object : DialogInterface.OnClickListener {
                 override fun onClick(dialog: DialogInterface?, which: Int) {
                     logD("DialogInterface ${editText.text}")
-                    if (placeEntity.cityTitle != editText.text.toString()) {
-                        viewModel.renamePlace(placeEntity.copy(cityTitle = editText.text.toString()))
+                    if (placeEntity.title != editText.text.toString()) {
+                        viewModel.renamePlace(placeEntity.copy(title = editText.text.toString()))
                     }
                 }
             })
@@ -281,8 +293,8 @@ class FavoriteFragment : Fragment() {
 
     private fun onSelectPlace(placeEntity: PlaceEntity) {
         viewModel.searchViewOpen = false
-        shareViewModel.savePlaceToHistory(placeEntity)
-        binding.searchView.isIconified = true
+        viewModel.savePlaceToHistory(placeEntity)
+//        binding.searchView.isIconified = true
         var favoriteOrCurrent = viewModel.placeFavoriteOrCurrent(placeEntity)
         if (favoriteOrCurrent) {
             goToDetailFragment(placeEntity)
@@ -325,13 +337,23 @@ class FavoriteFragment : Fragment() {
             }
         })
         binding.searchView.setOnSearchClickListener {
-            openSearch()
+//            openSearch()
+            openSearch2()
+
         }
         binding.searchView.setOnCloseListener {
             closeSearch()
             false
         }
 
+    }
+
+    private fun openSearch2() {
+        val selectFragment = SelectPlaceFragment()
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(R.id.container,selectFragment,SelectPlaceFragment.TAG)
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun setAdapterData(query: String) {

@@ -15,7 +15,7 @@ import kotlinx.coroutines.coroutineScope
 import java.util.*
 
 class DataRepositoryImpl() {
-    private val localDataSource = LocalDataSourceImpl()
+    private val localDataSource = LocalDataSourceImpl
     private val remoteDataSource = RemoteDataSourceImpl()
 
     companion object {
@@ -69,10 +69,12 @@ class DataRepositoryImpl() {
     }
 
     private suspend fun saveCurrentResponse(response: CurrentWeatherResponse) {
+        val placeId=response.getGeoPoint().pointToId()
         val responseEntity = SimpleWeatherTable(
-            id = response.getGeoPoint().pointToId(),
+            id = placeId,
+            placeId = placeId,
             currentWeatherResponse = response,
-            time = System.currentTimeMillis()
+            timeStamp = System.currentTimeMillis()
         )
         localDataSource.saveCurrentResponse(responseEntity)
     }
@@ -102,10 +104,12 @@ class DataRepositoryImpl() {
     }
 
     suspend fun saveWeatherResponse(response: OneCallResponse) {
+        val placeId=response.getGeoPoint().pointToId()
         val responseEntity = OneCallTable(
-            id = response.getGeoPoint().pointToId().also { logD("saveWeatherResponse getOneCallResponse $it geo point ${response.getGeoPoint()}") },
+            id=placeId,
+            placeId = placeId,
             oneCallResponse = response,
-            time = System.currentTimeMillis()
+            timeStamp = System.currentTimeMillis()
         )
         localDataSource.saveOneCallResponse(responseEntity)
     }
@@ -142,7 +146,7 @@ class DataRepositoryImpl() {
     }
 
     private fun needRefresh(response: TimeCounter, refreshTime: Long): Boolean {
-        val timeFromLastResponse = System.currentTimeMillis() - response.time
+        val timeFromLastResponse = System.currentTimeMillis() - response.timeStamp
         logD("time from last request " + Date(timeFromLastResponse).toString())
         return timeFromLastResponse > refreshTime
     }
@@ -173,6 +177,10 @@ class DataRepositoryImpl() {
     suspend fun getOneCallTable(geoPoint: GeoPoint): OneCallTable? {
         return localDataSource.getOneCallResponse(geoPoint)
 
+    }
+
+   suspend fun savePlace(placeEntity: PlaceEntity) {
+       localDataSource.savePlace(placeEntity)
     }
 
 }

@@ -59,7 +59,7 @@ class FavoritesHeaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: PlaceEntity?) {
             if (item!=null){
-            binding.cityNameTv.text = item.cityTitle
+            binding.cityNameTv.text = item.title
             val weather = item.oneCallResponse
             if (weather!=null){
                 val weatherIcon =

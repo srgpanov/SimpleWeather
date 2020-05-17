@@ -21,7 +21,6 @@ import com.google.android.material.snackbar.Snackbar
 import com.srgpanov.simpleweather.MainActivity
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
-import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.databinding.DetailFragmentBinding
 import com.srgpanov.simpleweather.other.MyClickListener
 import com.srgpanov.simpleweather.other.addSystemWindowInsetToPadding
@@ -41,21 +40,26 @@ import kotlin.coroutines.CoroutineContext
 
 
 class DetailFragment : Fragment() {
-    private lateinit var viewModel: DetailViewModel
-    private lateinit var shareViewModel: ShareViewModel
     private var _binding: DetailFragmentBinding? = null
     private val binding get() = _binding!!
-    private val parentJob = Job()
     private val coroutineContext: CoroutineContext
         get() = parentJob + Dispatchers.Default
-    private val scope = CoroutineScope(coroutineContext)
-    private val weatherAdapter: WeatherAdapter by lazy { WeatherAdapter() }
-    private var scrollDistancePx: Int = 0
-    private var toolbarHeight: Int = 100
-    private var mainActivity: MainActivity? = null
     private var errorLayoutTranslationY: Float = 0F
     private var errorPanelIsVisible = false
+    private var mainActivity: MainActivity? = null
+    private val parentJob = Job()
+    private val scope = CoroutineScope(coroutineContext)
+    private var scrollDistancePx: Int = 0
+    private lateinit var shareViewModel: ShareViewModel
+    private var toolbarHeight: Int = 100
+    private lateinit var viewModel: DetailViewModel
+    private val weatherAdapter: WeatherAdapter by lazy { WeatherAdapter() }
 
+    companion object {
+        const val ANOTHER_REQUEST_LOCATION_PERMISSION = 11
+        const val FIRST_REQUEST_LOCATION_PERMISSION = 10
+        fun newInstance() = DetailFragment()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,13 +71,6 @@ class DetailFragment : Fragment() {
         mainActivity = requireActivity() as MainActivity
         logD("lifecycle onCreate  $this")
         logD("test hash Fragment ${this.hashCode()}")
-    }
-
-
-    companion object {
-        fun newInstance() = DetailFragment()
-        const val FIRST_REQUEST_LOCATION_PERMISSION = 10
-        const val ANOTHER_REQUEST_LOCATION_PERMISSION = 11
     }
 
     override fun onCreateView(
@@ -92,17 +89,6 @@ class DetailFragment : Fragment() {
         }
     }
 
-
-    private fun requestLocationPermission(requestCode: Int) {
-        requestPermissions(
-            arrayOf(
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ),
-            requestCode
-        )
-    }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -114,48 +100,6 @@ class DetailFragment : Fragment() {
             }
         }
     }
-
-
-    private fun navigateToSelectPlaceFragment() {
-        mainActivity?.navigate(
-            SelectPlaceFragment::class.java
-        )
-    }
-
-
-    private fun showPermissionNotGrantedDialog() {
-        val permissionNotGrantedDialog = PermissionNotGrantedDialogFragment()
-        permissionNotGrantedDialog.onClickListener =
-            DialogInterface.OnClickListener { dialog, which ->
-                when (which) {
-                    DialogInterface.BUTTON_POSITIVE -> {
-                        dialog.dismiss()
-                        requestLocationPermission(ANOTHER_REQUEST_LOCATION_PERMISSION)
-                    }
-                    DialogInterface.BUTTON_NEGATIVE -> {
-                        dialog.dismiss()
-                        navigateToSelectPlaceFragment()
-                    }
-                }
-            }
-        permissionNotGrantedDialog.isCancelable = false
-        permissionNotGrantedDialog.show(
-            childFragmentManager,
-            PermissionNotGrantedDialogFragment.TAG
-        )
-    }
-
-
-    private fun showRequestPermissionDialog() {
-        val messageDialogFragment = RequestPermissionDialogFragment()
-        messageDialogFragment.onClickListener = DialogInterface.OnClickListener { dialog, which ->
-            requestLocationPermission(FIRST_REQUEST_LOCATION_PERMISSION)
-        }
-        messageDialogFragment.isCancelable = false
-        messageDialogFragment.show(childFragmentManager, RequestPermissionDialogFragment.TAG)
-
-    }
-
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -182,7 +126,7 @@ class DetailFragment : Fragment() {
         })
         viewModel.weatherPlace.observe(viewLifecycleOwner, Observer {
             it?.let {
-                binding.toolbarCityTitle.text = it.cityTitle
+                binding.toolbarCityTitle.text = it.title
             }
         })
 
@@ -217,10 +161,58 @@ class DetailFragment : Fragment() {
         })
     }
 
-
     override fun onDestroy() {
         scope.cancel()
         super.onDestroy()
+    }
+
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
+    }
+
+    fun onBackPressed() {
+        logD("back fragment")
+        mainActivity?.onBackPressedSuper()
+    }
+
+    private fun animateScroll(progress: Float) {
+        binding.toolbar.alpha = progress
+        binding.statusBackground.alpha = progress
+        binding.toolbarCityTitle.setTextColor(
+            blendColors(
+                Color.WHITE, Color.BLACK, progress
+            )
+        )
+
+        binding.burgerButton.setColorFilter(
+            blendColors(
+                Color.WHITE, Color.parseColor("#FF7E00"), progress
+            )
+        )
+        binding.settingButton.setColorFilter(
+            blendColors(
+                Color.WHITE, Color.parseColor("#FF7E00"), progress
+            )
+        )
+        binding.backButton.setColorFilter(
+            blendColors(
+                Color.WHITE, Color.parseColor("#FF7E00"), progress
+            )
+        )
+        binding.favoriteCheckBox.setColorFilter(
+            blendColors(
+                Color.WHITE, Color.parseColor("#FF7E00"), progress
+            )
+        )
+    }
+
+    private fun blendColors(from: Int, to: Int, ratio: Float): Int {
+        val inverseRatio = 1f - ratio
+        val r: Float = Color.red(to) * ratio + Color.red(from) * inverseRatio
+        val g: Float = Color.green(to) * ratio + Color.green(from) * inverseRatio
+        val b: Float = Color.blue(to) * ratio + Color.blue(from) * inverseRatio
+        return Color.rgb(r.toInt(), g.toInt(), b.toInt())
     }
 
     private fun getIntentFromWidget(savedInstanceState: Bundle?): Intent? {
@@ -248,6 +240,29 @@ class DetailFragment : Fragment() {
         return placeEntity
     }
 
+    private fun navigateToSelectPlaceFragment() {
+        mainActivity?.navigate(
+            SelectPlaceFragment::class.java
+        )
+    }
+
+    private fun prepareViews() {
+        setupInsets()
+        setupToolbar()
+        setupRecyclerView()
+        setupOtherView()
+    }
+
+    private fun requestLocationPermission(requestCode: Int) {
+        requestPermissions(
+            arrayOf(
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ),
+            requestCode
+        )
+    }
+
     private fun setupFavoriteState(showSetting: Boolean) {
         logD("showSetting $showSetting")
         return when (showSetting) {
@@ -266,18 +281,28 @@ class DetailFragment : Fragment() {
         }
     }
 
-    override fun onDestroyView() {
-        _binding = null
-        super.onDestroyView()
+    private fun setupInsets() {
+        binding.detailRv.addSystemWindowInsetToPadding(bottom = true)
+        val insetsView = binding.insetsErrorView
+        ViewCompat.setOnApplyWindowInsetsListener(insetsView) { view, insets ->
+            view.updateLayoutParams {
+                height = insets.systemWindowInsetBottom
+                binding.insetsErrorView.height.also { logD("translation ${insets.systemWindowInsetBottom}") }
+            }
+            insets
+        }
+        insetsView.requestApplyInsetsWhenAttached()
+        val statusView = binding.statusBackground
+        ViewCompat.setOnApplyWindowInsetsListener(statusView) { view, insets ->
+            view.updateLayoutParams {
+                if (insets.systemWindowInsetTop != 0) {
+                    height = insets.systemWindowInsetTop
+                }
+            }
+            insets
+        }
+        statusView.requestApplyInsetsWhenAttached()
     }
-
-    private fun prepareViews() {
-        setupInsets()
-        setupToolbar()
-        setupRecyclerView()
-        setupOtherView()
-    }
-
 
     private fun setupOtherView() {
         binding.connectionErrorButton.setOnClickListener {
@@ -307,6 +332,65 @@ class DetailFragment : Fragment() {
         }
         errorPanelIsVisible = false
 
+    }
+
+    private fun setupRecyclerView() {
+        weatherAdapter.scope = scope
+        weatherAdapter.clickListener = object : MyClickListener {
+            override fun onClick(view: View?, position: Int) {
+                val oneCallResponse = viewModel.weatherData.value
+                shareViewModel.oneCallResponse = oneCallResponse
+                shareViewModel.daySelected = position - 1
+                val bundle = Bundle().apply {
+                    putInt("position", position - 1)
+                    putParcelable("oneCall", oneCallResponse)
+                }
+                mainActivity?.navigate(ForecastPagerFragment::class.java, bundle)
+            }
+        }
+        val divider = CustomWeatherItemDecoration(requireActivity())
+        binding.detailRv.addItemDecoration(divider)
+        //        binding.detailRv.adapter = weatherAdapter
+        binding.detailRv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (scrollDistancePx >= 0) scrollDistancePx += dy else scrollDistancePx = 0
+                val progress = scrollDistancePx.toFloat() / toolbarHeight
+                when (progress >= 1) {
+                    true -> animateScroll(1f)
+                    false -> if (progress >= 0) animateScroll(progress) else animateScroll(0f)
+                }
+            }
+        })
+    }
+
+    private fun setupToolbar() {
+        binding.toolbar.doOnPreDraw { toolbarHeight = binding.toolbar.height }
+        binding.burgerButton.setOnClickListener {
+            logD("burger click")
+            //todo
+            mainActivity?.navigateToFavoriteFragment()
+        }
+
+        binding.favoriteCheckBox.setOnClickListener {
+            val isChecked = binding.favoriteCheckBox.isChecked
+            viewModel.changeFavoriteStatus(isChecked)
+        }
+        binding.backButton.setOnClickListener {
+            mainActivity?.onBackPressed()
+        }
+        binding.settingButton.setOnClickListener(object : View.OnClickListener {
+            override fun onClick(v: View?) {
+                //todo
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .setCustomAnimations(
+                        R.anim.slide_in_left, R.anim.slide_out_left,
+                        R.anim.slide_out_right, R.anim.slide_in_right
+                    )
+                    .replace(R.id.container, SettingFragment(), SettingFragment.TAG)
+                    .addToBackStack(SettingFragment.TAG)
+                    .commit()
+            }
+        })
     }
 
     private fun showErrorLayout(isShow: Boolean) {
@@ -345,133 +429,39 @@ class DetailFragment : Fragment() {
         errorPanelIsVisible = isShow
     }
 
-    private fun setupInsets() {
-        binding.detailRv.addSystemWindowInsetToPadding(bottom = true)
-        val insetsView = binding.insetsErrorView
-        ViewCompat.setOnApplyWindowInsetsListener(insetsView) { view, insets ->
-            view.updateLayoutParams {
-                height = insets.systemWindowInsetBottom
-                binding.insetsErrorView.height.also { logD("translation ${insets.systemWindowInsetBottom}") }
-            }
-            insets
-        }
-        insetsView.requestApplyInsetsWhenAttached()
-        val statusView = binding.statusBackground
-        ViewCompat.setOnApplyWindowInsetsListener(statusView) { view, insets ->
-            view.updateLayoutParams {
-                if (insets.systemWindowInsetTop != 0) {
-                    height = insets.systemWindowInsetTop
+    private fun showPermissionNotGrantedDialog() {
+        val permissionNotGrantedDialog = PermissionNotGrantedDialogFragment()
+        permissionNotGrantedDialog.onClickListener =
+            DialogInterface.OnClickListener { dialog, which ->
+                when (which) {
+                    DialogInterface.BUTTON_POSITIVE -> {
+                        dialog.dismiss()
+                        requestLocationPermission(ANOTHER_REQUEST_LOCATION_PERMISSION)
+                    }
+                    DialogInterface.BUTTON_NEGATIVE -> {
+                        dialog.dismiss()
+                        navigateToSelectPlaceFragment()
+                    }
                 }
             }
-            insets
-        }
-        statusView.requestApplyInsetsWhenAttached()
-    }
-
-    private fun setupRecyclerView() {
-        weatherAdapter.scope = scope
-        weatherAdapter.clickListener = object : MyClickListener {
-            override fun onClick(view: View?, position: Int) {
-                val oneCallResponse = viewModel.weatherData.value
-                shareViewModel.oneCallResponse = oneCallResponse
-                shareViewModel.daySelected = position - 1
-                val bundle = Bundle().apply {
-                    putInt("position", position - 1)
-                    putParcelable("oneCall", oneCallResponse)
-                }
-                mainActivity?.navigate(ForecastPagerFragment::class.java, bundle)
-            }
-        }
-        val divider = CustomWeatherItemDecoration(requireActivity())
-        binding.detailRv.addItemDecoration(divider)
-        //        binding.detailRv.adapter = weatherAdapter
-        binding.detailRv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (scrollDistancePx >= 0) scrollDistancePx += dy else scrollDistancePx = 0
-                val progress = scrollDistancePx.toFloat() / toolbarHeight
-                when (progress >= 1) {
-                    true -> animateScroll(1f)
-                    false -> if (progress >= 0) animateScroll(progress) else animateScroll(0f)
-                }
-            }
-        })
-    }
-
-    private fun animateScroll(progress: Float) {
-        binding.toolbar.alpha = progress
-        binding.statusBackground.alpha = progress
-        binding.toolbarCityTitle.setTextColor(
-            blendColors(
-                Color.WHITE, Color.BLACK, progress
-            )
-        )
-
-        binding.burgerButton.setColorFilter(
-            blendColors(
-                Color.WHITE, Color.parseColor("#FF7E00"), progress
-            )
-        )
-        binding.settingButton.setColorFilter(
-            blendColors(
-                Color.WHITE, Color.parseColor("#FF7E00"), progress
-            )
-        )
-        binding.backButton.setColorFilter(
-            blendColors(
-                Color.WHITE, Color.parseColor("#FF7E00"), progress
-            )
-        )
-        binding.favoriteCheckBox.setColorFilter(
-            blendColors(
-                Color.WHITE, Color.parseColor("#FF7E00"), progress
-            )
+        permissionNotGrantedDialog.isCancelable = false
+        permissionNotGrantedDialog.show(
+            childFragmentManager,
+            PermissionNotGrantedDialogFragment.TAG
         )
     }
 
-
-    private fun blendColors(from: Int, to: Int, ratio: Float): Int {
-        val inverseRatio = 1f - ratio
-        val r: Float = Color.red(to) * ratio + Color.red(from) * inverseRatio
-        val g: Float = Color.green(to) * ratio + Color.green(from) * inverseRatio
-        val b: Float = Color.blue(to) * ratio + Color.blue(from) * inverseRatio
-        return Color.rgb(r.toInt(), g.toInt(), b.toInt())
-    }
-
-    private fun setupToolbar() {
-        binding.toolbar.doOnPreDraw { toolbarHeight = binding.toolbar.height }
-        binding.burgerButton.setOnClickListener {
-            logD("burger click")
-            //todo
-            mainActivity?.navigateToFavoriteFragment()
+    private fun showRequestPermissionDialog() {
+        val messageDialogFragment = RequestPermissionDialogFragment()
+        messageDialogFragment.onClickListener = DialogInterface.OnClickListener { dialog, which ->
+            requestLocationPermission(FIRST_REQUEST_LOCATION_PERMISSION)
         }
+        messageDialogFragment.isCancelable = false
+        messageDialogFragment.show(childFragmentManager, RequestPermissionDialogFragment.TAG)
 
-        binding.favoriteCheckBox.setOnClickListener {
-            val isChecked = binding.favoriteCheckBox.isChecked
-            viewModel.changeFavoriteStatus(isChecked)
-        }
-        binding.backButton.setOnClickListener {
-            mainActivity?.onBackPressed()
-        }
-        binding.settingButton.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(v: View?) {
-                //todo
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .setCustomAnimations(
-                        R.anim.slide_in_left, R.anim.slide_out_left,
-                        R.anim.slide_out_right, R.anim.slide_in_right
-                    )
-                    .replace(R.id.container, SettingFragment(), SettingFragment.TAG)
-                    .addToBackStack(SettingFragment.TAG)
-                    .commit()
-            }
-        })
     }
 
 
-    fun onBackPressed() {
-        logD("back fragment")
-        mainActivity?.onBackPressedSuper()
-    }
 
 
 }

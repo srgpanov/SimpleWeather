@@ -9,6 +9,7 @@ import com.srgpanov.simpleweather.data.models.entity.*
 
 @Database(
     entities = arrayOf(
+        PlaceTable::class,
         FavoriteTable::class,
         SearchHistoryTable::class,
         CurrentTable::class,

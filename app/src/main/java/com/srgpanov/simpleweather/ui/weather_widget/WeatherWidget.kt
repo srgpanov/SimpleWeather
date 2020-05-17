@@ -236,7 +236,7 @@ class WeatherWidget : AppWidgetProvider() {
             if (geoPoint != null) {
                 val cachedWeather = repository.getOneCallTable(geoPoint)
                 if (cachedWeather != null) {
-                    val time = cachedWeather.time
+                    val time = cachedWeather.timeStamp
                     logD("getTimeOfLastUpdate returned formatted Date")
                     return SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(time))
                 }
@@ -251,7 +251,7 @@ class WeatherWidget : AppWidgetProvider() {
         ): String {
             val placeResponse = repository.getPlaceByGeoPoint(shownGeoPoint)
             return when (placeResponse) {
-                is ResponseResult.Success -> placeResponse.data.toEntity().cityTitle
+                is ResponseResult.Success -> placeResponse.data.toEntity().title
                 is ResponseResult.Failure -> {
                     logE("widget response error")
                     ""

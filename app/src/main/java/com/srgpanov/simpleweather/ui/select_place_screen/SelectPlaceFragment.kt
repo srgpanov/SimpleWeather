@@ -44,6 +44,7 @@ class SelectPlaceFragment : Fragment() {
         fun newInstance() =
             SelectPlaceFragment()
         const val REQUEST_PLACE="REQUEST_PLACE"
+        val TAG=SelectPlaceFragment::class.java.simpleName
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,7 +100,7 @@ class SelectPlaceFragment : Fragment() {
             override fun onClick(view: View?, position: Int) {
                 val featureMember = searchAdapter.featureMember[position]
                 val place = PlaceEntity(
-                    cityTitle = featureMember.GeoObject.name,
+                    title = featureMember.GeoObject.name,
                     lat = featureMember.GeoObject.Point.getGeoPoint().lat,
                     lon = featureMember.GeoObject.Point.getGeoPoint().lon,
                     cityFullName = featureMember.getFormatedName()

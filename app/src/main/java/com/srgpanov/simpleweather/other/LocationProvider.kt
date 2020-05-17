@@ -28,7 +28,7 @@ class LocationProvider(private val locationType: LocationType) {
 
     private suspend fun loadGeoPointOfCurrentPlace(): GeoPoint? {
         val currentPlace = repository.getCurrentPlace()
-        logD("current Place ${currentPlace?.cityTitle}")
+        logD("current Place ${currentPlace?.title}")
         return currentPlace?.toGeoPoint()
 
     }

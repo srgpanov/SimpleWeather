@@ -64,7 +64,10 @@ class WeatherWidgetSettingListFragment : Fragment() {
                     logD("FragmentResultListener $place")
                     if (place != null) {
                         onLocationTypeOtherChoice(place)
-                        lifecycleScope.launch { repository.savePlaceToHistory(place) }
+                        lifecycleScope.launch {
+                            repository.savePlace(place)
+                            repository.savePlaceToHistory(place)
+                        }
                     } else {
                         logE("place != null somethings goes wrong")
                     }
@@ -303,7 +306,7 @@ class WeatherWidgetSettingListFragment : Fragment() {
                 when (type) {
                     CURRENT -> preferences.edit()
                         .putInt(WIDGET_LOCATION_TYPE + widgetID, type.ordinal).apply()
-                    OTHER -> {
+                    CERTAIN -> {
                         val navigationActivity = requireActivity() as? NavigationActivity
                         navigationActivity?.navigateToFragment(SelectPlaceFragment())
                     }
@@ -319,7 +322,7 @@ class WeatherWidgetSettingListFragment : Fragment() {
     private fun getLocationDescriptionText(): String {
         return when (getLocationType()) {
             CURRENT -> getString(R.string.current_location)
-            OTHER -> preferences.getString(WIDGET_LOCATION_NAME + widgetID, "Error") ?: ""
+            CERTAIN -> preferences.getString(WIDGET_LOCATION_NAME + widgetID, "Error") ?: ""
         }
     }
 
@@ -334,15 +337,15 @@ class WeatherWidgetSettingListFragment : Fragment() {
 
     private fun onLocationTypeOtherChoice(place: PlaceEntity) {
         preferences.edit()
-            .putInt(WIDGET_LOCATION_TYPE + widgetID, OTHER.ordinal).apply()
+            .putInt(WIDGET_LOCATION_TYPE + widgetID, CERTAIN.ordinal).apply()
         preferences.edit()
             .putString(WIDGET_LATITUDE + widgetID, place.lat.toString()).apply()
         preferences.edit()
             .putString(WIDGET_LONGITUDE + widgetID, place.lon.toString()).apply()
         preferences.edit()
-            .putString(WIDGET_LOCATION_NAME + widgetID, place.cityTitle).apply()
+            .putString(WIDGET_LOCATION_NAME + widgetID, place.title).apply()
         binding.locationDescriptionTv.text = getLocationDescriptionText()
-        binding.widgetContainer.widgetPlaceNameTv.text=place.cityTitle
+        binding.widgetContainer.widgetPlaceNameTv.text=place.title
     }
 
     fun addButtonHeightToPadding(height: Int) {

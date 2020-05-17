@@ -5,11 +5,8 @@ import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import androidx.lifecycle.ViewModelProvider
-import com.srgpanov.simpleweather.MainActivity
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.ui.ShareViewModel
-import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment
 
 class LocationSettingDialogFragment:DialogFragment() {
     private lateinit var shareViewModel: ShareViewModel
@@ -23,7 +20,7 @@ class LocationSettingDialogFragment:DialogFragment() {
         val currentTV = fragmentView.findViewById<TextView>(R.id.current_location_tv)
         val otherTv = fragmentView.findViewById<TextView>(R.id.other_tv)
         otherTv.setOnClickListener {
-            onLocationTypeChoiceCallback?.onLocationTypeChoice(LocationType.OTHER)
+            onLocationTypeChoiceCallback?.onLocationTypeChoice(LocationType.CERTAIN)
             dismiss()
         }
         currentTV.setOnClickListener {
@@ -36,6 +33,6 @@ class LocationSettingDialogFragment:DialogFragment() {
         fun onLocationTypeChoice(type:LocationType)
     }
     enum class LocationType{
-        CURRENT,OTHER
+        CURRENT,CERTAIN
     }
 }

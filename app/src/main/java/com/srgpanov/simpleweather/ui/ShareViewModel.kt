@@ -31,11 +31,5 @@ class ShareViewModel: ViewModel(){
         super.onCleared()
     }
 
-    fun savePlaceToHistory(placeEntity: PlaceEntity) {
-        scope.launch {
-            repository.savePlaceToHistory(placeEntity)
-        }
-    }
-
 
 }

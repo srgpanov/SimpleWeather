@@ -1,23 +1,21 @@
 package com.srgpanov.simpleweather.data.models.entity
 
 import android.os.Parcelable
-import androidx.room.ColumnInfo
-import androidx.room.Embedded
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.*
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-@Entity
+@Entity(foreignKeys = [
+    ForeignKey(entity = PlaceTable::class,
+        parentColumns = ["id"],
+        childColumns = ["idCurrent"],
+        deferred = true,
+        onDelete = ForeignKey.CASCADE
+    )])
 data class CurrentTable(
     @PrimaryKey
-    val id:String,
-    val cityTitle: String,
-    @ColumnInfo(name = "lat")
-    val lat:Double,
-    @ColumnInfo(name = "lon")
-    val lon:Double,
-    val cityFullName:String?=""
+    @ColumnInfo(name = "idCurrent")
+    val id:String
 ) : Parcelable {
 }

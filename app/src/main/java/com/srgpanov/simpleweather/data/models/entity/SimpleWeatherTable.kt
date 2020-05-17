@@ -9,10 +9,19 @@ import com.srgpanov.simpleweather.data.models.weather.current_weather.CurrentWea
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-@Entity()
+@Entity(foreignKeys = [
+    ForeignKey(entity = PlaceTable::class,
+        parentColumns = ["id"],
+        childColumns = ["placeId"],
+        deferred = true,
+        onDelete = ForeignKey.CASCADE
+    )])
 data class SimpleWeatherTable (
     @PrimaryKey
     val id:String,
     val currentWeatherResponse: CurrentWeatherResponse,
-    override val time:Long=System.currentTimeMillis()
-):TimeCounter, Parcelable
+    override val timeStamp:Long=System.currentTimeMillis(),
+    val placeId:String
+):TimeCounter, Parcelable{
+
+}

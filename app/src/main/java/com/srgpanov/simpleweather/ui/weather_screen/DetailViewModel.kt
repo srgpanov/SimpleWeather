@@ -12,7 +12,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.preference.PreferenceManager
-import com.google.gson.Gson
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.DataRepositoryImpl
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
@@ -20,13 +19,9 @@ import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.data.remote.ResponseResult.Failure
 import com.srgpanov.simpleweather.data.remote.ResponseResult.Success
-import com.srgpanov.simpleweather.other.FragmentNavEvent
-import com.srgpanov.simpleweather.other.NavLiveEvent
-import com.srgpanov.simpleweather.other.SingleLiveEvent
-import com.srgpanov.simpleweather.other.logD
+import com.srgpanov.simpleweather.other.*
 import com.srgpanov.simpleweather.ui.App
 import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment
-import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.*
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.*
 import com.srgpanov.simpleweather.ui.setting_screen.SettingFragment
@@ -48,6 +43,7 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
     private val context = App.instance
     private var sharedPreferences: SharedPreferences =
         PreferenceManager.getDefaultSharedPreferences(context)
+    lateinit var locationProvider: LocationProvider
 
     val weatherData = MutableLiveData<OneCallResponse?>()
     val navEvent = NavLiveEvent()
@@ -106,10 +102,10 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
         super.onCleared()
     }
 
-    private fun loadCurrentPlace() {
+    private fun loadCertainPlace() {
         scope.launch {
             val currentPlace = repository.getCurrentPlace()
-            logD("current Place ${currentPlace?.cityTitle}")
+            logD("current Place ${currentPlace?.title}")
             if (currentPlace == null) {
                 selectCurrentPlace()
             } else {
@@ -256,27 +252,21 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
         if (locationTypeIsCurrent()==CURRENT) {
             setupCurrentLocation()
         } else {
-            loadCurrentPlace()
+            loadCertainPlace()
         }
     }
 
     private fun setupCurrentLocation() {
+        locationProvider= LocationProvider(CURRENT)
         scope.launch {
-            val geoPoint = if (locationPermissionIsGranted()) {
-                getLocation()
-            } else {
-                logD("locationType current permission not granted")
-                when (val response = repository.getGeoPointFromIp()) {
-                    is Success -> response.data.toGeoPoint()
-                    is Failure -> null
-                }
-            }
+            val geoPoint = locationProvider.getGeoPoint()
             if (geoPoint != null) {
                 val response = repository.getPlaceByGeoPoint(geoPoint)
                 when (response) {
                     is Success -> {
                         val placeEntity = response.data.toEntity()
                         placeEntity.current = true
+                        repository.savePlace(placeEntity)
                         weatherPlace.postValue(placeEntity)
                         currentPlace.postValue(placeEntity)
                     }
