@@ -10,9 +10,11 @@ import com.srgpanov.simpleweather.data.models.weather.Sunrise
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.databinding.DetailWeatherItemBinding
 import com.srgpanov.simpleweather.databinding.HourlyWeatherItemBinding
+import com.srgpanov.simpleweather.other.logD
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.math.log
 
 class WeatherDetailAdapter() : RecyclerView.Adapter<WeatherDetailHolders>() {
     var list: MutableList<Any> = ArrayList()
@@ -78,7 +80,9 @@ private fun getDataListFromRequest(request: OneCallResponse): MutableList<Any> {
     for (hours in request.hourly) {
         listFromRequest.add(hours)
         for (daily in request.daily) {
+//            logD("getHourSunrise  getDay ${daily.getDay()} day ${  hours.day()}" )
             if (daily.getDay() == hours.day()) {
+                logD("getHourSunrise hours.hour() ${hours.hour() } daily.getHourSunrise() ${daily.getHourSunrise()}")
                 val hourOfSunrise = hours.hour() == daily.getHourSunrise()
                 val hourOfSunset = hours.hour() == daily.getHourSunset()
                 if (hourOfSunrise) listFromRequest.add(

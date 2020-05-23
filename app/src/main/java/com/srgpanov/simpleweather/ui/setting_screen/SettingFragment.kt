@@ -2,6 +2,8 @@ package com.srgpanov.simpleweather.ui.setting_screen
 
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -35,12 +37,14 @@ import com.srgpanov.simpleweather.other.NavigationActivity
 import com.srgpanov.simpleweather.other.logD
 import com.srgpanov.simpleweather.other.requestApplyInsetsWhenAttached
 import com.srgpanov.simpleweather.ui.ShareViewModel
+import com.srgpanov.simpleweather.ui.about_screen.AboutFragment
 import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment
 import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment.Companion.REQUEST_PLACE
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.*
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.OnLocationTypeChoiceCallback
 import com.srgpanov.simpleweather.ui.setting_widget_screen.SettingWidgetFragment
+import com.srgpanov.simpleweather.ui.weather_widget.WeatherWidget
 import kotlinx.coroutines.launch
 
 
@@ -169,9 +173,20 @@ class SettingFragment : Fragment() {
         lifecycleScope.launch {
             binding.locationDescriptionTv.text = getLocationTypeText()
         }
+        val widgetIdArray =getWidgetsId()
+        if (widgetIdArray.isNotEmpty()){
+            binding.widgetSettingBackground.visibility=View.VISIBLE
+            binding.widgetSettingTextTv.visibility=View.VISIBLE
+        }
 
         logD("setting ${sharedPreferences.all}")
 
+    }
+
+    private fun getWidgetsId():IntArray {
+        val widgetManager = AppWidgetManager.getInstance(requireActivity())
+        val widgetComponent = ComponentName(requireActivity(), WeatherWidget::class.java)
+        return widgetManager.getAppWidgetIds(widgetComponent)
     }
 
     private fun setupLocationPermissionSetting(permissionsGranted: Boolean) {
@@ -267,6 +282,11 @@ class SettingFragment : Fragment() {
             navigationActivity?.navigateToFragment(SettingWidgetFragment())
         }
         binding.aboutBackground.setOnClickListener {
+            requireActivity().supportFragmentManager.beginTransaction()
+                .setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out)
+                .replace(R.id.container,AboutFragment())
+                .addToBackStack(null)
+                .commit()
         }
     }
 
@@ -308,9 +328,7 @@ class SettingFragment : Fragment() {
                     CERTAIN -> mainActivity?.navigate(SelectPlaceFragment::class.java)
                 }
                 logD("onLocationTypeChoice")
-
             }
-
         }
         locationSettingDialog.show(
             childFragmentManager,
@@ -336,6 +354,8 @@ class SettingFragment : Fragment() {
 
     override fun onDestroyView() {
         _binding = null
+        actionBar=null
+        mainActivity?.setSupportActionBar(null)
         super.onDestroyView()
     }
 }

@@ -1,5 +1,9 @@
 package com.srgpanov.simpleweather.data.models.places
 
+
+import com.google.gson.annotations.SerializedName
+
 data class BoundedBy(
-    val Envelope: Envelope
+    @SerializedName("Envelope")
+    val envelope: Envelope
 )

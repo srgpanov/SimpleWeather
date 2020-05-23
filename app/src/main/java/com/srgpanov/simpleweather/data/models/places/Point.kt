@@ -1,19 +1,26 @@
 package com.srgpanov.simpleweather.data.models.places
 
+
+import com.google.gson.annotations.SerializedName
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
+import com.srgpanov.simpleweather.other.logD
+import com.srgpanov.simpleweather.other.logE
 
 data class Point(
+    @SerializedName("pos")
     val pos: String
 ){
-    fun getGeoPoint(): GeoPoint {
+    fun toGeoPoint():GeoPoint{
+
         try {
-            val lon = pos.split(" ")[0].toDouble()
-            val lat = pos.split(" ")[1].toDouble()
+            logD("toGeoPoint lat = ${pos.split(" ")[0].toDouble()} lon = ${pos.split(" ")[1].toDouble()}")
+            val splittedString = pos.split(" ")
             return GeoPoint(
-                lat,
-                lon
+                lat = splittedString[1].toDouble(),
+                lon = splittedString[0].toDouble()
             )
-        }catch (e:Exception){
+        } catch (e: Exception) {
+            logE("toGeoPoint somethings goes wrong pos $pos ")
             return GeoPoint()
         }
     }

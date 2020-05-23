@@ -1,7 +1,11 @@
 package com.srgpanov.simpleweather.data.models.places
 
+
+import com.google.gson.annotations.SerializedName
+
 data class AdministrativeArea(
-    val AdministrativeAreaName: String,
-    val Locality: Locality,
-    val SubAdministrativeArea: SubAdministrativeArea
+    @SerializedName("AdministrativeAreaName")
+    val administrativeAreaName: String,
+    @SerializedName("SubAdministrativeArea")
+    val subAdministrativeArea: SubAdministrativeArea
 )

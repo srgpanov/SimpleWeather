@@ -11,7 +11,7 @@ import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.system.measureTimeMillis
 
-internal fun format(temp: Int):String{
+ fun format(temp: Int):String{
     val preferences = PreferenceManager.getDefaultSharedPreferences(App.instance)
     val tempMeasurement=preferences.getInt(SettingFragment.TEMP_MEASUREMENT,0)
     val tempEnum=if (tempMeasurement==0) Temp.CELSIUS else Temp.FAHRENHEIT

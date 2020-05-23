@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.viewpager.widget.ViewPager
+import androidx.viewpager.widget.ViewPager.SCROLL_STATE_IDLE
 import com.srgpanov.simpleweather.databinding.PagerFragmentLayoutBinding
 import com.srgpanov.simpleweather.other.OnBackPressedListener
 import com.srgpanov.simpleweather.other.logD
@@ -30,6 +32,14 @@ class PagerFragment : Fragment(), OnBackPressedListener {
         binding.viewPager.adapter = pagerAdapter
         binding.viewPager.currentItem = 1
         binding.viewPager.setPageTransformer(false, PagerTransformer())
+        binding.viewPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener(){
+            override fun onPageScrollStateChanged(state: Int) {
+                if (state==SCROLL_STATE_IDLE){
+                    val detailFragment = pagerAdapter.getRegisteredFragment(1) as? DetailFragment
+                    detailFragment?.updateRV()
+                }
+            }
+        })
         logD("onCreateView")
         return binding.root
     }
@@ -43,7 +53,8 @@ class PagerFragment : Fragment(), OnBackPressedListener {
     }
 
     override fun onDestroyView() {
-        _binding == null
+        binding.viewPager.adapter=null
+        _binding = null
         super.onDestroyView()
     }
 

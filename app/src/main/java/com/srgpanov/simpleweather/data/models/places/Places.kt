@@ -1,18 +1,23 @@
 package com.srgpanov.simpleweather.data.models.places
 
+
 import com.google.gson.annotations.SerializedName
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 
 data class Places(
-
     @SerializedName("response")
-    val response: PlacesResponse
-) {
-    fun toEntity(): PlaceEntity {
+    val response: Response
+){
+    fun toEntity():PlaceEntity{
         return PlaceEntity(
-            title = response.GeoObjectCollection.featureMember[0].GeoObject.name,
-            lat = response.GeoObjectCollection.featureMember[0].GeoObject.Point.getGeoPoint().lat,
-            lon = response.GeoObjectCollection.featureMember[0].GeoObject.Point.getGeoPoint().lon
+            title = response.geoObjectCollection.featureMember[0].geoObject.name,
+            lat = response.geoObjectCollection.metaDataProperty.geocoderResponseMetaData.point.toGeoPoint().lat,
+            lon = response.geoObjectCollection.metaDataProperty.geocoderResponseMetaData.point.toGeoPoint().lon,
+            cityFullName = response.geoObjectCollection.featureMember[0].getFormattedName(),
+            favorite = false,
+            current = false,
+            simpleWeather = null,
+            oneCallResponse = null
 
         )
     }

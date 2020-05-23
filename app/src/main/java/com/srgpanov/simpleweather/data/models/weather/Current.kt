@@ -41,7 +41,7 @@ data class Current(
     @SerializedName("wind_speed")
     val windSpeed: Float
 ) : Parcelable {
-    var offset:Int=0
+    var offset:Long=0
     fun tempFormatted():String{
         val tempInt =temp.roundToInt()
         return format(tempInt)

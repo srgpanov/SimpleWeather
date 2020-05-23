@@ -71,7 +71,7 @@ class CalendarAdapter() : RecyclerView.Adapter<CalendarAdapter.DateViewHolder>()
     inner class DateViewHolder(val binding: CalendarDayItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: CalendarItem){
-            binding.day.text=SimpleDateFormat("E",Locale.ENGLISH).format(item.date)
+            binding.day.text=SimpleDateFormat("E",Locale.getDefault()).format(item.date)
             binding.numbers.text=item.date.date.toString()
             binding.linearLayout.setOnClickListener { view: View? ->
                 listener?.onClick(view,adapterPosition)

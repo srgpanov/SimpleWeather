@@ -12,7 +12,7 @@ class SelectPlaceViewModel :ViewModel(){
     private val coroutineContext: CoroutineContext
         get() = parentJob + Dispatchers.IO
     private val scope = CoroutineScope(coroutineContext)
-    val repository = DataRepositoryImpl()
+    val repository = DataRepositoryImpl
     val searchHistory = MutableLiveData<List<PlaceEntity>>()
     init {
         scope.launch {

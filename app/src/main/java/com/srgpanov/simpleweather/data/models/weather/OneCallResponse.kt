@@ -3,6 +3,7 @@ package com.srgpanov.simpleweather.data.models.weather
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import com.srgpanov.simpleweather.data.DataRepositoryImpl.REFRESH_TIME
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.other.logD
 import kotlinx.android.parcel.Parcelize
@@ -22,22 +23,25 @@ data class OneCallResponse(
     @SerializedName("lon")
     val lon: Double,
     @SerializedName("timezone")
-    val timezone: String
+    val timezone: String,
+    @SerializedName("timezone_offset")
+    val timezone_offset: Long
 ) : Parcelable {
 
 
     fun setOffsets(): OneCallResponse {
         logD("WeatherResponse init")
-        val timeZone = TimeZone.getTimeZone(timezone)
+        logD("setOffsets ${Date(timezone_offset)}")
         hourly.forEach {
-            it.offset = timeZone.rawOffset
+            it.offset = timezone_offset.toInt()
         }
         daily.forEach {
-            it.offset = timeZone.rawOffset
+            it.offset = timezone_offset*1000
         }
-        current.offset = timeZone.rawOffset
+        current.offset = timezone_offset*1000
         return this
     }
+
 
     fun getGeoPoint(): GeoPoint {
         val latRounded = lat.toBigDecimal().setScale(2, RoundingMode.DOWN).toDouble()

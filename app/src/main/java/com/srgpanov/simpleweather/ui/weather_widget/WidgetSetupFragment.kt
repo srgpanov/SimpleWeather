@@ -41,6 +41,11 @@ class WidgetSetupFragment : Fragment() {
         setupListeners()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding=null
+    }
+
     private fun setupInsets() {
         binding.createWidgetButton.addSystemWindowInsetToMargin(bottom = true)
         val statusView = binding.statusBarView

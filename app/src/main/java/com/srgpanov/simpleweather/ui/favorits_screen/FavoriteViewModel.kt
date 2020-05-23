@@ -17,12 +17,11 @@ class FavoriteViewModel : ViewModel() {
     private val coroutineContext: CoroutineContext
         get() = parentJob + Dispatchers.IO
     private val scope = CoroutineScope(coroutineContext)
-    private val repository = DataRepositoryImpl()
+    private val repository = DataRepositoryImpl
 
     val favoritePlaces = MutableLiveData<List<PlaceEntity>>()
     val currentPlace = MutableLiveData<PlaceEntity>()
-    val searchHistory = MutableLiveData<List<PlaceEntity>>()
-    var searchViewOpen = false
+
 
     fun refreshPlaces() {
         scope.launch {
@@ -35,10 +34,6 @@ class FavoriteViewModel : ViewModel() {
             loadWeather(placesList)
             logD("placesList ${placesList.size}")
         }
-        scope.launch {
-            val history = repository.getSearchHistory()
-            searchHistory.postValue(history)
-        }
     }
 
 
@@ -50,7 +45,7 @@ class FavoriteViewModel : ViewModel() {
 
     fun renamePlace(placeEntity: PlaceEntity) {
         scope.launch {
-            repository.saveFavoritePlace(placeEntity)
+            repository.renamePlace(placeEntity)
             val places = repository.getFavoritePlaces()
             favoritePlaces.postValue(places)
             loadWeather(places)

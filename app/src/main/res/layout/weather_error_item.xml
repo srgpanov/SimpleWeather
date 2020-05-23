@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/weather_error_container"
     android:layout_width="match_parent"
-    android:layout_height="328dp"
+    android:layout_height="@dimen/header_weather_height"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/empty_weather_background">
     <View
@@ -20,7 +20,7 @@
         android:id="@+id/guideline2"
         android:layout_width="0dp"
         android:layout_height="1dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="32dp"
         android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -12,10 +12,12 @@ import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.srgpanov.simpleweather.MainActivity
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.data.remote.RemoteDataSourceImpl
-import com.srgpanov.simpleweather.data.remote.ResponseResult.*
+import com.srgpanov.simpleweather.data.remote.ResponseResult.Failure
+import com.srgpanov.simpleweather.data.remote.ResponseResult.Success
 import com.srgpanov.simpleweather.databinding.SelectPlaceFragmentBinding
 import com.srgpanov.simpleweather.other.*
 import com.srgpanov.simpleweather.ui.ShareViewModel
@@ -24,7 +26,6 @@ import com.srgpanov.simpleweather.ui.favorits_screen.SearchHistoryAdapter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.*
 
 class SelectPlaceFragment : Fragment() {
     private var _binding: SelectPlaceFragmentBinding? = null
@@ -33,18 +34,20 @@ class SelectPlaceFragment : Fragment() {
     private lateinit var viewModel: SelectPlaceViewModel
     private var mainActivity: MainActivity? = null
 
-    private val remoteDataSource by lazy { RemoteDataSourceImpl() }
+    private val remoteDataSource=RemoteDataSourceImpl
     private val historyAdapter: SearchHistoryAdapter by lazy { SearchHistoryAdapter() }
     private val searchAdapter: SearchAdapter by lazy { SearchAdapter() }
     private var searchJob: Job? = null
+    private var queryListener: SearchView.OnQueryTextListener?=null
 
 
     companion object {
         @JvmStatic
         fun newInstance() =
             SelectPlaceFragment()
-        const val REQUEST_PLACE="REQUEST_PLACE"
-        val TAG=SelectPlaceFragment::class.java.simpleName
+
+        const val REQUEST_PLACE = "REQUEST_PLACE"
+        val TAG = SelectPlaceFragment::class.java.simpleName
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,6 +74,13 @@ class SelectPlaceFragment : Fragment() {
         observeViewModel()
     }
 
+    override fun onDestroyView() {
+        _binding==null
+        queryListener=null
+        searchJob?.cancel()
+        super.onDestroyView()
+    }
+
     private fun observeViewModel() {
         viewModel.searchHistory.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
             historyAdapter.setData(it)
@@ -78,7 +88,7 @@ class SelectPlaceFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        queryListener=object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
             }
@@ -87,9 +97,10 @@ class SelectPlaceFragment : Fragment() {
                 setAdapterData(newText.toString())
                 return false
             }
-        })
+        }
+        binding.searchView.setOnQueryTextListener(queryListener)
         binding.backButton.setOnClickListener {
-            mainActivity?.onBackPressedSuper()
+            parentFragmentManager.popBackStack()
         }
         historyAdapter.listener = object : MyClickListener {
             override fun onClick(view: View?, position: Int) {
@@ -100,10 +111,10 @@ class SelectPlaceFragment : Fragment() {
             override fun onClick(view: View?, position: Int) {
                 val featureMember = searchAdapter.featureMember[position]
                 val place = PlaceEntity(
-                    title = featureMember.GeoObject.name,
-                    lat = featureMember.GeoObject.Point.getGeoPoint().lat,
-                    lon = featureMember.GeoObject.Point.getGeoPoint().lon,
-                    cityFullName = featureMember.getFormatedName()
+                    title = featureMember.geoObject.name,
+                    lat = featureMember.geoObject.point.toGeoPoint().lat,
+                    lon = featureMember.geoObject.point.toGeoPoint().lon,
+                    cityFullName = featureMember.getFormattedName()
                 )
                 onSelectPlace(place)
             }
@@ -137,20 +148,21 @@ class SelectPlaceFragment : Fragment() {
             selectAdapter(query)
             delay(500)
             if (query.length > 1) {
-                val placesResponse = when (Locale.getDefault().language) {
-                    "en" -> remoteDataSource.getPlaces(query = query, lang = "en_US")
-                    else -> remoteDataSource.getPlaces(query = query)
-                }
+
+                val placesResponse = remoteDataSource.getPlaces(query = query)
                 when (placesResponse) {
                     is Success -> {
-                        searchAdapter.setData(placesResponse.data.response.GeoObjectCollection.featureMember)
-                        if (binding.recyclerView.adapter != searchAdapter) {
-                            binding.recyclerView.adapter = searchAdapter
-                        }
+                        logD("empty ${placesResponse.data.response.geoObjectCollection.featureMember}")
+                        searchAdapter.setData(placesResponse.data.response.geoObjectCollection.featureMember)
                     }
-                    is Failure-> logE("searchJob ${placesResponse}")
+                    is Failure -> {
+
+                        logE("searchJob ${placesResponse}")
+                    }
 
                 }
+            } else {
+                //todo
             }
         }
     }
@@ -170,14 +182,14 @@ class SelectPlaceFragment : Fragment() {
 
     private fun setupOtherView() {
         binding.recyclerView.adapter = historyAdapter
+        binding.recyclerView.layoutManager=LinearLayoutManager(requireContext())
         binding.searchView.requestFocus()
-        binding.searchView
     }
 
     private fun onSelectPlace(placeEntity: PlaceEntity) {
         val bundle = Bundle()
-        bundle.putParcelable(REQUEST_PLACE,placeEntity)
-        parentFragmentManager.setFragmentResult(REQUEST_PLACE,bundle)
+        bundle.putParcelable(REQUEST_PLACE, placeEntity)
+        parentFragmentManager.setFragmentResult(REQUEST_PLACE, bundle)
         parentFragmentManager.popBackStack()
 
     }
@@ -193,4 +205,6 @@ class SelectPlaceFragment : Fragment() {
             requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         inputMethodManager.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0)
     }
+
+
 }

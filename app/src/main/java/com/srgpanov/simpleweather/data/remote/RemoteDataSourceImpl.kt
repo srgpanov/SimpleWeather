@@ -4,10 +4,12 @@ import com.srgpanov.simpleweather.data.models.ip_to_location.IpToLocation
 import com.srgpanov.simpleweather.data.models.places.Places
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.data.models.weather.current_weather.CurrentWeatherResponse
+import com.srgpanov.simpleweather.other.logD
 import com.srgpanov.simpleweather.other.numbersAfterDot
+import java.util.*
 
 
-class RemoteDataSourceImpl {
+object RemoteDataSourceImpl {
     private val weatherService =
         RetrofitClient.createWeatherService()
     private val placesService =
@@ -30,10 +32,16 @@ class RemoteDataSourceImpl {
     }
 
 
-    suspend fun getPlaces(query: String, lang: String = "ru_RU"): ResponseResult<Places> {
+    suspend fun getPlaces(query: String): ResponseResult<Places> {
+       var lang= Locale.getDefault().toLanguageTag().replace("-","_")
+        lang= when(lang) {
+            "ru_RU","en_US" -> lang
+            else -> "en_US"
+        }
         return placesService.getPlaces(
             geocode = query,
-            apikey = "57ac35b4-0384-4657-8171-fa6d8daff9e7"
+            apikey = "57ac35b4-0384-4657-8171-fa6d8daff9e7",
+            lang = lang
         )
     }
 

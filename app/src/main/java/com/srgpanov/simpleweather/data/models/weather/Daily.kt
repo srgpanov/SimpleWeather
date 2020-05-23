@@ -1,8 +1,11 @@
 package com.srgpanov.simpleweather.data.models.weather
 
 
+import android.content.Context
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import com.srgpanov.simpleweather.R
+import com.srgpanov.simpleweather.other.logD
 import com.srgpanov.simpleweather.other.logE
 import kotlinx.android.parcel.Parcelize
 import java.lang.IndexOutOfBoundsException
@@ -43,39 +46,58 @@ data class Daily(
     val windSpeed: Double
 ) : Parcelable {
 
-    var offset: Int = 0
+    var offset: Long = 0
 
+    private fun calendarTime(): Calendar {
+        val tz = TimeZone.getDefault()
+        val offsetFromUtc = tz.getOffset(System.currentTimeMillis())
+        val time = (dt*1000L)-offsetFromUtc+(offset)
+        val calendar = Calendar.getInstance()
+        calendar.time = Date(time)
+        return calendar
+    }
     fun date(): Date {
-        return Date(dt * 1000L + offset)
+        return calendarTime().time
     }
 
     fun getDay(): Int {
-        val calendar = Calendar.getInstance()
-        calendar.time = date()
-        return calendar.get(Calendar.DAY_OF_MONTH)
+        return calendarTime().get(Calendar.DAY_OF_MONTH)
     }
 
     fun getHourSunrise(): Int {
-        val date = Date(sunrise * 1000L + offset)
-        return getHour(date)
+        val tz = TimeZone.getDefault()
+        val offsetFromUtc = tz.getOffset(System.currentTimeMillis())
+        val time = (sunrise*1000L)-offsetFromUtc+(offset)
+        val calendar = Calendar.getInstance()
+        calendar.time= Date(time)
+        return calendar.get(HOUR_OF_DAY)
     }
 
     fun getHourSunset(): Int {
-        val date = Date(sunset * 1000L + offset)
-        return getHour(date)
+        val tz = TimeZone.getDefault()
+        val offsetFromUtc = tz.getOffset(System.currentTimeMillis())
+        val time = (sunset*1000L)-offsetFromUtc+(offset)
+        val calendar = Calendar.getInstance()
+        calendar.time=Date(time)
+        return calendar.get(HOUR_OF_DAY)
     }
 
     fun getSunriseString(): String {
-        val date = Date(sunrise * 1000L + offset)
-        return getHourString(date)
+        val tz = TimeZone.getDefault()
+        val offsetFromUtc = tz.getOffset(System.currentTimeMillis())
+        val time = (sunrise*1000L)-offsetFromUtc+(offset)
+        logD("getSunriseString ${ SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(time))}")
+        return SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(time))
     }
 
     fun getSunsetString(): String {
-        val date = Date(sunset * 1000L + offset)
-        return getHourString(date)
+        val tz = TimeZone.getDefault()
+        val offsetFromUtc = tz.getOffset(System.currentTimeMillis())
+        val time = (sunset*1000L)-offsetFromUtc+(offset)
+        return SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(time))
     }
 
-    fun dayLightHours(): String {
+    fun dayLightHours(context: Context): String {
         val dayLightHours = (sunset - sunrise) * 1000L
         val calendar = Calendar.getInstance()
         calendar.time = Date(dayLightHours)
@@ -86,7 +108,9 @@ data class Daily(
         val minute =
             if (calendar.get(MINUTE) < 10) "0${calendar.get(MINUTE)}"
             else calendar.get(MINUTE).toString()
-        return "$hours h $minute min"
+        val h = context.getString(R.string.hours_short)
+        val min = context.getString(R.string.minutes_short)
+        return "$hours $h $minute $min"
     }
     fun windDirection():String{
         return getWindDirection(windDeg)
@@ -111,17 +135,15 @@ data class Daily(
         }
     }
 
-    private fun getHourString(date: Date): String {
-        return SimpleDateFormat("HH:mm").format(date)
+    private fun getHourString(): String {
+        return SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendarTime().time)
 //        val calendar = Calendar.getInstance()
 //        calendar.time = date
 //        return "${calendar.get(HOUR_OF_DAY)}:${calendar.get(MINUTE)}"
     }
 
-    private fun getHour(date: Date): Int {
-        val calendar = Calendar.getInstance()
-        calendar.time = date
-        return calendar.get(HOUR_OF_DAY)
+    private fun getHour(): Int {
+        return calendarTime().get(HOUR_OF_DAY)
     }
 
 }

@@ -19,6 +19,7 @@ class App : Application() {
         instance = this
         Stetho.initializeWithDefaults(this);
 
+
     }
 
 

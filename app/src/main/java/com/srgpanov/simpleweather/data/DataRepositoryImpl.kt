@@ -5,7 +5,6 @@ import com.srgpanov.simpleweather.data.models.TimeCounter
 import com.srgpanov.simpleweather.data.models.entity.*
 import com.srgpanov.simpleweather.data.models.ip_to_location.IpToLocation
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
-import com.srgpanov.simpleweather.data.models.places.Places
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.data.models.weather.current_weather.CurrentWeatherResponse
 import com.srgpanov.simpleweather.data.remote.RemoteDataSourceImpl
@@ -14,15 +13,16 @@ import com.srgpanov.simpleweather.other.logD
 import kotlinx.coroutines.coroutineScope
 import java.util.*
 
-class DataRepositoryImpl() {
+object DataRepositoryImpl {
     private val localDataSource = LocalDataSourceImpl
-    private val remoteDataSource = RemoteDataSourceImpl()
+    private val remoteDataSource = RemoteDataSourceImpl
 
-    companion object {
-        const val REFRESH_TIME = 3600000L //1 hour
-    }
+    const val REFRESH_TIME = 3600000L //1 hour
 
-    suspend fun getWeather(geoPoint: GeoPoint, freshData: Boolean = true): ResponseResult<OneCallResponse> {
+    suspend fun getWeather(
+        geoPoint: GeoPoint,
+        freshData: Boolean = true
+    ): ResponseResult<OneCallResponse> {
         val cachedResponse = localDataSource.getOneCallResponse(geoPoint)
         if (cachedResponse == null) {
             logD("getWeather return null ")
@@ -48,7 +48,7 @@ class DataRepositoryImpl() {
             response.data
             logD("getWeather return fresh  response ")
 
-            coroutineScope {saveWeatherResponse(response.data)}
+            coroutineScope { saveWeatherResponse(response.data) }
             logD("fresh  response saved  ${response.data.current.dt}")
         }
         return response
@@ -60,7 +60,7 @@ class DataRepositoryImpl() {
             lat = geoPoint.lat,
             lon = geoPoint.lon
         )
-        if (response is ResponseResult.Success){
+        if (response is ResponseResult.Success) {
             logD("getWeather return fresh  response ")
             coroutineScope { saveCurrentResponse(response.data) }
             logD("fresh  response saved  ")
@@ -69,7 +69,7 @@ class DataRepositoryImpl() {
     }
 
     private suspend fun saveCurrentResponse(response: CurrentWeatherResponse) {
-        val placeId=response.getGeoPoint().pointToId()
+        val placeId = response.getGeoPoint().pointToId()
         val responseEntity = SimpleWeatherTable(
             id = placeId,
             placeId = placeId,
@@ -104,9 +104,9 @@ class DataRepositoryImpl() {
     }
 
     suspend fun saveWeatherResponse(response: OneCallResponse) {
-        val placeId=response.getGeoPoint().pointToId()
+        val placeId = response.getGeoPoint().pointToId()
         val responseEntity = OneCallTable(
-            id=placeId,
+            id = placeId,
             placeId = placeId,
             oneCallResponse = response,
             timeStamp = System.currentTimeMillis()
@@ -151,8 +151,27 @@ class DataRepositoryImpl() {
         return timeFromLastResponse > refreshTime
     }
 
-    suspend fun getPlaceByGeoPoint(geoPoint: GeoPoint): ResponseResult<Places> {
-        return remoteDataSource.getPlaces(geoPoint.pointToQuery())
+    suspend fun getPlaceByGeoPoint(geoPoint: GeoPoint): PlaceEntity? {
+        logD("getPlaceByGeoPoint geoPoint ${geoPoint.pointToId() }")
+        val place = localDataSource.getPlace(geoPoint.pointToId())
+        if (place != null) {
+            logD("getPlaceByGeoPoint returned from DB")
+            return place.toPlaceEntity()
+        } else {
+            val responseResult = remoteDataSource.getPlaces(geoPoint.pointToQuery())
+            return when (responseResult) {
+                is ResponseResult.Success -> {
+                    localDataSource.savePlace(responseResult.data.toEntity())
+                    logD("getPlaceByGeoPoint returned from remote")
+                    responseResult.data.toEntity()
+                }
+                is ResponseResult.Failure -> {
+                    logD("getPlaceByGeoPoint returned null")
+                    null
+                }
+            }
+        }
+
 
     }
 
@@ -160,27 +179,28 @@ class DataRepositoryImpl() {
         return remoteDataSource.getGeoPointFromIp()
     }
 
-    suspend fun getPlaceFromIp(): ResponseResult<Places> {
-        val response = getGeoPointFromIp()
-        return when (response){
-            is ResponseResult.Success -> getPlaceByGeoPoint(response.data.toGeoPoint())
-            is ResponseResult.Failure.ServerError -> TODO()
-            is ResponseResult.Failure.NetworkError -> TODO()
-        }
-    }
 
-    suspend fun getCachedWeather(geoPoint: GeoPoint):OneCallResponse? {
+    suspend fun getCachedWeather(geoPoint: GeoPoint): OneCallResponse? {
         val oneCallResponse = localDataSource.getOneCallResponse(geoPoint)
         return oneCallResponse?.oneCallResponse
 
     }
+
     suspend fun getOneCallTable(geoPoint: GeoPoint): OneCallTable? {
         return localDataSource.getOneCallResponse(geoPoint)
 
     }
 
-   suspend fun savePlace(placeEntity: PlaceEntity) {
-       localDataSource.savePlace(placeEntity)
+    suspend fun savePlace(placeEntity: PlaceEntity) {
+        localDataSource.savePlace(placeEntity)
+    }
+
+    suspend fun renamePlace(placeEntity: PlaceEntity) {
+        localDataSource.updatePlace(placeEntity)
+    }
+
+    suspend fun placeIsInDb(shownGeoPoint: GeoPoint): Boolean {
+        return localDataSource.placeIsInDb(shownGeoPoint)
     }
 
 }

@@ -16,6 +16,7 @@ import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.srgpanov.simpleweather.MainActivity
@@ -32,10 +33,8 @@ import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment
 import com.srgpanov.simpleweather.ui.setting_screen.SettingFragment
 import com.srgpanov.simpleweather.ui.weather_widget.WeatherWidget.Companion.ACTION_SHOW_WEATHER
 import com.srgpanov.simpleweather.ui.weather_widget.WeatherWidget.Companion.PLACE_ENTITY_KEY
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
+import java.util.*
 import kotlin.coroutines.CoroutineContext
 
 
@@ -54,6 +53,8 @@ class DetailFragment : Fragment() {
     private var toolbarHeight: Int = 100
     private lateinit var viewModel: DetailViewModel
     private val weatherAdapter: WeatherAdapter by lazy { WeatherAdapter() }
+    private var loadingDelay:Job?=null
+    var updateRvJob:Job?=null
 
     companion object {
         const val ANOTHER_REQUEST_LOCATION_PERMISSION = 11
@@ -65,12 +66,11 @@ class DetailFragment : Fragment() {
         super.onCreate(savedInstanceState)
         requireActivity().intent
         shareViewModel = ViewModelProvider(requireActivity()).get(ShareViewModel::class.java)
-        val placeEntity=getStartPlace( requireActivity().intent)
-        viewModel =ViewModelProvider(this,WeatherViewModelFactory(placeEntity))
+        val placeEntity = getStartPlace(requireActivity().intent)
+        viewModel = ViewModelProvider(this, WeatherViewModelFactory(placeEntity))
             .get(DetailViewModel::class.java)
         mainActivity = requireActivity() as MainActivity
         logD("lifecycle onCreate  $this")
-        logD("test hash Fragment ${this.hashCode()}")
     }
 
     override fun onCreateView(
@@ -83,39 +83,27 @@ class DetailFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        prepareViews()
-        if (viewModel.currentPlace.value==null) {
+        setupInsets()
+        setupToolbar()
+        setupRecyclerView()
+        setupOtherView()
+        if (viewModel.currentPlace.value == null) {
             viewModel.setCurrentPlace()
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        when (requestCode) {
-            FIRST_REQUEST_LOCATION_PERMISSION, ANOTHER_REQUEST_LOCATION_PERMISSION -> {
-                viewModel.setCurrentPlace()
-            }
-        }
-    }
+
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel.weatherData.observe(viewLifecycleOwner, Observer { it ->
-            logD("onActivityCreated ${it?.daily?.size}")
-            logD("weatherData.it ${it?.current?.temp} adapter ${binding.detailRv.adapter}")
-            weatherAdapter.setWeather(it)
-            if (binding.detailRv.adapter != weatherAdapter) {
-                binding.detailRv.adapter = weatherAdapter
+            if (it != null) {
+                weatherAdapter.setWeather(it)
+                setWeatherToFavoriteScreen(it)
             }
-            val place = shareViewModel.currentPlace.value
-            place?.oneCallResponse = it
-            shareViewModel.currentPlace.value = place
         })
         viewModel.loadingState.observe(viewLifecycleOwner, Observer {
-            binding.swipeLayout.isRefreshing = it
+            showLoading(it)
         })
 
         viewModel.navEvent.observe(viewLifecycleOwner, Observer {
@@ -149,7 +137,10 @@ class DetailFragment : Fragment() {
             snackbar.show()
         })
         shareViewModel.weatherPlace.observe(viewLifecycleOwner, Observer { it ->
-            viewModel.weatherPlace.value = it
+            logD("updateRvJob weatherPlace.observe")
+            updateRvJob = lifecycleScope.launch(start = CoroutineStart.LAZY) {
+                viewModel.weatherPlace.value = it
+            }
         })
         viewModel.errorConnectionSnackbar.observe(viewLifecycleOwner, Observer { show ->
             show?.let {
@@ -160,20 +151,39 @@ class DetailFragment : Fragment() {
             showRequestPermissionDialog()
         })
     }
+    fun updateRV() {
+        logD("updateRvJob updateRV")
+        updateRvJob?.start()
+        updateRvJob=null
+    }
+
+
+    override fun onDestroyView() {
+        binding.detailRv.adapter = null
+        _binding = null
+        super.onDestroyView()
+    }
 
     override fun onDestroy() {
         scope.cancel()
         super.onDestroy()
     }
 
-    override fun onDestroyView() {
-        _binding = null
-        super.onDestroyView()
-    }
-
     fun onBackPressed() {
         logD("back fragment")
         mainActivity?.onBackPressedSuper()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        when (requestCode) {
+            FIRST_REQUEST_LOCATION_PERMISSION, ANOTHER_REQUEST_LOCATION_PERMISSION -> {
+                viewModel.setCurrentPlace()
+            }
+        }
     }
 
     private fun animateScroll(progress: Float) {
@@ -215,28 +225,22 @@ class DetailFragment : Fragment() {
         return Color.rgb(r.toInt(), g.toInt(), b.toInt())
     }
 
-    private fun getIntentFromWidget(savedInstanceState: Bundle?): Intent? {
-        return if (savedInstanceState != null) {
-            null
-        } else {
-            requireActivity().intent
-        }
-    }
 
-    private fun getStartPlace(activityIntent: Intent?):PlaceEntity?{
+
+    private fun getStartPlace(activityIntent: Intent?): PlaceEntity? {
         val extras = activityIntent?.extras
         val action = requireActivity().intent.action
-        if (action!=null&&action.equals(ACTION_SHOW_WEATHER,true)){
-            if (extras!=null){
+        if (action != null && action.equals(ACTION_SHOW_WEATHER, true)) {
+            if (extras != null) {
                 val intentPlace = extras.getParcelable<PlaceEntity>(PLACE_ENTITY_KEY)
                 logD("intentPlace $intentPlace")
-                requireActivity().intent.action=""
-                intentPlace?.favorite=true
+                requireActivity().intent.action = ""
+                intentPlace?.favorite = true
                 return intentPlace
             }
         }
         val placeEntity = arguments?.getParcelable<PlaceEntity>("place")
-        logD("argPlace  $placeEntity")
+        logD("argPlace  ${placeEntity?.title}")
         return placeEntity
     }
 
@@ -246,13 +250,29 @@ class DetailFragment : Fragment() {
         )
     }
 
-    private fun prepareViews() {
-        setupInsets()
-        setupToolbar()
-        setupRecyclerView()
-        setupOtherView()
+    private fun showLoading(value: Boolean) {
+        if (value) {
+            loadingDelay?.cancel()
+            loadingDelay = lifecycleScope.launch {
+                delay(200)
+                binding.swipeLayout.isRefreshing = value
+            }
+        } else {
+            loadingDelay?.cancel()
+            binding.swipeLayout.isRefreshing = value
+        }
     }
 
+    private fun setWeatherToFavoriteScreen(it: WeatherState?) {
+        val place = shareViewModel.currentPlace.value
+        if (it is WeatherState.ActualWeather) {
+            place?.oneCallResponse = it.oneCallResponse
+
+        } else {
+            place?.oneCallResponse = null
+        }
+        shareViewModel.currentPlace.value = place
+    }
     private fun requestLocationPermission(requestCode: Int) {
         requestPermissions(
             arrayOf(
@@ -327,25 +347,26 @@ class DetailFragment : Fragment() {
             binding.connectionErrorButton.translationY = errorLayoutTranslationY
             binding.connectionErrorTv.translationY = errorLayoutTranslationY
         }
-        binding.toolbarCityTitle.setOnClickListener {
-            viewModel.testIpToLocation()
-        }
+
         errorPanelIsVisible = false
 
     }
 
     private fun setupRecyclerView() {
+        binding.detailRv.adapter=weatherAdapter
         weatherAdapter.scope = scope
         weatherAdapter.clickListener = object : MyClickListener {
             override fun onClick(view: View?, position: Int) {
-                val oneCallResponse = viewModel.weatherData.value
-                shareViewModel.oneCallResponse = oneCallResponse
-                shareViewModel.daySelected = position - 1
-                val bundle = Bundle().apply {
-                    putInt("position", position - 1)
-                    putParcelable("oneCall", oneCallResponse)
+                val weatherState = viewModel.weatherData.value
+                if (weatherState is WeatherState.ActualWeather) {
+                    shareViewModel.oneCallResponse = weatherState.oneCallResponse
+                    shareViewModel.daySelected = position - 1
+                    val bundle = Bundle().apply {
+                        putInt("position", position - 1)
+                        putParcelable("oneCall", weatherState.oneCallResponse)
+                    }
+                    mainActivity?.navigate(ForecastPagerFragment::class.java, bundle)
                 }
-                mainActivity?.navigate(ForecastPagerFragment::class.java, bundle)
             }
         }
         val divider = CustomWeatherItemDecoration(requireActivity())

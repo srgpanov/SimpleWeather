@@ -33,7 +33,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/primary_text"
-                android:text="7 day forecast"
+                android:text="@string/_8_day_forecast"
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:textAppearance="@style/Widget.MaterialComponents.Toolbar"

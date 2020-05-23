@@ -2,7 +2,6 @@ package com.srgpanov.simpleweather.data.remote
 
 import com.squareup.okhttp.ResponseBody
 import com.srgpanov.simpleweather.data.models.ip_to_location.IpToLocation
-import com.srgpanov.simpleweather.data.models.places.Places
 import org.json.JSONObject
 import retrofit2.Response
 import retrofit2.http.GET

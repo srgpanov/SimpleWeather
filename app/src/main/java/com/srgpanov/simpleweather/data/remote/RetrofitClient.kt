@@ -48,11 +48,9 @@ object RetrofitClient {
         ).create(PlacesService::class.java)
     }
     fun createIpToLocationService():IpToLocationService{
-        return Retrofit.Builder()
-            .baseUrl(baseUrlIpToLocation)
-            .client(getHttpClient())
-            .addConverterFactory(GsonConverterFactory.create())
-            .addCallAdapterFactory(ResponseResultAdapterFactory())
-            .build().create(IpToLocationService::class.java)
+        return createRetrofit(
+            baseUrlIpToLocation
+        ).create(IpToLocationService::class.java)
+
     }
 }

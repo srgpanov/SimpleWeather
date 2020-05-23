@@ -1,5 +1,9 @@
 package com.srgpanov.simpleweather.data.models.places
 
+
+import com.google.gson.annotations.SerializedName
+
 data class AddressDetails(
-    val Country: Country
+    @SerializedName("Country")
+    val country: Country
 )

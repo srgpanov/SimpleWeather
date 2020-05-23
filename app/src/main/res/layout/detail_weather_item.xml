@@ -40,7 +40,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:textSize="16sp"
-        android:text="@string/m_s"
+        android:text="@string/m_in_s"
         android:textColor="@color/dirty_white"
         app:layout_constraintBaseline_toBaselineOf="@id/wind_speed_value_tv"
         app:layout_constraintStart_toEndOf="@id/wind_speed_value_tv" />

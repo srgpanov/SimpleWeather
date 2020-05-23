@@ -9,10 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.models.weather.Daily
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
-import com.srgpanov.simpleweather.databinding.DayErrorItemBinding
-import com.srgpanov.simpleweather.databinding.DayWeatherItemBinding
-import com.srgpanov.simpleweather.databinding.MainWeatherItemBinding
-import com.srgpanov.simpleweather.databinding.WeatherErrorItemBinding
+import com.srgpanov.simpleweather.databinding.*
 import com.srgpanov.simpleweather.other.MyClickListener
 import com.srgpanov.simpleweather.other.logE
 import kotlinx.coroutines.CoroutineScope
@@ -89,30 +86,7 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
         }
 
 
-        private fun formatDate(date: String): String {
-            try {
-                var month = date.split("-")[1]
-                val day = date.split("-")[2]
-                when (month.toInt()) {
-                    1 -> month = context.getString(R.string.January)
-                    2 -> month = context.getString(R.string.February)
-                    3 -> month = context.getString(R.string.March)
-                    4 -> month = context.getString(R.string.April)
-                    5 -> month = context.getString(R.string.May)
-                    6 -> month = context.getString(R.string.June)
-                    7 -> month = context.getString(R.string.July)
-                    8 -> month = context.getString(R.string.August)
-                    9 -> month = context.getString(R.string.September)
-                    10 -> month = context.getString(R.string.October)
-                    11 -> month = context.getString(R.string.November)
-                    12 -> month = context.getString(R.string.December)
-                }
-                return "$month $day"
-            } catch (e: Exception) {
-                e.logE()
-                return date
-            }
-        }
+
 
         private fun monthDay(date: Date): String {
             val simpleDateFormat = SimpleDateFormat("MMMM dd", Locale.getDefault())
@@ -123,23 +97,7 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
 
         }
 
-        private fun getDayOfWeek(date: Date): String {
-            try {
-                return when (getDayOfWeekInt(date)) {
-                    1 -> context.getString(R.string.Sunday)
-                    2 -> context.getString(R.string.Monday)
-                    3 -> context.getString(R.string.Tuesday)
-                    4 -> context.getString(R.string.Wednesday)
-                    5 -> context.getString(R.string.Thursday)
-                    6 -> context.getString(R.string.Friday)
-                    7 -> context.getString(R.string.Saturday)
-                    else -> throw IllegalStateException("Wrong day")
-                }
-            } catch (e: Exception) {
-                e.logE()
-                return date.day.toString()
-            }
-        }
+
 
         private fun getDayOfWeekInt(date: Date): Int {
             try {
@@ -152,6 +110,8 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
             }
         }
     }
+    class HeaderEmptyHolder(val binding: WeatherEmptyItemBinding) :
+        WeatherHolders(binding.root)
 
     class HeaderErrorHolder(val binding: WeatherErrorItemBinding) :
         WeatherHolders(binding.root) {
@@ -161,8 +121,6 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
                 //listener?.onClick(it, bindingAdapterPosition)
             }
         }
-
-
     }
 
     class DayErrorHolder(val binding: DayErrorItemBinding) :
@@ -176,7 +134,7 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
             binding.dayWeekTv.text = when (bindingAdapterPosition) {
                 1 -> context.getString(R.string.Today)
                 2 -> context.getString(R.string.Tomorrow)
-                else -> getDayOfWeek(calendar.timeInMillis)
+                else -> getDayOfWeek(calendar.time)
             }
             when (calendar.get(Calendar.DAY_OF_WEEK)) {
                 1, 7 -> binding.dayWeekTv.setTextColor(Color.RED)
@@ -189,14 +147,7 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
             }
         }
 
-        private fun getDayOfWeek(time: Long): CharSequence? {
-            val simpleDateFormat = SimpleDateFormat("EEEE", Locale.getDefault())
 
-            val str = simpleDateFormat.format(Date(time))
-            val string = str.toCharArray()
-            string.set(0, string[0].toUpperCase())
-            return String(string)
-        }
 
         private fun monthDay(date: Date): String {
             val simpleDateFormat = SimpleDateFormat("MMMM dd", Locale.getDefault())
@@ -207,5 +158,13 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
 
         }
 
+    }
+    protected fun getDayOfWeek(date: Date): CharSequence? {
+        val simpleDateFormat = SimpleDateFormat("EEEE", Locale.getDefault())
+
+        val str = simpleDateFormat.format(date)
+        val string = str.toCharArray()
+        string.set(0, string[0].toUpperCase())
+        return String(string)
     }
 }

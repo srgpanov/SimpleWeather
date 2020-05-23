@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "502051848050",
+    "firebase_url": "https://simpleweather-273019.firebaseio.com",
+    "project_id": "simpleweather-273019",
+    "storage_bucket": "simpleweather-273019.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:502051848050:android:584fe549392c42f64a67eb",
+        "android_client_info": {
+          "package_name": "com.srgpanov.simpleweather"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "502051848050-cltjgphso8h3khim81bnoo0pl3d70l1q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPUvVEGH3uC76zQwO_mJcjh9mGRPysick"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "502051848050-cltjgphso8h3khim81bnoo0pl3d70l1q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

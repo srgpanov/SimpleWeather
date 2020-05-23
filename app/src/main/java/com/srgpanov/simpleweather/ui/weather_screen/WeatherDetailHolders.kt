@@ -110,29 +110,6 @@ sealed class WeatherDetailHolders(itemView: View) : RecyclerView.ViewHolder(item
             }
         }
 
-        private fun formatDate(date: String): String {
-            try {
-                var month = date.split("-")[1]
-                val day = date.split("-")[2]
-                when (month.toInt()) {
-                    1 -> month = context.getString(R.string.January)
-                    2 -> month = context.getString(R.string.February)
-                    3 -> month = context.getString(R.string.March)
-                    4 -> month = context.getString(R.string.April)
-                    5 -> month = context.getString(R.string.May)
-                    6 -> month = context.getString(R.string.June)
-                    7 -> month = context.getString(R.string.July)
-                    8 -> month = context.getString(R.string.August)
-                    9 -> month = context.getString(R.string.September)
-                    10 -> month = context.getString(R.string.October)
-                    11 -> month = context.getString(R.string.November)
-                    12 -> month = context.getString(R.string.December)
-                }
-                return "$day ${month.take(3)}"
-            } catch (e: Exception) {
-                e.logE()
-                return date
-            }
-        }
+
     }
 }

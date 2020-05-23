@@ -5,6 +5,7 @@ import com.srgpanov.simpleweather.data.models.weather.current_weather.CurrentWea
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
+import java.util.*
 
 interface WeatherService {
     @GET("onecall?appid=ee66731ef4cb0a2a14721aa82373abaf&units=metric")
@@ -12,7 +13,9 @@ interface WeatherService {
         @Query("lat")
         lat: Double,
         @Query("lon")
-        lon: Double
+        lon: Double,
+        @Query("lang")
+        lang:String=Locale.getDefault().language
     ): ResponseResult<OneCallResponse>
 
     @GET("weather?appid=ee66731ef4cb0a2a14721aa82373abaf&units=metric")
@@ -20,7 +23,9 @@ interface WeatherService {
         @Query("lat")
         lat: Double,
         @Query("lon")
-        lon: Double
+        lon: Double,
+        @Query("lang")
+        lang:String=Locale.getDefault().language
     ): ResponseResult<CurrentWeatherResponse>
 
 

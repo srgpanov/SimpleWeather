@@ -90,7 +90,7 @@
             android:gravity="center"
             android:text="@string/c"
             android:textColor="@drawable/radio_button_text_selector"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <RadioButton
             android:id="@+id/temp_f_btn"
@@ -102,7 +102,7 @@
             android:gravity="center"
             android:text="@string/f"
             android:textColor="@drawable/radio_button_text_selector"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
     </RadioGroup>
 
     <View
@@ -148,9 +148,9 @@
             android:button="@null"
             android:checked="true"
             android:gravity="center"
-            android:text="@string/m_s"
+            android:text="@string/m_in_s"
             android:textColor="@drawable/radio_button_text_selector"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <RadioButton
             android:id="@+id/wind_kmh_btn"
@@ -162,7 +162,7 @@
             android:gravity="center"
             android:text="@string/km_h"
             android:textColor="@drawable/radio_button_text_selector"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
     </RadioGroup>
 
     <View
@@ -210,7 +210,7 @@
             android:gravity="center"
             android:text="@string/mmhg"
             android:textColor="@drawable/radio_button_text_selector"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <RadioButton
             android:id="@+id/pressure_hpa_btn"
@@ -220,9 +220,9 @@
             android:background="@drawable/toggle_button_right_background"
             android:button="@null"
             android:gravity="center"
-            android:text="@string/hpa"
+            android:text="@string/hPa"
             android:textColor="@drawable/radio_button_text_selector"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
     </RadioGroup>
 
     <View
@@ -326,6 +326,7 @@
         android:layout_height="48dp"
         android:layout_marginTop="16dp"
         android:background="@android:color/white"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/location_background" />
@@ -338,6 +339,7 @@
         android:gravity="center_vertical"
         android:text="@string/widget_settings"
         android:textSize="16sp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/widget_setting_background"
         app:layout_constraintStart_toStartOf="@id/widget_setting_background"
         app:layout_constraintTop_toTopOf="@id/widget_setting_background" />

@@ -96,7 +96,6 @@ class ForecastPagerFragment : Fragment() {
         forecastAdapter = ForecastPagerAdapter()
         forecastAdapter.itemVisibleListener = itemCompletelyVisibleListener
         binding.viewPager.adapter = forecastAdapter
-        binding.viewPager.offscreenPageLimit = 3
         binding.viewPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
         viewModel.oneCallResponse.observe(viewLifecycleOwner, Observer {
             forecastAdapter.forecasts = it.daily.toMutableList()

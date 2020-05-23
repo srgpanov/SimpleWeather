@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -39,29 +40,28 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
     private val coroutineContext: CoroutineContext
         get() = parentJob + Dispatchers.IO
     private val scope = CoroutineScope(coroutineContext)
-    private val repository = DataRepositoryImpl()
+    private val repository = DataRepositoryImpl
     private val context = App.instance
     private var sharedPreferences: SharedPreferences =
         PreferenceManager.getDefaultSharedPreferences(context)
     lateinit var locationProvider: LocationProvider
 
-    val weatherData = MutableLiveData<OneCallResponse?>()
+    val weatherData = MutableLiveData<WeatherState>()
     val navEvent = NavLiveEvent()
     val weatherPlace = MutableLiveData<PlaceEntity?>()
     val currentPlace = MutableLiveData<PlaceEntity?>()
     val showSetting = MutableLiveData<Boolean>()
     val loadingState = MutableLiveData<Boolean>()
     val showSnackbar = SingleLiveEvent<String>()
-    val showOptionsEvent = SingleLiveEvent<Boolean>()
     val errorConnectionSnackbar = SingleLiveEvent<Boolean>()
     val requestLocationPermission = SingleLiveEvent<Unit>()
+    val REFRESH_TIME=43200000L // 12 hours
 
     private var isFirstStart: Boolean = false
 
 
     private val placeObserver = object : Observer<PlaceEntity?> {
         override fun onChanged(place: PlaceEntity?) {
-            logD("placeObserver anonymous")
             place?.let {
                 setupToolbarStatus(place)
                 scope.launch {
@@ -130,23 +130,33 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
         loadingState.postValue(false)
         return when (responseResult) {
             is Success -> {
-                weatherData.postValue(responseResult.data)
+                weatherData.postValue(WeatherState.ActualWeather(responseResult.data))
                 errorConnectionSnackbar.postValue(false)
             }
             is Failure.ServerError -> {
                 val cachedWeather = repository.getCachedWeather(geoPoint)
                 showSnackbar.postValue("ServerError ${responseResult.errorBody}")
-                if (cachedWeather != null) {
-                    val responseIsFresh = responseIsFresh(cachedWeather, 43200000);
-                    if (responseIsFresh) {
-                        weatherData.postValue(cachedWeather)
-                    }
-                }
+                setWeather(cachedWeather)
                 errorConnectionSnackbar.postValue(false)
             }
             is Failure.NetworkError -> {
+                val cachedWeather = repository.getCachedWeather(geoPoint)
+                setWeather(cachedWeather)
                 errorConnectionSnackbar.postValue(true)
             }
+        }
+    }
+
+    private fun setWeather(cachedWeather: OneCallResponse?) {
+        if (cachedWeather != null) {
+            val responseIsFresh = responseIsFresh(cachedWeather, REFRESH_TIME);
+            if (responseIsFresh) {
+                weatherData.postValue(WeatherState.ActualWeather(cachedWeather))
+            } else {
+                weatherData.postValue(WeatherState.ErrorWeather)
+            }
+        } else {
+            weatherData.postValue(WeatherState.ErrorWeather)
         }
     }
 
@@ -160,7 +170,7 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
                 loadingState.postValue(false)
                 when (responseResult) {
                     is Success -> {
-                        weatherData.postValue(responseResult.data)
+                        weatherData.postValue(WeatherState.ActualWeather(responseResult.data))
                         errorConnectionSnackbar.postValue(false)
                     }
                     is Failure.ServerError -> {
@@ -212,11 +222,7 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
     }
 
 
-    fun testIpToLocation() {
-        scope.launch {
-            repository.getPlaceFromIp()
-        }
-    }
+
 
     private fun locationTypeIsCurrent(): LocationType {
         val int = sharedPreferences.getInt(SettingFragment.LOCATION_TYPE, 0)
@@ -249,6 +255,7 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
     }
 
     private fun setupWeatherPlace() {
+        logD("setupWeatherPlace ${locationTypeIsCurrent()==CURRENT}")
         if (locationTypeIsCurrent()==CURRENT) {
             setupCurrentLocation()
         } else {
@@ -260,28 +267,21 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
         locationProvider= LocationProvider(CURRENT)
         scope.launch {
             val geoPoint = locationProvider.getGeoPoint()
+            logD("setup Current Location $geoPoint")
             if (geoPoint != null) {
-                val response = repository.getPlaceByGeoPoint(geoPoint)
-                when (response) {
-                    is Success -> {
-                        val placeEntity = response.data.toEntity()
-                        placeEntity.current = true
-                        repository.savePlace(placeEntity)
-                        weatherPlace.postValue(placeEntity)
-                        currentPlace.postValue(placeEntity)
-                    }
-                    is Failure.ServerError -> {
-                            weatherData.postValue(null)
-                            currentPlace.postValue(null)
-
-                    }
-                    is Failure.NetworkError -> {
-                        currentPlace.postValue(null)
-                        weatherData.postValue(null)
-                    }
+                val place = repository.getPlaceByGeoPoint(geoPoint)
+                logD("setup Current ${place?.title} ${place?.oneCallResponse?.timezone_offset}")
+                repository.placeIsInDb(geoPoint)
+                if (place!=null) {
+                        place.current = true
+                        repository.savePlace(place)
+                        weatherPlace.postValue(place)
+                        currentPlace.postValue(place)
+                }else{
+                    weatherData.postValue(WeatherState.ErrorWeather)
                 }
             } else {
-                weatherData.postValue(null)
+                weatherData.postValue(WeatherState.ErrorWeather)
             }
         }
 

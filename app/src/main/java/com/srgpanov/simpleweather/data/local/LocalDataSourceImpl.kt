@@ -1,6 +1,7 @@
 package com.srgpanov.simpleweather.data.local
 
 import com.srgpanov.simpleweather.data.models.entity.*
+import com.srgpanov.simpleweather.data.models.entity.utility.PlacesWithWeather
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.other.logD
 import com.srgpanov.simpleweather.ui.App
@@ -88,9 +89,23 @@ object LocalDataSourceImpl {
     }
 
     suspend fun savePlace(placeEntity: PlaceEntity) {
+        logD("savePlace ${placeEntity.toPlaceTable().id}")
         dao.insertPlace(placeEntity.toPlaceTable())
 
 
+    }
+
+    suspend fun updatePlace(placeEntity: PlaceEntity) {
+        dao.insertOrUpdatePlace(placeEntity.toPlaceTable())
+    }
+
+    suspend fun placeIsInDb(shownGeoPoint: GeoPoint):Boolean {
+        val place = dao.placeIsInDb(shownGeoPoint.pointToId())
+        return if (place==null) false else true
+    }
+
+    suspend fun getPlace(id: String): PlacesWithWeather? {
+        return dao.getPlaceById(id)
     }
 
 

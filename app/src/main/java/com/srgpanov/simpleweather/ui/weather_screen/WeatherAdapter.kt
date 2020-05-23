@@ -4,19 +4,14 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
-import com.srgpanov.simpleweather.databinding.DayErrorItemBinding
-import com.srgpanov.simpleweather.databinding.DayWeatherItemBinding
-import com.srgpanov.simpleweather.databinding.MainWeatherItemBinding
-import com.srgpanov.simpleweather.databinding.WeatherErrorItemBinding
+import com.srgpanov.simpleweather.databinding.*
 import com.srgpanov.simpleweather.other.MyClickListener
-import com.srgpanov.simpleweather.other.logD
 import com.srgpanov.simpleweather.ui.weather_screen.WeatherHolders.DaysHolder
 import com.srgpanov.simpleweather.ui.weather_screen.WeatherHolders.HeaderHolder
 import kotlinx.coroutines.CoroutineScope
 
 class WeatherAdapter() : RecyclerView.Adapter<WeatherHolders>() {
-    var data: OneCallResponse?=null
+    var data: WeatherState = WeatherState.EmptyWeather
     var clickListener: MyClickListener? = null
     var scope: CoroutineScope? = null
     private val emptyAdapterSize = 8
@@ -30,59 +25,65 @@ class WeatherAdapter() : RecyclerView.Adapter<WeatherHolders>() {
             TYPE_DAYS -> DaysHolder(
                 DayWeatherItemBinding.inflate(inflater, parent, false)
             )
-            TYPE_EMPTY_HEADER -> WeatherHolders.HeaderErrorHolder(
+            TYPE_ERROR_HEADER -> WeatherHolders.HeaderErrorHolder(
                 WeatherErrorItemBinding.inflate(inflater, parent, false)
             )
 
             TYPE_EMPTY_DAYS -> WeatherHolders.DayErrorHolder(
                 DayErrorItemBinding.inflate(inflater, parent, false)
             )
+            TYPE_EMPTY_HEADER -> WeatherHolders.HeaderEmptyHolder(
+                WeatherEmptyItemBinding.inflate(inflater, parent, false)
+            )
 
             else -> throw IllegalStateException("Type error")
         }
     }
 
-    fun setWeather(weather: OneCallResponse?) {
-        if (data!=null) {
-            if (data?.current != weather?.current || data?.current != weather?.current) {
-                logD("data!=weather")
-                data = weather
-                notifyDataSetChanged()
-            } else logD("data==weather")
-        }
-        else {
-            data = weather
-            notifyDataSetChanged()
-        }
+    fun setWeather(weather: WeatherState) {
+        data = weather
+        notifyDataSetChanged()
     }
 
     override fun getItemCount(): Int {
-        return data?.daily?.size?.plus(HEADER)?:emptyAdapterSize
+        return when (data) {
+            WeatherState.EmptyWeather, is WeatherState.ErrorWeather -> emptyAdapterSize
+            is WeatherState.ActualWeather -> (data as WeatherState.ActualWeather).oneCallResponse.daily.size.plus(
+                HEADER
+            )
+        }
     }
 
     override fun onBindViewHolder(holder: WeatherHolders, position: Int) {
         return when (holder) {
-            is HeaderHolder -> holder.bind(data, scope)
-            is DaysHolder -> holder.bind(data?.daily?.get(position - HEADER), clickListener)
+            is HeaderHolder -> {
+                val weather = data as WeatherState.ActualWeather
+                holder.bind(weather.oneCallResponse, scope)
+            }
+            is DaysHolder -> {
+                val weather = data as WeatherState.ActualWeather
+                holder.bind(weather.oneCallResponse.daily.get(position - HEADER), clickListener)
+            }
             is WeatherHolders.HeaderErrorHolder -> holder.bind()
             is WeatherHolders.DayErrorHolder -> holder.bind()
+            is WeatherHolders.HeaderEmptyHolder -> Unit
         }
     }
 
     override fun getItemViewType(position: Int): Int {
         return when (position == 0) {
             true -> {
-                if (data!=null) {
-                    TYPE_HEADER
-                } else {
-                    TYPE_EMPTY_HEADER
+
+                when (data) {
+                    WeatherState.EmptyWeather -> TYPE_EMPTY_HEADER
+                    is WeatherState.ActualWeather -> TYPE_HEADER
+                    WeatherState.ErrorWeather -> TYPE_ERROR_HEADER
                 }
             }
             false -> {
-                if (data!=null) {
-                    TYPE_DAYS
-                } else {
-                    TYPE_EMPTY_DAYS
+                when (data) {
+                    is WeatherState.ActualWeather -> TYPE_DAYS
+                    else -> TYPE_EMPTY_DAYS
                 }
             }
         }
@@ -90,8 +91,9 @@ class WeatherAdapter() : RecyclerView.Adapter<WeatherHolders>() {
 
     companion object {
         private const val TYPE_HEADER = R.layout.main_weather_item
+        private const val TYPE_EMPTY_HEADER = R.layout.weather_empty_item
         private const val TYPE_DAYS = R.layout.day_weather_item
-        private const val TYPE_EMPTY_HEADER = R.layout.weather_error_item
+        private const val TYPE_ERROR_HEADER = R.layout.weather_error_item
         private const val TYPE_EMPTY_DAYS = R.layout.day_error_item
         val HEADER: Int = 1
     }

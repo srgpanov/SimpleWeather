@@ -34,7 +34,7 @@
 
         <receiver
             android:name=".ui.weather_widget.WeatherWidget"
-            android:icon="@android:drawable/star_big_on"
+            android:icon="@drawable/widget_preview"
             android:label="@string/widget_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE">

@@ -85,7 +85,7 @@ sealed class DayHolders(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(daily: Daily) {
             binding.sunriseTimeTv.text = daily.getSunriseString()
             binding.sunsetTimeTv.text = daily.getSunsetString()
-            binding.solarDayValueTv.text = daily.dayLightHours()
+            binding.solarDayValueTv.text = daily.dayLightHours(binding.root.context)
         }
     }
 

@@ -42,7 +42,8 @@ class PlaceDiffCallBack(
         )
         return (oldPlace.toPlaceId() == newPlace.toPlaceId()) and
                 (oldPlace.simpleWeather?.currentWeatherResponse?.localTime() == newPlace.simpleWeather?.currentWeatherResponse?.localTime()) and
-                (oldPlace.simpleWeather?.currentWeatherResponse?.main?.temp == newPlace.simpleWeather?.currentWeatherResponse?.main?.temp)
+                (oldPlace.simpleWeather?.currentWeatherResponse?.main?.temp == newPlace.simpleWeather?.currentWeatherResponse?.main?.temp) and
+                (oldPlace.title==newPlace.title)
     }
 
 //    override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any? {

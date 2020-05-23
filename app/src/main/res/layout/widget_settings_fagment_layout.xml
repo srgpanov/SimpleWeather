@@ -23,10 +23,11 @@
             android:layout_width="0dp"
             android:layout_height="160dp"
             android:src="@drawable/widget_preview_background"
-            android:scaleType="center"
+            android:scaleType="fitXY"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            android:contentDescription="TODO" />
         <include
             android:id="@+id/widget_container"
             android:layout_width="@dimen/widget_width"
@@ -50,8 +51,10 @@
 
             />
 
+
+
         <View
-            android:id="@+id/icons_setting_background"
+            android:id="@+id/light_setting_background"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_marginTop="16dp"
@@ -59,39 +62,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/background_colors_tv" />
-
-        <TextView
-            android:id="@+id/icons_setting_tv"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_marginStart="16dp"
-
-            android:gravity="center_vertical"
-            android:text="@string/black_and_white_icons"
-            android:textSize="16sp"
-            app:layout_constraintBottom_toBottomOf="@id/icons_setting_background"
-            app:layout_constraintStart_toStartOf="@id/icons_setting_background"
-            app:layout_constraintTop_toTopOf="@id/icons_setting_background" />
-
-
-        <Switch
-            android:id="@+id/icons_setting_switch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            app:layout_constraintBottom_toBottomOf="@id/icons_setting_background"
-            app:layout_constraintEnd_toEndOf="@id/icons_setting_background"
-            app:layout_constraintTop_toTopOf="@id/icons_setting_background" />
-
-        <View
-            android:id="@+id/light_setting_background"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="1dp"
-            android:background="@android:color/white"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/icons_setting_background" />
 
         <TextView
             android:id="@+id/light_setting_tv"

@@ -17,19 +17,8 @@ import kotlin.coroutines.CoroutineContext
 class ShareViewModel: ViewModel(){
     var oneCallResponse: OneCallResponse?=null
     var daySelected: Int=-1
-    private val repository =DataRepositoryImpl()
-    private val parentJob = Job()
-    private val coroutineContext: CoroutineContext
-        get() = parentJob + Dispatchers.IO
-    private val scope = CoroutineScope(coroutineContext)
     val weatherPlace = SingleLiveEvent<PlaceEntity>()
     val refreshWeather=SingleLiveEvent<Unit>()
     var currentPlace=SingleLiveEvent<PlaceEntity?>()
-
-    override fun onCleared() {
-        coroutineContext.cancel()
-        super.onCleared()
-    }
-
 
 }

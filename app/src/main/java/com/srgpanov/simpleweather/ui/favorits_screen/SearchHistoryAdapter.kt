@@ -89,7 +89,7 @@ class SearchHistoryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: PlaceEntity) {
             binding.placesTv.text = item.cityFullName
-            binding.searchContainer.setOnClickListener {
+            binding.placesTv.setOnClickListener {
                 //todo
                 listener?.onClick(it, bindingAdapterPosition - HEADER)
             }

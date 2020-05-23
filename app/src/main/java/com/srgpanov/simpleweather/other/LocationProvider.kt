@@ -17,7 +17,7 @@ import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragmen
 
 class LocationProvider(private val locationType: LocationType) {
     private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(App.instance)
-    private val repository = DataRepositoryImpl()
+    private val repository = DataRepositoryImpl
     val context = App.instance
     val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager;
 

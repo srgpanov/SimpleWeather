@@ -25,50 +25,12 @@
         android:minHeight="?attr/actionBarSize"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/status_background" />
-    <ImageButton
-        android:id="@+id/back_button"
-        style="@style/match_constrained"
-        android:src="@drawable/ic_arrow_back"
-        android:background="@android:color/white"
-        app:layout_constraintDimensionRatio="1"
-        app:layout_constraintTop_toTopOf="@id/toolbar"
-        app:layout_constraintBottom_toBottomOf="@id/toolbar"
-        app:layout_constraintStart_toStartOf="@id/toolbar"
+        app:layout_constraintTop_toBottomOf="@id/status_background"
+        app:theme="@style/ToolbarTheme"
         />
-    <TextView
-        android:id="@+id/title_tv"
-        style="@style/match_constrained"
-        android:text="@string/favorite"
-        android:textColor="@color/primary_text"
-        android:textSize="20sp"
-        android:layout_marginStart="16dp"
-        android:gravity="center_vertical"
-        app:layout_constraintTop_toTopOf="@id/toolbar"
-        app:layout_constraintBottom_toBottomOf="@id/toolbar"
-        app:layout_constraintStart_toEndOf="@id/back_button"
-        app:layout_constraintEnd_toEndOf="@id/toolbar"
-/>
 
-    <FrameLayout
-        android:id="@+id/search_container"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="@id/toolbar"
-        app:layout_constraintEnd_toEndOf="@id/toolbar"
-        app:layout_constraintStart_toEndOf="@id/back_button"
-        app:layout_constraintTop_toTopOf="@id/toolbar"
 
-        >
-        <androidx.appcompat.widget.SearchView
-            android:id="@+id/search_view"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="end"
-            android:maxWidth="10000dp"
-            />
 
-    </FrameLayout>
 
 
     <androidx.recyclerview.widget.RecyclerView
@@ -82,5 +44,6 @@
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

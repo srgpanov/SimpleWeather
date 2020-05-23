@@ -10,14 +10,20 @@ import com.srgpanov.simpleweather.other.logD
 @Dao
 abstract class WeatherDao {
 
+    @Transaction
     @Query("SELECT *  from PlaceTable, FavoriteTable WHERE id==idFavorite")
     abstract suspend fun getFavorites(): List<PlacesWithSimpleWeather>
 
+    @Transaction
     @Query("SELECT * from PlaceTable,CurrentTable WHERE id==idCurrent")
     abstract suspend fun getCurrentLocation(): List<PlacesWithWeather>
 
+    @Transaction
     @Query("SELECT * from PlaceTable,SearchHistoryTable WHERE id==idSearch ORDER BY timeStamp DESC ")
     abstract suspend fun getSearchHistory(): List<PlacesWithWeather>
+    @Transaction
+    @Query("SELECT * from PlaceTable WHERE id==:id")
+    abstract suspend fun getPlaceById(id: String):PlacesWithWeather?
 
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -25,6 +31,9 @@ abstract class WeatherDao {
 
     @Update
     abstract suspend fun update(placeTable: PlaceTable)
+
+    @Query("SELECT * from PlaceTable WHERE id=:point")
+    abstract suspend fun placeIsInDb(point: String): PlaceTable?
 
     @Transaction
     open suspend fun insertOrUpdatePlace(placeTable: PlaceTable) {

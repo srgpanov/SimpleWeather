@@ -1,5 +1,9 @@
 package com.srgpanov.simpleweather.data.models.places
 
+
+import com.google.gson.annotations.SerializedName
+
 data class DependentLocality(
-    val DependentLocalityName: String
+    @SerializedName("DependentLocalityName")
+    val dependentLocalityName: String
 )

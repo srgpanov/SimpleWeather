@@ -50,6 +50,14 @@ class SettingWidgetFragment:Fragment() {
         setupViewPager()
     }
 
+    override fun onDestroyView() {
+        binding.viewPager.adapter=null
+        _binding=null
+        actionBar=null
+        mainActivity?.setSupportActionBar(null)
+        super.onDestroyView()
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // handle arrow click here
         if (item.itemId == android.R.id.home) {

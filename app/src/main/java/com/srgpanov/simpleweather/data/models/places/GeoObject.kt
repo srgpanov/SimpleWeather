@@ -1,9 +1,17 @@
 package com.srgpanov.simpleweather.data.models.places
 
+
+import com.google.gson.annotations.SerializedName
+
 data class GeoObject(
-    val Point: Point,
+    @SerializedName("boundedBy")
     val boundedBy: BoundedBy,
+    @SerializedName("description")
     val description: String,
+    @SerializedName("metaDataProperty")
     val metaDataProperty: MetaDataProperty,
-    val name: String
+    @SerializedName("name")
+    val name: String,
+    @SerializedName("Point")
+    val point: Point
 )

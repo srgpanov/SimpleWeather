@@ -39,7 +39,7 @@
         style="@style/forecast_secondary_small_tv"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBaseline_toBaselineOf="@id/pressure_header_tv"
-        android:text="@string/hpa" />
+        android:text="@string/hPa" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
