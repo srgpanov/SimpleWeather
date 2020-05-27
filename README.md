@@ -1,6 +1,7 @@
-# SimpleWeather
+<a href='https://play.google.com/store/apps/details?id=com.srgpanov.simpleweather&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://i.ibb.co/Z68hk1k/google-play-badge.png'/></a>
+# SimpleWeather 
 
-## Приложение клон Яндекс Погоды.
+## Приложение клон Яндекс Погоды. 
 
 ## Цель приложения: 
 1. Максимально скопировать дизайн и функционал оригинального приложения.
