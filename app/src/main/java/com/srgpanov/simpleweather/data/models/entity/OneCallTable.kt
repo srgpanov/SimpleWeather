@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.CASCADE
 import androidx.room.PrimaryKey
-import com.srgpanov.simpleweather.data.DataRepositoryImpl
+import com.srgpanov.simpleweather.data.DataRepository
 import com.srgpanov.simpleweather.data.models.TimeCounter
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.other.logD
@@ -26,7 +26,7 @@ data class OneCallTable(
     override val timeStamp: Long = System.currentTimeMillis(),
     val placeId: String
 ) : TimeCounter {
-    fun isFresh(refreshTime: Long = DataRepositoryImpl.REFRESH_TIME): Boolean {
+    fun isFresh(refreshTime: Long = DataRepository.REFRESH_TIME): Boolean {
         logD("isFresh ${(System.currentTimeMillis() - timeStamp) < refreshTime} time ${(System.currentTimeMillis() - timeStamp) } refreshTime $refreshTime ")
         return (System.currentTimeMillis() - timeStamp) < refreshTime
     }

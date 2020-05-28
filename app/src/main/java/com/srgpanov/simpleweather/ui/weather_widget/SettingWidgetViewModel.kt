@@ -1,26 +1,33 @@
 package com.srgpanov.simpleweather.ui.weather_widget
 
+import android.appwidget.AppWidgetManager
+import android.content.Context
 import android.content.SharedPreferences
+import android.os.Bundle
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.preference.PreferenceManager
-import com.srgpanov.simpleweather.data.DataRepositoryImpl
+import com.srgpanov.simpleweather.data.DataRepository
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
+import com.srgpanov.simpleweather.di.ViewModelAssistedFactory
 import com.srgpanov.simpleweather.other.*
-import com.srgpanov.simpleweather.ui.App
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SettingWidgetViewModel(val widgetId: Int) : ViewModel() {
+class SettingWidgetViewModel(
+    val widgetId: Int,
+    var repository: DataRepository,
+    var context: Context
+) : ViewModel() {
     private val preferences: SharedPreferences =
-        PreferenceManager.getDefaultSharedPreferences(App.instance)
-    private val repository = DataRepositoryImpl
+        PreferenceManager.getDefaultSharedPreferences(context)
     private lateinit var locationProvider: LocationProvider
     private val scope = CoroutineScope(Dispatchers.Default + Job())
     private val locationLatitude: Double = getCoordinate(WIDGET_LATITUDE + widgetId)
@@ -39,10 +46,12 @@ class SettingWidgetViewModel(val widgetId: Int) : ViewModel() {
 
     companion object {
         const val ALPHA_MAX_VALUE = 255
+        const val ARGUMENT_WIDGET = "ARGUMENT_WIDGET"
     }
 
     init {
         restoreSettings()
+        logD("widget Id $widgetId")
     }
 
     private fun restoreSettings() {
@@ -107,7 +116,7 @@ class SettingWidgetViewModel(val widgetId: Int) : ViewModel() {
 
     fun onLocationCurrentChoice() {
         preferences.edit().putInt(WIDGET_LOCATION_TYPE + widgetId, CURRENT.ordinal).apply()
-        mutableLocationType.value=CURRENT
+        mutableLocationType.value = CURRENT
         scope.launch {
             restoreCurrentLocation()
         }
@@ -122,7 +131,7 @@ class SettingWidgetViewModel(val widgetId: Int) : ViewModel() {
             .putString(WIDGET_LONGITUDE + widgetId, place.lon.toString()).apply()
         preferences.edit()
             .putString(WIDGET_LOCATION_NAME + widgetId, place.title).apply()
-        mutableLocationType.value=CERTAIN
+        mutableLocationType.value = CERTAIN
         mutableWidgetPlace.value = place
         scope.launch {
             repository.savePlace(place)
@@ -138,5 +147,16 @@ class SettingWidgetViewModel(val widgetId: Int) : ViewModel() {
         preferences.edit()
             .putInt(WIDGET_TRANSPARENCY + widgetId, ALPHA_MAX_VALUE - progress)
             .apply()
+    }
+
+    class SettingsListViewModelFactory @Inject constructor(
+        var repository: DataRepository,
+        var context: Context
+    ) : ViewModelAssistedFactory<SettingWidgetViewModel> {
+
+        override fun create(arguments: Bundle): SettingWidgetViewModel {
+            val id = arguments.getInt(ARGUMENT_WIDGET,AppWidgetManager.INVALID_APPWIDGET_ID)
+            return SettingWidgetViewModel(id, repository, context)
+        }
     }
 }

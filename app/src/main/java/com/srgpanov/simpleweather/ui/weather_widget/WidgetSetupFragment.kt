@@ -93,7 +93,7 @@ class WidgetSetupFragment : Fragment() {
 
     private fun onCreateWidgetClick() {
         requireActivity().setResult(Activity.RESULT_OK, resultValue)
-        WeatherWidget.updateWidget(requireActivity().applicationContext,  widgetID)
+        WeatherWidget.updateWidget(  widgetID)
         logD("finish config $widgetID")
         requireActivity().finish()
     }

@@ -13,48 +13,42 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.srgpanov.simpleweather.App
 import com.srgpanov.simpleweather.MainActivity
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
-import com.srgpanov.simpleweather.data.remote.RemoteDataSourceImpl
 import com.srgpanov.simpleweather.data.remote.ResponseResult.Failure
 import com.srgpanov.simpleweather.data.remote.ResponseResult.Success
 import com.srgpanov.simpleweather.databinding.SelectPlaceFragmentBinding
 import com.srgpanov.simpleweather.other.*
-import com.srgpanov.simpleweather.ui.ShareViewModel
 import com.srgpanov.simpleweather.ui.favorits_screen.SearchAdapter
 import com.srgpanov.simpleweather.ui.favorits_screen.SearchHistoryAdapter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 class SelectPlaceFragment : Fragment() {
     private var _binding: SelectPlaceFragmentBinding? = null
     private val binding get() = _binding!!
-    private lateinit var shareViewModel: ShareViewModel
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
     private lateinit var viewModel: SelectPlaceViewModel
     private var mainActivity: MainActivity? = null
-
-    private val remoteDataSource=RemoteDataSourceImpl
     private val historyAdapter: SearchHistoryAdapter by lazy { SearchHistoryAdapter() }
     private val searchAdapter: SearchAdapter by lazy { SearchAdapter() }
     private var searchJob: Job? = null
-    private var queryListener: SearchView.OnQueryTextListener?=null
-
+    private var queryListener: SearchView.OnQueryTextListener? = null
 
     companion object {
-        @JvmStatic
-        fun newInstance() =
-            SelectPlaceFragment()
-
-        const val REQUEST_PLACE = "REQUEST_PLACE"
         val TAG = SelectPlaceFragment::class.java.simpleName
+        const val REQUEST_PLACE = "REQUEST_PLACE"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        App.instance.appComponent.injectSelectPlaceFragment(this)
         mainActivity = requireActivity() as? MainActivity
-        viewModel = ViewModelProvider(this).get(SelectPlaceViewModel::class.java)
-        shareViewModel = ViewModelProvider(requireActivity()).get(ShareViewModel::class.java)
+        viewModel = ViewModelProvider(this, viewModelFactory)[SelectPlaceViewModel::class.java]
     }
 
     override fun onCreateView(
@@ -75,8 +69,8 @@ class SelectPlaceFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        _binding==null
-        queryListener=null
+        _binding = null
+        queryListener = null
         searchJob?.cancel()
         super.onDestroyView()
     }
@@ -88,7 +82,7 @@ class SelectPlaceFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        queryListener=object : SearchView.OnQueryTextListener {
+        queryListener = object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
             }
@@ -149,7 +143,7 @@ class SelectPlaceFragment : Fragment() {
             delay(500)
             if (query.length > 1) {
 
-                val placesResponse = remoteDataSource.getPlaces(query = query)
+                val placesResponse = viewModel.getPlaces(query = query)
                 when (placesResponse) {
                     is Success -> {
                         logD("empty ${placesResponse.data.response.geoObjectCollection.featureMember}")
@@ -182,7 +176,7 @@ class SelectPlaceFragment : Fragment() {
 
     private fun setupOtherView() {
         binding.recyclerView.adapter = historyAdapter
-        binding.recyclerView.layoutManager=LinearLayoutManager(requireContext())
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.searchView.requestFocus()
     }
 

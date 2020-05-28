@@ -1,17 +1,13 @@
 package com.srgpanov.simpleweather.data.models.weather
 
-import android.location.GnssMeasurement
-import android.util.Log
 import androidx.preference.PreferenceManager
+import com.srgpanov.simpleweather.App
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.ui.App
 import com.srgpanov.simpleweather.ui.setting_screen.SettingFragment
 import com.srgpanov.simpleweather.ui.setting_screen.Temp
 import kotlin.math.roundToInt
-import kotlin.random.Random
-import kotlin.system.measureTimeMillis
 
- fun format(temp: Int):String{
+fun format(temp: Int):String{
     val preferences = PreferenceManager.getDefaultSharedPreferences(App.instance)
     val tempMeasurement=preferences.getInt(SettingFragment.TEMP_MEASUREMENT,0)
     val tempEnum=if (tempMeasurement==0) Temp.CELSIUS else Temp.FAHRENHEIT

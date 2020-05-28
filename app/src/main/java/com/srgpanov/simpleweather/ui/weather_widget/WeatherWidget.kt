@@ -1,33 +1,12 @@
 package com.srgpanov.simpleweather.ui.weather_widget
 
-import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
-import android.database.sqlite.SQLiteConstraintException
-import android.graphics.Color
-import android.view.View
-import android.widget.RemoteViews
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.ColorUtils
 import androidx.preference.PreferenceManager
-import com.srgpanov.simpleweather.MainActivity
-import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.DataRepositoryImpl
-import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
-import com.srgpanov.simpleweather.data.models.other.GeoPoint
-import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
-import com.srgpanov.simpleweather.data.remote.ResponseResult
+import com.srgpanov.simpleweather.App
 import com.srgpanov.simpleweather.other.*
-import com.srgpanov.simpleweather.ui.App
-import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
 
 
 class WeatherWidget : AppWidgetProvider() {
@@ -40,11 +19,10 @@ class WeatherWidget : AppWidgetProvider() {
         val ALPHA_MAX_VALUE = 255
 
         fun updateWidget(
-            context: Context,
             widgetID: Int
         ) {
-            val updateHelper=WidgetUpdateHelper(widgetID,context)
-            updateHelper.updateWidget()
+            val helper = App.instance.appComponent.getWidgetHelper()
+            helper.updateWidget(widgetID)
         }
 
 
@@ -69,9 +47,7 @@ class WeatherWidget : AppWidgetProvider() {
             }
             logD("onReceive widgetId $widgetId")
             if (widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                if (context != null) {
-                    updateWidget(context, widgetId)
-                }
+                updateWidget(widgetId)
             }
         }
     }
@@ -84,7 +60,7 @@ class WeatherWidget : AppWidgetProvider() {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
         logD("onUpdate $appWidgetIds")
         appWidgetIds.forEach { id ->
-            updateWidget(context, id)
+            updateWidget( id)
         }
     }
 

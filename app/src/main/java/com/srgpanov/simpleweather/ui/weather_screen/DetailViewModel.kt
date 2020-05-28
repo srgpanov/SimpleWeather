@@ -2,60 +2,59 @@ package com.srgpanov.simpleweather.ui.weather_screen
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Context.LOCATION_SERVICE
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
-import android.util.Log
+import android.os.Bundle
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
-import androidx.preference.PreferenceManager
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.DataRepositoryImpl
+import com.srgpanov.simpleweather.data.DataRepository
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.data.remote.ResponseResult.Failure
 import com.srgpanov.simpleweather.data.remote.ResponseResult.Success
+import com.srgpanov.simpleweather.di.ViewModelAssistedFactory
 import com.srgpanov.simpleweather.other.*
-import com.srgpanov.simpleweather.ui.App
 import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment
-import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.*
-import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.*
+import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType
+import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.CURRENT
+import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.values
 import com.srgpanov.simpleweather.ui.setting_screen.SettingFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.*
+import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
 
-class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
-
+class DetailViewModel constructor(
+    var argPlace: PlaceEntity?,
+    val repository:DataRepository,
+    private val sharedPreferences: SharedPreferences,
+    val  context:Context) : ViewModel() {
     private val parentJob = Job()
     private val coroutineContext: CoroutineContext
         get() = parentJob + Dispatchers.IO
     private val scope = CoroutineScope(coroutineContext)
-    private val repository = DataRepositoryImpl
-    private val context = App.instance
-    private var sharedPreferences: SharedPreferences =
-        PreferenceManager.getDefaultSharedPreferences(context)
-    lateinit var locationProvider: LocationProvider
 
-    val weatherData = MutableLiveData<WeatherState>()
     val navEvent = NavLiveEvent()
     val weatherPlace = MutableLiveData<PlaceEntity?>()
     val currentPlace = MutableLiveData<PlaceEntity?>()
+    val weatherData = MutableLiveData<WeatherState>()
     val showSetting = MutableLiveData<Boolean>()
     val loadingState = MutableLiveData<Boolean>()
     val showSnackbar = SingleLiveEvent<String>()
     val errorConnectionSnackbar = SingleLiveEvent<Boolean>()
     val requestLocationPermission = SingleLiveEvent<Unit>()
-    val REFRESH_TIME=43200000L // 12 hours
 
     private var isFirstStart: Boolean = false
 
@@ -71,9 +70,13 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
         }
 
     }
+    companion object{
+        const val  ARGUMENT_PLACE="ARGUMENT_PLACE"
+        const val REFRESH_TIME=43200000L // 12 hours
+    }
 
     init {
-        weatherData.value=null
+        weatherData.value=WeatherState.EmptyWeather
         if (argPlace!=null){
             weatherPlace.value = argPlace
         }
@@ -126,7 +129,7 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
 
     suspend fun fetchWeather(geoPoint: GeoPoint) {
         loadingState.postValue(true)
-        val responseResult = repository.getWeather(geoPoint, false)
+        val responseResult = repository.getWeather(geoPoint,false)
         loadingState.postValue(false)
         return when (responseResult) {
             is Success -> {
@@ -204,7 +207,7 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
 
     private fun responseIsFresh(
         response: OneCallResponse,
-        refreshTime: Long = DataRepositoryImpl.REFRESH_TIME
+        refreshTime: Long = DataRepository.REFRESH_TIME
     ): Boolean {
         val timeFromLastResponse = System.currentTimeMillis() - (response.current.dt * 1000L)
         logD(
@@ -212,7 +215,7 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
                 timeFromLastResponse
             ).toString()
         )
-        return timeFromLastResponse < DataRepositoryImpl.REFRESH_TIME
+        return timeFromLastResponse < DataRepository.REFRESH_TIME
     }
 
 
@@ -264,7 +267,7 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
     }
 
     private fun setupCurrentLocation() {
-        locationProvider= LocationProvider(CURRENT)
+        val locationProvider= LocationProvider(CURRENT)
         scope.launch {
             val geoPoint = locationProvider.getGeoPoint()
             logD("setup Current Location $geoPoint")
@@ -334,5 +337,17 @@ class DetailViewModel(var argPlace: PlaceEntity?) : ViewModel() {
                 permissionFineLocation == PackageManager.PERMISSION_GRANTED
     }
 
+    class DetailViewModelFactory @Inject constructor(
+        var repository:DataRepository,
+        var preferences: SharedPreferences,
+        var  context:Context
+    ) : ViewModelAssistedFactory<DetailViewModel> {
+        override fun create(arguments: Bundle): DetailViewModel {
+            val placeEntity = arguments.getParcelable<PlaceEntity?>(ARGUMENT_PLACE)
+            return DetailViewModel(placeEntity,repository,preferences,context)
+        }
+    }
+
 
 }
+

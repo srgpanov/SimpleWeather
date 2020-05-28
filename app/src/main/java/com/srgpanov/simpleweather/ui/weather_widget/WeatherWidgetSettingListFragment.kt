@@ -1,7 +1,6 @@
 package com.srgpanov.simpleweather.ui.weather_widget
 
 import android.appwidget.AppWidgetManager
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -15,31 +14,33 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentResultListener
-import androidx.lifecycle.*
-import androidx.lifecycle.Observer
-import androidx.preference.PreferenceManager
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.observe
+import com.srgpanov.simpleweather.App
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.DataRepositoryImpl
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
-import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.data.models.weather.format
 import com.srgpanov.simpleweather.databinding.WidgetSettingsFagmentLayoutBinding
+import com.srgpanov.simpleweather.di.ArgumentsViewModelFactory
 import com.srgpanov.simpleweather.other.*
 import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment
 import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment.Companion.REQUEST_PLACE
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType
-import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.*
+import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.CERTAIN
+import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.CURRENT
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.OnLocationTypeChoiceCallback
 import com.srgpanov.simpleweather.ui.weather_widget.SettingWidgetViewModel.Companion.ALPHA_MAX_VALUE
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.inject.Inject
 
 class WeatherWidgetSettingListFragment : Fragment() {
     private var _binding: WidgetSettingsFagmentLayoutBinding? = null
     private val binding get() = _binding!!
     var widgetID = AppWidgetManager.INVALID_APPWIDGET_ID
+    @Inject
+    internal lateinit var settingsViewModelFactory: SettingWidgetViewModel.SettingsListViewModelFactory
     lateinit var viewModel: SettingWidgetViewModel
 
 
@@ -50,9 +51,13 @@ class WeatherWidgetSettingListFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        App.instance.appComponent.injectWidgetSettingsListFragment(this)
         setupWidgetId()
-        viewModel = ViewModelProvider(this, SettingWidgetViewModelFactory(widgetID))
-            .get(SettingWidgetViewModel::class.java)
+        val factory = ArgumentsViewModelFactory<SettingWidgetViewModel>(
+            settingsViewModelFactory,
+            createBundle(widgetID)
+        )
+        viewModel = ViewModelProvider(this, factory)[SettingWidgetViewModel::class.java]
         requireActivity()
             .supportFragmentManager.setFragmentResultListener(
                 REQUEST_PLACE,
@@ -68,7 +73,11 @@ class WeatherWidgetSettingListFragment : Fragment() {
                     }
                 })
     }
-
+    private fun createBundle(widgetId:Int):Bundle{
+        return Bundle().apply {
+            putInt(SettingWidgetViewModel.ARGUMENT_WIDGET,widgetId)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -88,7 +97,7 @@ class WeatherWidgetSettingListFragment : Fragment() {
     }
 
     override fun onStop() {
-        WeatherWidget.updateWidget(requireContext().applicationContext, widgetID)
+        WeatherWidget.updateWidget( widgetID)
         super.onStop()
     }
 

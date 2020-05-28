@@ -19,10 +19,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import com.srgpanov.simpleweather.App
 import com.srgpanov.simpleweather.MainActivity
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.databinding.DetailFragmentBinding
+import com.srgpanov.simpleweather.di.ArgumentsViewModelFactory
 import com.srgpanov.simpleweather.other.MyClickListener
 import com.srgpanov.simpleweather.other.addSystemWindowInsetToPadding
 import com.srgpanov.simpleweather.other.logD
@@ -31,10 +33,11 @@ import com.srgpanov.simpleweather.ui.ShareViewModel
 import com.srgpanov.simpleweather.ui.forecast_screen.ForecastPagerFragment
 import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment
 import com.srgpanov.simpleweather.ui.setting_screen.SettingFragment
+import com.srgpanov.simpleweather.ui.weather_screen.DetailViewModel.Companion.ARGUMENT_PLACE
 import com.srgpanov.simpleweather.ui.weather_widget.WeatherWidget.Companion.ACTION_SHOW_WEATHER
 import com.srgpanov.simpleweather.ui.weather_widget.WeatherWidget.Companion.PLACE_ENTITY_KEY
 import kotlinx.coroutines.*
-import java.util.*
+import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
 
@@ -43,18 +46,22 @@ class DetailFragment : Fragment() {
     private val binding get() = _binding!!
     private val coroutineContext: CoroutineContext
         get() = parentJob + Dispatchers.Default
-    private var errorLayoutTranslationY: Float = 0F
-    private var errorPanelIsVisible = false
     private var mainActivity: MainActivity? = null
     private val parentJob = Job()
     private val scope = CoroutineScope(coroutineContext)
-    private var scrollDistancePx: Int = 0
+    @Inject
+    internal lateinit var detailViewModelFactory: DetailViewModel.DetailViewModelFactory
     private lateinit var shareViewModel: ShareViewModel
-    private var toolbarHeight: Int = 100
     private lateinit var viewModel: DetailViewModel
+
+    private var errorPanelIsVisible = false
+    private var errorLayoutTranslationY: Float = 0F
+    private var scrollDistancePx: Int = 0
+    private var toolbarHeight: Int = 100
+
     private val weatherAdapter: WeatherAdapter by lazy { WeatherAdapter() }
     private var loadingDelay:Job?=null
-    var updateRvJob:Job?=null
+    private var updateRvJob:Job?=null
 
     companion object {
         const val ANOTHER_REQUEST_LOCATION_PERMISSION = 11
@@ -64,14 +71,16 @@ class DetailFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requireActivity().intent
-        shareViewModel = ViewModelProvider(requireActivity()).get(ShareViewModel::class.java)
+        App.instance.appComponent.injectDetailFragment(this)
+        shareViewModel = ViewModelProvider(requireActivity())[ShareViewModel::class.java]
         val placeEntity = getStartPlace(requireActivity().intent)
-        viewModel = ViewModelProvider(this, WeatherViewModelFactory(placeEntity))
-            .get(DetailViewModel::class.java)
+        val factory =ArgumentsViewModelFactory<DetailViewModel>(detailViewModelFactory, createBundle(placeEntity))
+        viewModel = ViewModelProvider(this,factory )[DetailViewModel::class.java]
         mainActivity = requireActivity() as MainActivity
         logD("lifecycle onCreate  $this")
     }
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -87,6 +96,7 @@ class DetailFragment : Fragment() {
         setupToolbar()
         setupRecyclerView()
         setupOtherView()
+        observeViewModel()
         if (viewModel.currentPlace.value == null) {
             viewModel.setCurrentPlace()
         }
@@ -94,63 +104,6 @@ class DetailFragment : Fragment() {
 
 
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel.weatherData.observe(viewLifecycleOwner, Observer { it ->
-            if (it != null) {
-                weatherAdapter.setWeather(it)
-                setWeatherToFavoriteScreen(it)
-            }
-        })
-        viewModel.loadingState.observe(viewLifecycleOwner, Observer {
-            showLoading(it)
-        })
-
-        viewModel.navEvent.observe(viewLifecycleOwner, Observer {
-            it?.let {
-                val fragment = it
-                mainActivity?.navigate(fragment.buildFragment().javaClass)
-            }
-        })
-        viewModel.weatherPlace.observe(viewLifecycleOwner, Observer {
-            it?.let {
-                binding.toolbarCityTitle.text = it.title
-            }
-        })
-
-        viewModel.currentPlace.observe(viewLifecycleOwner, Observer {
-            shareViewModel.currentPlace.value = it
-        })
-
-        viewModel.showSetting.observe(viewLifecycleOwner, Observer {
-            it?.let {
-                setupFavoriteState(it)
-            }
-        })
-        viewModel.showSnackbar.observe(viewLifecycleOwner, Observer {
-            val snackbar = Snackbar.make(
-                binding.root,
-                it ?: getString(R.string.something_goes_wrong),
-                Snackbar.LENGTH_SHORT
-            )
-            snackbar.animationMode = Snackbar.ANIMATION_MODE_SLIDE
-            snackbar.show()
-        })
-        shareViewModel.weatherPlace.observe(viewLifecycleOwner, Observer { it ->
-            logD("updateRvJob weatherPlace.observe")
-            updateRvJob = lifecycleScope.launch(start = CoroutineStart.LAZY) {
-                viewModel.weatherPlace.value = it
-            }
-        })
-        viewModel.errorConnectionSnackbar.observe(viewLifecycleOwner, Observer { show ->
-            show?.let {
-                showErrorLayout(show)
-            }
-        })
-        viewModel.requestLocationPermission.observe(viewLifecycleOwner, Observer {
-            showRequestPermissionDialog()
-        })
-    }
     fun updateRV() {
         logD("updateRvJob updateRV")
         updateRvJob?.start()
@@ -359,8 +312,6 @@ class DetailFragment : Fragment() {
             override fun onClick(view: View?, position: Int) {
                 val weatherState = viewModel.weatherData.value
                 if (weatherState is WeatherState.ActualWeather) {
-                    shareViewModel.oneCallResponse = weatherState.oneCallResponse
-                    shareViewModel.daySelected = position - 1
                     val bundle = Bundle().apply {
                         putInt("position", position - 1)
                         putParcelable("oneCall", weatherState.oneCallResponse)
@@ -411,6 +362,62 @@ class DetailFragment : Fragment() {
                     .addToBackStack(SettingFragment.TAG)
                     .commit()
             }
+        })
+    }
+    private fun observeViewModel() {
+        viewModel.weatherData.observe(viewLifecycleOwner, Observer { it ->
+            if (it != null) {
+                weatherAdapter.setWeather(it)
+                setWeatherToFavoriteScreen(it)
+            }
+        })
+        viewModel.loadingState.observe(viewLifecycleOwner, Observer {
+            showLoading(it)
+        })
+
+        viewModel.navEvent.observe(viewLifecycleOwner, Observer {
+            it?.let {
+                val fragment = it
+                mainActivity?.navigate(fragment.buildFragment().javaClass)
+            }
+        })
+        viewModel.weatherPlace.observe(viewLifecycleOwner, Observer {
+            it?.let {
+                binding.toolbarCityTitle.text = it.title
+            }
+        })
+
+        viewModel.currentPlace.observe(viewLifecycleOwner, Observer {
+            shareViewModel.currentPlace.value = it
+        })
+
+        viewModel.showSetting.observe(viewLifecycleOwner, Observer {
+            it?.let {
+                setupFavoriteState(it)
+            }
+        })
+        viewModel.showSnackbar.observe(viewLifecycleOwner, Observer {
+            val snackbar = Snackbar.make(
+                binding.root,
+                it ?: getString(R.string.something_goes_wrong),
+                Snackbar.LENGTH_SHORT
+            )
+            snackbar.animationMode = Snackbar.ANIMATION_MODE_SLIDE
+            snackbar.show()
+        })
+        shareViewModel.weatherPlace.observe(viewLifecycleOwner, Observer { it ->
+            logD("updateRvJob weatherPlace.observe")
+            updateRvJob = lifecycleScope.launch(start = CoroutineStart.LAZY) {
+                viewModel.weatherPlace.value = it
+            }
+        })
+        viewModel.errorConnectionSnackbar.observe(viewLifecycleOwner, Observer { show ->
+            show?.let {
+                showErrorLayout(show)
+            }
+        })
+        viewModel.requestLocationPermission.observe(viewLifecycleOwner, Observer {
+            showRequestPermissionDialog()
         })
     }
 
@@ -482,7 +489,11 @@ class DetailFragment : Fragment() {
 
     }
 
-
+    private fun createBundle(placeEntity: PlaceEntity?):Bundle {
+        val bundle = Bundle()
+        bundle.putParcelable(ARGUMENT_PLACE, placeEntity)
+        return bundle
+    }
 
 
 }

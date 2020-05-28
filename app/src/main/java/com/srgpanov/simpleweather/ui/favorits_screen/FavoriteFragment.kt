@@ -11,7 +11,6 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.PopupWindow
-import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.ViewCompat
 import androidx.core.view.updateLayoutParams
@@ -19,24 +18,29 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentResultListener
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.MergeAdapter
+import com.srgpanov.simpleweather.App
 import com.srgpanov.simpleweather.MainActivity
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
-import com.srgpanov.simpleweather.data.remote.RemoteDataSourceImpl
 import com.srgpanov.simpleweather.databinding.FragmentFavoriteBinding
 import com.srgpanov.simpleweather.other.*
 import com.srgpanov.simpleweather.ui.ShareViewModel
 import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment
 import com.srgpanov.simpleweather.ui.weather_screen.DetailFragment
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
 
 class FavoriteFragment : Fragment() {
     private var _binding: FragmentFavoriteBinding? = null
     private val binding get() = _binding!!
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
     private lateinit var shareViewModel: ShareViewModel
     private lateinit var viewModel: FavoriteViewModel
     private val parentJob = Job()
@@ -58,8 +62,9 @@ class FavoriteFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        shareViewModel = ViewModelProvider(requireActivity()).get(ShareViewModel::class.java)
-        viewModel = ViewModelProvider(this).get(FavoriteViewModel::class.java)
+        App.instance.appComponent.injectFavoriteFragment(this)
+        shareViewModel = ViewModelProvider(requireActivity())[ShareViewModel::class.java]
+        viewModel = ViewModelProvider(this, viewModelFactory)[FavoriteViewModel::class.java]
         requireActivity().supportFragmentManager.setFragmentResultListener(
             SelectPlaceFragment.REQUEST_PLACE,
             this,
@@ -130,8 +135,8 @@ class FavoriteFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        binding.recyclerView.adapter=null
-        _binding=null
+        binding.recyclerView.adapter = null
+        _binding = null
         logD("lifecycle onDestroyView ${this}")
         super.onDestroyView()
     }
@@ -279,7 +284,7 @@ class FavoriteFragment : Fragment() {
 
     private fun onSelectPlace(placeEntity: PlaceEntity) {
         logD("onSelectPlace ${placeEntity.title}")
-         viewModel.savePlaceToHistory(placeEntity)
+        viewModel.savePlaceToHistory(placeEntity)
         val favoriteOrCurrent = viewModel.placeFavoriteOrCurrent(placeEntity)
         if (favoriteOrCurrent) {
             goToDetailFragment(placeEntity)
@@ -287,10 +292,10 @@ class FavoriteFragment : Fragment() {
             val detailFragment = DetailFragment.newInstance().apply {
                 this.arguments = Bundle().apply { putParcelable("place", placeEntity) }
             }
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .replace(R.id.container, detailFragment, detailFragment::class.java.simpleName)
-                    .addToBackStack(detailFragment::class.java.simpleName)
-                    .commit()
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.container, detailFragment, detailFragment::class.java.simpleName)
+                .addToBackStack(detailFragment::class.java.simpleName)
+                .commit()
         }
     }
 

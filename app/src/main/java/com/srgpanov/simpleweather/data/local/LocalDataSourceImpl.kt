@@ -4,10 +4,9 @@ import com.srgpanov.simpleweather.data.models.entity.*
 import com.srgpanov.simpleweather.data.models.entity.utility.PlacesWithWeather
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.other.logD
-import com.srgpanov.simpleweather.ui.App
+import javax.inject.Inject
 
-object LocalDataSourceImpl {
-    private val dao = WeatherDataBase.getInstance(App.instance).weatherDataDao()
+class LocalDataSourceImpl @Inject constructor( val dao:WeatherDao) {
 
     suspend fun getFavoritesPlaces(): List<PlaceEntity> {
         val favoriteList = mutableListOf<PlaceEntity>()

@@ -4,15 +4,15 @@ import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
-import androidx.preference.PreferenceManager
 import com.srgpanov.simpleweather.MainActivity
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.DataRepositoryImpl
+import com.srgpanov.simpleweather.data.DataRepository
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
@@ -26,33 +26,36 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.inject.Inject
 
-class WidgetUpdateHelper(private val widgetID: Int, private val context: Context) {
+class WidgetUpdateHelper @Inject constructor(
+    private val context: Context,
+    private val repository: DataRepository,
+    private val sp: SharedPreferences
+) {
     private val scope = CoroutineScope(Dispatchers.IO + Job())
     private var widgetView: RemoteViews = RemoteViews(context.packageName, R.layout.widget_layout)
     private var appWidgetManager: AppWidgetManager = AppWidgetManager.getInstance(context)
-    private val sp = PreferenceManager.getDefaultSharedPreferences(context)
-    private val icons = sp.getBoolean(WIDGET_ICONS + widgetID, false)
-    private val isLightTheme = sp.getBoolean(WIDGET_LIGHT_THEME + widgetID, false)
-    private val showTimeUpdate = sp.getBoolean(WIDGET_SHOW_TIME_UPDATE + widgetID, false)
-    private val transparency =
-        sp.getInt(WIDGET_TRANSPARENCY + widgetID, WeatherWidget.ALPHA_MAX_VALUE)
-    private val locationTitle = sp.getString(WIDGET_LOCATION_NAME + widgetID, "")
-    private val locationLatitude: Double = getCoordinate(WIDGET_LATITUDE + widgetID)
-    private val locationLongitude: Double = getCoordinate(WIDGET_LONGITUDE + widgetID)
-    private val locationType = sp.getInt(WIDGET_LOCATION_TYPE + widgetID, CURRENT.ordinal)
-    private val locationProvider = LocationProvider(values()[locationType])
-    private val repository = DataRepositoryImpl
+    private var widgetID: Int = AppWidgetManager.INVALID_APPWIDGET_ID
+    private var icons: Boolean = false
+    private var isLightTheme: Boolean = false
+    private var showTimeUpdate: Boolean = false
+    private var transparency: Int = WeatherWidget.ALPHA_MAX_VALUE
+    private var locationTitle: String? = null
+    private var locationLatitude: Double = 0.0
+    private var locationLongitude: Double = 0.0
+    private var locationType = CURRENT.ordinal
+    private var locationProvider = LocationProvider(values()[locationType])
     private lateinit var observePlace: PlaceEntity
 
-
-    fun updateWidget() = scope.launch {
-        showLoading(widgetID)
+    fun updateWidget(widgetID: Int) = scope.launch {
+        setupId(widgetID)
+        showLoading(this@WidgetUpdateHelper.widgetID)
         val place = getObservablePlace()
         if (place != null) {
             observePlace = place
         } else {
-            hideLoading(widgetID)
+            hideLoading(this@WidgetUpdateHelper.widgetID)
             showError()
             return@launch
         }
@@ -87,8 +90,8 @@ class WidgetUpdateHelper(private val widgetID: Int, private val context: Context
         widgetView.setTextColor(R.id.widget_day_temp_tv, textColor)
         widgetView.setTextColor(R.id.widget_night_temp_tv, nightTempTextColor)
         widgetView.setImageViewResource(R.id.widget_refresh_ib, refreshButtonImage)
-        hideLoading(widgetID)
-        appWidgetManager.updateAppWidget(widgetID, widgetView)
+        hideLoading(this@WidgetUpdateHelper.widgetID)
+        appWidgetManager.updateAppWidget(this@WidgetUpdateHelper.widgetID, widgetView)
     }
 
     private fun setupBackground() {
@@ -121,6 +124,18 @@ class WidgetUpdateHelper(private val widgetID: Int, private val context: Context
             backgroundTitleColor
         )
 
+    }
+
+    private fun setupId(widgetID: Int) {
+        this.widgetID = widgetID
+        icons = sp.getBoolean(WIDGET_ICONS + widgetID, false)
+        isLightTheme = sp.getBoolean(WIDGET_LIGHT_THEME + widgetID, false)
+        showTimeUpdate = sp.getBoolean(WIDGET_SHOW_TIME_UPDATE + widgetID, false)
+        transparency = sp.getInt(WIDGET_TRANSPARENCY + widgetID, WeatherWidget.ALPHA_MAX_VALUE)
+        locationTitle = sp.getString(WIDGET_LOCATION_NAME + widgetID, "")
+        locationLatitude = getCoordinate(WIDGET_LATITUDE + widgetID)
+        locationLongitude = getCoordinate(WIDGET_LONGITUDE + widgetID)
+        locationType = sp.getInt(WIDGET_LOCATION_TYPE + widgetID, CURRENT.ordinal)
     }
 
     private fun setupClickListeners() {

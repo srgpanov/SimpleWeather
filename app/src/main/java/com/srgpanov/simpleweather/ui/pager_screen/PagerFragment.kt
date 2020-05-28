@@ -18,10 +18,6 @@ class PagerFragment : Fragment(), OnBackPressedListener {
     private val binding get() = _binding!!
     private lateinit var pagerAdapter: PagerAdapter
 
-    companion object {
-        fun newInstance() = PagerFragment()
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

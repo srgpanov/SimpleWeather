@@ -1,6 +1,5 @@
 package com.srgpanov.simpleweather.ui.favorits_screen
 
-import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -72,12 +71,6 @@ class FavoritesAdapter() : RecyclerView.Adapter<FavoritesAdapter.FavoritesViewHo
 
 
     fun setData(data: List<PlaceEntity>) {
-//        val oldItems = ArrayList(places)
-//        val placeDiffCallBack = PlaceDiffCallBack(oldItems, data)
-//        val resultDiff = DiffUtil.calculateDiff(placeDiffCallBack, false)
-//        resultDiff.dispatchUpdatesTo(this@FavoritesAdapter)
-//        places.clear()
-//        places.addAll(data)
         setDataJob?.cancel()
         setDataJob = scope?.launch {
             data.forEach {

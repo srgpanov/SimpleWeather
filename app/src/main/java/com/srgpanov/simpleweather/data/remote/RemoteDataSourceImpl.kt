@@ -4,18 +4,17 @@ import com.srgpanov.simpleweather.data.models.ip_to_location.IpToLocation
 import com.srgpanov.simpleweather.data.models.places.Places
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.data.models.weather.current_weather.CurrentWeatherResponse
-import com.srgpanov.simpleweather.other.logD
 import com.srgpanov.simpleweather.other.numbersAfterDot
 import java.util.*
+import javax.inject.Inject
 
 
-object RemoteDataSourceImpl {
-    private val weatherService =
-        RetrofitClient.createWeatherService()
-    private val placesService =
-        RetrofitClient.createPlacesService()
-    private val ipToLocationService =
-        RetrofitClient.createIpToLocationService()
+class RemoteDataSourceImpl @Inject constructor(
+    val weatherService: WeatherService,
+     val placesService: PlacesService,
+     val ipToLocationService: IpToLocationService
+) {
+
 
     suspend fun getOneCallWeather(
         lat: Double,
@@ -33,9 +32,9 @@ object RemoteDataSourceImpl {
 
 
     suspend fun getPlaces(query: String): ResponseResult<Places> {
-       var lang= Locale.getDefault().toLanguageTag().replace("-","_")
-        lang= when(lang) {
-            "ru_RU","en_US" -> lang
+        var lang = Locale.getDefault().toLanguageTag().replace("-", "_")
+        lang = when (lang) {
+            "ru_RU", "en_US" -> lang
             else -> "en_US"
         }
         return placesService.getPlaces(

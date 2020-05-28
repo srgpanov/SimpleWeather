@@ -14,7 +14,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.invoke
 import androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.appcompat.app.ActionBar
@@ -23,8 +22,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentResultListener
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -46,6 +43,7 @@ import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragmen
 import com.srgpanov.simpleweather.ui.setting_widget_screen.SettingWidgetFragment
 import com.srgpanov.simpleweather.ui.weather_widget.WeatherWidget
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 
 class SettingFragment : Fragment() {
@@ -55,7 +53,7 @@ class SettingFragment : Fragment() {
     private lateinit var shareViewModel: ShareViewModel
     private var mainActivity: MainActivity? = null
     private var actionBar: ActionBar? = null
-    private val localDataSource: LocalDataSourceImpl =LocalDataSourceImpl
+    @Inject lateinit var  localDataSource: LocalDataSourceImpl
     private val registerForLocationPermission =
         registerForActivityResult(RequestMultiplePermissions()) { map ->
             var permissionGranted = true
@@ -296,7 +294,7 @@ class SettingFragment : Fragment() {
         } else {
             logD("locationPermission not Granted")
             if (shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)) {
-                registerForLocationPermission(
+                registerForLocationPermission.launch(
                     arrayOf(
                         ACCESS_FINE_LOCATION,
                         ACCESS_COARSE_LOCATION
@@ -315,7 +313,7 @@ class SettingFragment : Fragment() {
             Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
             Uri.parse("package:" + requireContext().packageName)
         )
-        registerForAppSettings(appSettingsIntent)
+        registerForAppSettings.launch(appSettingsIntent)
     }
 
 

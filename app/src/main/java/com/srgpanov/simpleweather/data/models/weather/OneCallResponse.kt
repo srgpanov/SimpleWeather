@@ -3,7 +3,6 @@ package com.srgpanov.simpleweather.data.models.weather
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
-import com.srgpanov.simpleweather.data.DataRepositoryImpl.REFRESH_TIME
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.other.logD
 import kotlinx.android.parcel.Parcelize

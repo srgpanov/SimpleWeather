@@ -1,13 +1,10 @@
 package com.srgpanov.simpleweather.data.remote
 
-import android.util.Log
-import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.srgpanov.simpleweather.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     private const val baseUrlWeather = "https://api.openweathermap.org/data/2.5/"
@@ -51,6 +48,5 @@ object RetrofitClient {
         return createRetrofit(
             baseUrlIpToLocation
         ).create(IpToLocationService::class.java)
-
     }
 }

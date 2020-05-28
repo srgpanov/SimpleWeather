@@ -2,22 +2,22 @@ package com.srgpanov.simpleweather.ui.favorits_screen
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.srgpanov.simpleweather.data.DataRepositoryImpl
+import com.srgpanov.simpleweather.data.DataRepository
 import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
-import com.srgpanov.simpleweather.data.models.entity.SimpleWeatherTable
 import com.srgpanov.simpleweather.data.models.weather.current_weather.CurrentWeatherResponse
 import com.srgpanov.simpleweather.data.remote.ResponseResult
 import com.srgpanov.simpleweather.other.logD
-import com.srgpanov.simpleweather.other.logE
 import kotlinx.coroutines.*
+import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
-class FavoriteViewModel : ViewModel() {
+class FavoriteViewModel @Inject constructor(
+    private var repository: DataRepository
+) : ViewModel() {
     private val parentJob = Job()
     private val coroutineContext: CoroutineContext
         get() = parentJob + Dispatchers.IO
     private val scope = CoroutineScope(coroutineContext)
-    private val repository = DataRepositoryImpl
 
     val favoritePlaces = MutableLiveData<List<PlaceEntity>>()
     val currentPlace = MutableLiveData<PlaceEntity>()
@@ -59,6 +59,7 @@ class FavoriteViewModel : ViewModel() {
             favoritePlaces.postValue(places)
             loadWeather(places)
         }
+
     }
 
     fun placeFavoriteOrCurrent(placeEntity: PlaceEntity): Boolean {
@@ -126,13 +127,5 @@ class FavoriteViewModel : ViewModel() {
         }
     }
 
-//    private fun loadMainWeather(place: PlaceEntity? = currentPlace.value) {
-//        scope.launch {
-//            if (place != null) {
-//                val weather = repository.getWeather(place.toGeoPoint())
-//                place.oneCallResponse = weather
-//                currentPlace.postValue(place)
-//            }
-//        }
-//    }
+
 }

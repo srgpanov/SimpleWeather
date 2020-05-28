@@ -5,6 +5,7 @@ import com.srgpanov.simpleweather.data.models.TimeCounter
 import com.srgpanov.simpleweather.data.models.entity.*
 import com.srgpanov.simpleweather.data.models.ip_to_location.IpToLocation
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
+import com.srgpanov.simpleweather.data.models.places.Places
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.data.models.weather.current_weather.CurrentWeatherResponse
 import com.srgpanov.simpleweather.data.remote.RemoteDataSourceImpl
@@ -12,12 +13,16 @@ import com.srgpanov.simpleweather.data.remote.ResponseResult
 import com.srgpanov.simpleweather.other.logD
 import kotlinx.coroutines.coroutineScope
 import java.util.*
+import javax.inject.Inject
 
-object DataRepositoryImpl {
-    private val localDataSource = LocalDataSourceImpl
-    private val remoteDataSource = RemoteDataSourceImpl
+class DataRepository @Inject constructor(
+     val localDataSource:LocalDataSourceImpl,
+     val remoteDataSource:RemoteDataSourceImpl) {
 
-    const val REFRESH_TIME = 3600000L //1 hour
+    companion object{
+        const val REFRESH_TIME = 3600000L //1 hour
+    }
+
 
     suspend fun getWeather(
         geoPoint: GeoPoint,
@@ -158,7 +163,7 @@ object DataRepositoryImpl {
             logD("getPlaceByGeoPoint returned from DB")
             return place.toPlaceEntity()
         } else {
-            val responseResult = remoteDataSource.getPlaces(geoPoint.pointToQuery())
+            val responseResult =getPlaces(geoPoint.pointToQuery())
             return when (responseResult) {
                 is ResponseResult.Success -> {
                     localDataSource.savePlace(responseResult.data.toEntity())
@@ -173,6 +178,9 @@ object DataRepositoryImpl {
         }
 
 
+    }
+    suspend fun getPlaces(query:String):ResponseResult<Places>{
+        return remoteDataSource.getPlaces(query)
     }
 
     suspend fun getGeoPointFromIp(): ResponseResult<IpToLocation> {

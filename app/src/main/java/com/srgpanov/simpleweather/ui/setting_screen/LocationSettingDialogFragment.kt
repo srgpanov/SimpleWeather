@@ -6,10 +6,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.ui.ShareViewModel
 
 class LocationSettingDialogFragment:DialogFragment() {
-    private lateinit var shareViewModel: ShareViewModel
     var onLocationTypeChoiceCallback:OnLocationTypeChoiceCallback?=null
     companion object{
         val TAG = this::class.java.simpleName

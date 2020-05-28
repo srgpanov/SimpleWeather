@@ -4,14 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.models.other.CalendarItem
@@ -25,23 +22,14 @@ class ForecastPagerFragment : Fragment() {
     private lateinit var forecastAdapter: ForecastPagerAdapter
     private var _binding: ForecastPagerFragmentBinding? = null
     private val binding get() = _binding!!
-    var itemCompletelyVisibleListener: FirstItemCompletelyVisibleListener? = null
-
-    companion object {
-        fun newInstance() = ForecastPagerFragment()
-    }
+    private var itemCompletelyVisibleListener: FirstItemCompletelyVisibleListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val position = arguments?.getInt("position", 0) ?: 0
         val oneCall = arguments?.getParcelable<OneCallResponse>("oneCall")
-        oneCall?.hourly?.forEach {
-            logD("hours ${it.hour()}")
-        }
-        viewModel =
-            ViewModelProvider(this, ForecastViewModelFactory(position, oneCall)).get(
-                ForecastPagerViewModel::class.java
-            )
+        val factory = ForecastViewModelFactory(position, oneCall)
+        viewModel =ViewModelProvider(this,factory )[ForecastPagerViewModel::class.java]
     }
 
     override fun onCreateView(
@@ -49,7 +37,6 @@ class ForecastPagerFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         _binding = ForecastPagerFragmentBinding.inflate(layoutInflater, container, false)
-
         return binding.root
     }
 

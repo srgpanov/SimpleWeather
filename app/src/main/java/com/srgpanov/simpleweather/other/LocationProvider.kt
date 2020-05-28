@@ -3,23 +3,31 @@ package com.srgpanov.simpleweather.other
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import androidx.core.content.ContextCompat
-import androidx.preference.PreferenceManager
 import com.google.gson.Gson
-import com.srgpanov.simpleweather.data.DataRepositoryImpl
+import com.srgpanov.simpleweather.App
+import com.srgpanov.simpleweather.data.DataRepository
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.data.remote.ResponseResult
-import com.srgpanov.simpleweather.ui.App
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType
+import javax.inject.Inject
 
 class LocationProvider(private val locationType: LocationType) {
-    private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(App.instance)
-    private val repository = DataRepositoryImpl
-    val context = App.instance
-    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager;
+    @Inject lateinit var repository: DataRepository
+    @Inject
+    lateinit var sharedPreferences: SharedPreferences
+    @Inject
+    lateinit var context: Context
+    var locationManager: LocationManager
+
+    init {
+        App.instance.appComponent.injectLocationProvider(this)
+        locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager;
+    }
 
     companion object {
         const val LAST_KNOWN_LOCATION = "LAST_KNOWN_LOCATION"
@@ -50,13 +58,13 @@ class LocationProvider(private val locationType: LocationType) {
                 logD("getLastKnownGeoPoint point from LM != null")
                 saveLastLocation(point)
                 point
-            }else{
+            } else {
                 logD("getLastKnownGeoPoint point  from LM == null")
-                geoPointFromIp()?:getSavedGeoPoint()
+                geoPointFromIp() ?: getSavedGeoPoint()
             }
         } else {
             logD("locationType current permission not granted")
-            geoPointFromIp()?:getSavedGeoPoint()
+            geoPointFromIp() ?: getSavedGeoPoint()
         }
     }
 
