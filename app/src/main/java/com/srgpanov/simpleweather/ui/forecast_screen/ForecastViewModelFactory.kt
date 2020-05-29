@@ -3,8 +3,8 @@ package com.srgpanov.simpleweather.ui.forecast_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
-import com.srgpanov.simpleweather.ui.weather_screen.DetailViewModel
 
+@Suppress("UNCHECKED_CAST")
 class ForecastViewModelFactory(
     val position: Int,
     val oneCallResponse: OneCallResponse?

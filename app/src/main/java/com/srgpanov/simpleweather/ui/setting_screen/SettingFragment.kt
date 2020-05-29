@@ -53,7 +53,9 @@ class SettingFragment : Fragment() {
     private lateinit var shareViewModel: ShareViewModel
     private var mainActivity: MainActivity? = null
     private var actionBar: ActionBar? = null
-    @Inject lateinit var  localDataSource: LocalDataSourceImpl
+
+    @Inject
+    lateinit var localDataSource: LocalDataSourceImpl
     private val registerForLocationPermission =
         registerForActivityResult(RequestMultiplePermissions()) { map ->
             var permissionGranted = true
@@ -77,16 +79,13 @@ class SettingFragment : Fragment() {
         const val LOCATION_TYPE = "LOCATION_TYPE"
         val TAG = this::class.java.simpleName
 
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            SettingFragment()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         shareViewModel = ViewModelProvider(requireActivity()).get(ShareViewModel::class.java)
         sharedPreferences =
-            PreferenceManager.getDefaultSharedPreferences(requireActivity());
+            PreferenceManager.getDefaultSharedPreferences(requireActivity())
         mainActivity = requireActivity() as? MainActivity
         requireActivity().supportFragmentManager.setFragmentResultListener(
             REQUEST_PLACE,
@@ -129,8 +128,8 @@ class SettingFragment : Fragment() {
 
     private fun setupToolbar() {
         mainActivity?.setSupportActionBar(binding.toolbar)
-        actionBar = mainActivity?.getSupportActionBar()
-        actionBar?.setTitle(mainActivity?.getString(R.string.settings))
+        actionBar = mainActivity?.supportActionBar
+        actionBar?.title = mainActivity?.getString(R.string.settings)
         actionBar?.setDisplayHomeAsUpEnabled(true)
         actionBar?.setDisplayShowHomeEnabled(true)
         setHasOptionsMenu(true)
@@ -171,17 +170,17 @@ class SettingFragment : Fragment() {
         lifecycleScope.launch {
             binding.locationDescriptionTv.text = getLocationTypeText()
         }
-        val widgetIdArray =getWidgetsId()
-        if (widgetIdArray.isNotEmpty()){
-            binding.widgetSettingBackground.visibility=View.VISIBLE
-            binding.widgetSettingTextTv.visibility=View.VISIBLE
+        val widgetIdArray = getWidgetsId()
+        if (widgetIdArray.isNotEmpty()) {
+            binding.widgetSettingBackground.visibility = View.VISIBLE
+            binding.widgetSettingTextTv.visibility = View.VISIBLE
         }
 
         logD("setting ${sharedPreferences.all}")
 
     }
 
-    private fun getWidgetsId():IntArray {
+    private fun getWidgetsId(): IntArray {
         val widgetManager = AppWidgetManager.getInstance(requireActivity())
         val widgetComponent = ComponentName(requireActivity(), WeatherWidget::class.java)
         return widgetManager.getAppWidgetIds(widgetComponent)
@@ -281,8 +280,13 @@ class SettingFragment : Fragment() {
         }
         binding.aboutBackground.setOnClickListener {
             requireActivity().supportFragmentManager.beginTransaction()
-                .setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out)
-                .replace(R.id.container,AboutFragment())
+                .setCustomAnimations(
+                    R.anim.fade_in,
+                    R.anim.fade_out,
+                    R.anim.fade_in,
+                    R.anim.fade_out
+                )
+                .replace(R.id.container, AboutFragment())
                 .addToBackStack(null)
                 .commit()
         }
@@ -302,7 +306,7 @@ class SettingFragment : Fragment() {
                 )
             } else {
                 logD("openApplicationSettings")
-                openApplicationSettings();
+                openApplicationSettings()
             }
         }
     }
@@ -323,7 +327,7 @@ class SettingFragment : Fragment() {
             override fun onLocationTypeChoice(type: LocationType) {
                 when (type) {
                     CURRENT -> onCurrentLocationChoice()
-                    CERTAIN -> mainActivity?.navigate(SelectPlaceFragment::class.java)
+                    CERTAIN -> selectPlace()
                 }
                 logD("onLocationTypeChoice")
             }
@@ -332,6 +336,13 @@ class SettingFragment : Fragment() {
             childFragmentManager,
             LocationSettingDialogFragment.TAG
         )
+    }
+
+    private fun selectPlace() {
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(R.id.container, SelectPlaceFragment(), SelectPlaceFragment.TAG)
+            .addToBackStack(SelectPlaceFragment.TAG)
+            .commit()
     }
 
     private fun onCurrentLocationChoice() {
@@ -345,14 +356,15 @@ class SettingFragment : Fragment() {
             localDataSource.savePlace(placeEntity)
             localDataSource.savePlaceToHistory(placeEntity)
             localDataSource.saveCurrentPlace(placeEntity.toCurrentTable())
-            binding.locationDescriptionTv.text = localDataSource.getCurrentLocation()?.cityFullName ?: ""
+            binding.locationDescriptionTv.text =
+                localDataSource.getCurrentLocation()?.cityFullName ?: ""
             shareViewModel.weatherPlace.value = placeEntity
         }
     }
 
     override fun onDestroyView() {
         _binding = null
-        actionBar=null
+        actionBar = null
         mainActivity?.setSupportActionBar(null)
         super.onDestroyView()
     }

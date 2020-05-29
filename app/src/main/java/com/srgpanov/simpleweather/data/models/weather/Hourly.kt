@@ -1,15 +1,14 @@
 package com.srgpanov.simpleweather.data.models.weather
 
 
-import android.location.GnssMeasurement
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
-import com.srgpanov.simpleweather.other.logD
-import com.srgpanov.simpleweather.ui.setting_screen.Temp
+import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
+
 @Parcelize
 data class Hourly(
     @SerializedName("clouds")
@@ -33,6 +32,7 @@ data class Hourly(
     @SerializedName("wind_speed")
     val windSpeed: Double
 ) : Parcelable {
+    @IgnoredOnParcel
     var offset: Int = 0
     fun  day():Int{
         return calendarTime().get(Calendar.DAY_OF_MONTH)

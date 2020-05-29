@@ -208,14 +208,13 @@ class FavoriteFragment : Fragment() {
         val menuHeight = dpToPx(96)
         menu.contentView = layout
         menu.height = menuHeight
-        menu.width = dpToPx(180)
         menu.isFocusable = true
-        menu.elevation = 8F;
+        menu.elevation = 8F
         menu.setBackgroundDrawable(ColorDrawable(Color.WHITE))
         menu.animationStyle = android.R.style.Widget_Material_PopupMenu
         val location = IntArray(2)
         it.getLocationOnScreen(location)
-        val display: Display = requireActivity().getWindowManager().getDefaultDisplay()
+        val display: Display = requireActivity().windowManager.defaultDisplay
         val size = Point()
         display.getSize(size)
         val displayHeight: Int = size.y
@@ -263,7 +262,7 @@ class FavoriteFragment : Fragment() {
         params.leftMargin = dpToPx(16)
         params.rightMargin = dpToPx(16)
         params.topMargin = dpToPx(16)
-        editText.setLayoutParams(params)
+        editText.layoutParams = params
         editText.isSingleLine = true
         editText.imeOptions = EditorInfo.IME_ACTION_DONE
         container.addView(editText)

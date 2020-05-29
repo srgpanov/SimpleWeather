@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.srgpanov.simpleweather.ui.weather_screen.DetailViewModel
 import com.srgpanov.simpleweather.ui.weather_widget.SettingWidgetViewModel
 
+@Suppress("UNCHECKED_CAST")
 class ArgumentsViewModelFactory<out V : ViewModel>(
     private val viewModelFactory: ViewModelAssistedFactory<V>,
     val arguments: Bundle

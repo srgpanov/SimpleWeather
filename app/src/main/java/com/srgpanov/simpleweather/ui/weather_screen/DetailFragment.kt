@@ -31,7 +31,6 @@ import com.srgpanov.simpleweather.other.logD
 import com.srgpanov.simpleweather.other.requestApplyInsetsWhenAttached
 import com.srgpanov.simpleweather.ui.ShareViewModel
 import com.srgpanov.simpleweather.ui.forecast_screen.ForecastPagerFragment
-import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment
 import com.srgpanov.simpleweather.ui.setting_screen.SettingFragment
 import com.srgpanov.simpleweather.ui.weather_screen.DetailViewModel.Companion.ARGUMENT_PLACE
 import com.srgpanov.simpleweather.ui.weather_widget.WeatherWidget.Companion.ACTION_SHOW_WEATHER
@@ -49,6 +48,7 @@ class DetailFragment : Fragment() {
     private var mainActivity: MainActivity? = null
     private val parentJob = Job()
     private val scope = CoroutineScope(coroutineContext)
+
     @Inject
     internal lateinit var detailViewModelFactory: DetailViewModel.DetailViewModelFactory
     private lateinit var shareViewModel: ShareViewModel
@@ -60,8 +60,8 @@ class DetailFragment : Fragment() {
     private var toolbarHeight: Int = 100
 
     private val weatherAdapter: WeatherAdapter by lazy { WeatherAdapter() }
-    private var loadingDelay:Job?=null
-    private var updateRvJob:Job?=null
+    private var loadingDelay: Job? = null
+    private var updateRvJob: Job? = null
 
     companion object {
         const val ANOTHER_REQUEST_LOCATION_PERMISSION = 11
@@ -74,12 +74,14 @@ class DetailFragment : Fragment() {
         App.instance.appComponent.injectDetailFragment(this)
         shareViewModel = ViewModelProvider(requireActivity())[ShareViewModel::class.java]
         val placeEntity = getStartPlace(requireActivity().intent)
-        val factory =ArgumentsViewModelFactory<DetailViewModel>(detailViewModelFactory, createBundle(placeEntity))
-        viewModel = ViewModelProvider(this,factory )[DetailViewModel::class.java]
+        val factory = ArgumentsViewModelFactory<DetailViewModel>(
+            detailViewModelFactory,
+            createBundle(placeEntity)
+        )
+        viewModel = ViewModelProvider(this, factory)[DetailViewModel::class.java]
         mainActivity = requireActivity() as MainActivity
         logD("lifecycle onCreate  $this")
     }
-
 
 
     override fun onCreateView(
@@ -103,11 +105,10 @@ class DetailFragment : Fragment() {
     }
 
 
-
     fun updateRV() {
         logD("updateRvJob updateRV")
         updateRvJob?.start()
-        updateRvJob=null
+        updateRvJob = null
     }
 
 
@@ -179,7 +180,6 @@ class DetailFragment : Fragment() {
     }
 
 
-
     private fun getStartPlace(activityIntent: Intent?): PlaceEntity? {
         val extras = activityIntent?.extras
         val action = requireActivity().intent.action
@@ -197,11 +197,6 @@ class DetailFragment : Fragment() {
         return placeEntity
     }
 
-    private fun navigateToSelectPlaceFragment() {
-        mainActivity?.navigate(
-            SelectPlaceFragment::class.java
-        )
-    }
 
     private fun showLoading(value: Boolean) {
         if (value) {
@@ -226,6 +221,7 @@ class DetailFragment : Fragment() {
         }
         shareViewModel.currentPlace.value = place
     }
+
     private fun requestLocationPermission(requestCode: Int) {
         requestPermissions(
             arrayOf(
@@ -306,7 +302,7 @@ class DetailFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        binding.detailRv.adapter=weatherAdapter
+        binding.detailRv.adapter = weatherAdapter
         weatherAdapter.scope = scope
         weatherAdapter.clickListener = object : MyClickListener {
             override fun onClick(view: View?, position: Int) {
@@ -316,7 +312,13 @@ class DetailFragment : Fragment() {
                         putInt("position", position - 1)
                         putParcelable("oneCall", weatherState.oneCallResponse)
                     }
-                    mainActivity?.navigate(ForecastPagerFragment::class.java, bundle)
+                    requireActivity().supportFragmentManager.beginTransaction()
+                        .replace(
+                            R.id.container,
+                            ForecastPagerFragment::class.java,
+                            bundle,
+                            ForecastPagerFragment::class.java.simpleName
+                        ).commit()
                 }
             }
         }
@@ -338,8 +340,6 @@ class DetailFragment : Fragment() {
     private fun setupToolbar() {
         binding.toolbar.doOnPreDraw { toolbarHeight = binding.toolbar.height }
         binding.burgerButton.setOnClickListener {
-            logD("burger click")
-            //todo
             mainActivity?.navigateToFavoriteFragment()
         }
 
@@ -352,7 +352,7 @@ class DetailFragment : Fragment() {
         }
         binding.settingButton.setOnClickListener(object : View.OnClickListener {
             override fun onClick(v: View?) {
-                //todo
+                //todo доделать красивую анимацию,
                 requireActivity().supportFragmentManager.beginTransaction()
                     .setCustomAnimations(
                         R.anim.slide_in_left, R.anim.slide_out_left,
@@ -364,6 +364,7 @@ class DetailFragment : Fragment() {
             }
         })
     }
+
     private fun observeViewModel() {
         viewModel.weatherData.observe(viewLifecycleOwner, Observer { it ->
             if (it != null) {
@@ -378,7 +379,10 @@ class DetailFragment : Fragment() {
         viewModel.navEvent.observe(viewLifecycleOwner, Observer {
             it?.let {
                 val fragment = it
-                mainActivity?.navigate(fragment.buildFragment().javaClass)
+                val buildFragment = fragment.buildFragment().javaClass
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .replace(R.id.container, buildFragment, null, fragment.javaClass.simpleName)
+                    .commit()
             }
         })
         viewModel.weatherPlace.observe(viewLifecycleOwner, Observer {
@@ -433,10 +437,10 @@ class DetailFragment : Fragment() {
             animator.duration = 350
             animator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
                 override fun onAnimationUpdate(animation: ValueAnimator?) {
-                    binding.insetsErrorView.translationY = animation?.getAnimatedValue() as Float
+                    binding.insetsErrorView.translationY = animation?.animatedValue as Float
                     binding.connectionErrorButton.translationY =
-                        animation.getAnimatedValue() as Float
-                    binding.connectionErrorTv.translationY = animation.getAnimatedValue() as Float
+                        animation.animatedValue as Float
+                    binding.connectionErrorTv.translationY = animation.animatedValue as Float
                 }
             })
             animator.addListener(
@@ -457,27 +461,6 @@ class DetailFragment : Fragment() {
         errorPanelIsVisible = isShow
     }
 
-    private fun showPermissionNotGrantedDialog() {
-        val permissionNotGrantedDialog = PermissionNotGrantedDialogFragment()
-        permissionNotGrantedDialog.onClickListener =
-            DialogInterface.OnClickListener { dialog, which ->
-                when (which) {
-                    DialogInterface.BUTTON_POSITIVE -> {
-                        dialog.dismiss()
-                        requestLocationPermission(ANOTHER_REQUEST_LOCATION_PERMISSION)
-                    }
-                    DialogInterface.BUTTON_NEGATIVE -> {
-                        dialog.dismiss()
-                        navigateToSelectPlaceFragment()
-                    }
-                }
-            }
-        permissionNotGrantedDialog.isCancelable = false
-        permissionNotGrantedDialog.show(
-            childFragmentManager,
-            PermissionNotGrantedDialogFragment.TAG
-        )
-    }
 
     private fun showRequestPermissionDialog() {
         val messageDialogFragment = RequestPermissionDialogFragment()
@@ -489,7 +472,7 @@ class DetailFragment : Fragment() {
 
     }
 
-    private fun createBundle(placeEntity: PlaceEntity?):Bundle {
+    private fun createBundle(placeEntity: PlaceEntity?): Bundle {
         val bundle = Bundle()
         bundle.putParcelable(ARGUMENT_PLACE, placeEntity)
         return bundle

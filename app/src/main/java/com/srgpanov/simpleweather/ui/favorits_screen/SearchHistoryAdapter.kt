@@ -9,15 +9,11 @@ import com.srgpanov.simpleweather.databinding.FavoriteSearchHeaderItemBinding
 import com.srgpanov.simpleweather.databinding.FavoriteSearchItemBinding
 import com.srgpanov.simpleweather.databinding.SearchHistoryEmptyItemBinding
 import com.srgpanov.simpleweather.other.MyClickListener
-import java.lang.IllegalStateException
 
 class SearchHistoryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     var searchHistoryList: MutableList<PlaceEntity> = mutableListOf()
-        get() = field
-        private set(value) {
-            field = value
-        }
+        private set
     var listener: MyClickListener? = null
 
     companion object {
@@ -90,15 +86,14 @@ class SearchHistoryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         fun bind(item: PlaceEntity) {
             binding.placesTv.text = item.cityFullName
             binding.placesTv.setOnClickListener {
-                //todo
                 listener?.onClick(it, bindingAdapterPosition - HEADER)
             }
         }
     }
 
     inner class SearchHeaderViewHolder(val binding: FavoriteSearchHeaderItemBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-    }
-    inner class SearchEmptyViewHolder(binding: SearchHistoryEmptyItemBinding):
-            RecyclerView.ViewHolder(binding.root)
+        RecyclerView.ViewHolder(binding.root)
+
+    inner class SearchEmptyViewHolder(binding: SearchHistoryEmptyItemBinding) :
+        RecyclerView.ViewHolder(binding.root)
 }

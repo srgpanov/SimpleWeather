@@ -26,8 +26,6 @@
     <string name="sunset">Sunset</string>
     <string name="search_hint">City or area</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="current_location">Current location</string>
     <string name="favorites">Favorites</string>
     <string name="search_history">Search history</string>

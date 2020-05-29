@@ -3,13 +3,12 @@ package com.srgpanov.simpleweather.data.models.weather
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
-import com.srgpanov.simpleweather.other.logD
 import com.srgpanov.simpleweather.other.logE
+import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
-import java.lang.IndexOutOfBoundsException
-import java.lang.StringBuilder
 import java.util.*
 import kotlin.math.roundToInt
+
 @Parcelize
 data class Current(
     @SerializedName("clouds")
@@ -41,6 +40,7 @@ data class Current(
     @SerializedName("wind_speed")
     val windSpeed: Float
 ) : Parcelable {
+    @IgnoredOnParcel
     var offset:Long=0
     fun tempFormatted():String{
         val tempInt =temp.roundToInt()

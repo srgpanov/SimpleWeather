@@ -59,8 +59,8 @@ data class Weather(
 
             "01d" -> R.drawable.clear_sky_day//clear sky
             "02d" -> R.drawable.few_clouds_day//few clouds
-            "03d" -> R.drawable.scattered_clouds_day//scattered clouds
-            "04d" -> R.drawable.scattered_clouds_day //todo make icons  //broken clouds
+            "03d" -> R.drawable.few_clouds_day//scattered clouds
+            "04d" -> R.drawable.few_clouds_day  //broken clouds
             "09d" -> R.drawable.shower_rain_day  //shower rain
             "10d" -> R.drawable.rain_day //rain
             "11d" -> R.drawable.thunderstorm_day//thunderstorm
@@ -70,7 +70,7 @@ data class Weather(
             "01n" -> R.drawable.clear_sky_night
             "02n" -> R.drawable.clear_sky_night
             "03n" -> R.drawable.clear_sky_night
-            "04n" -> R.drawable.clear_sky_night //todomake icons
+            "04n" -> R.drawable.clear_sky_night //todo make icons
             "09n" -> R.drawable.clear_sky_night
             "10n" -> R.drawable.clear_sky_night
             "11n" -> R.drawable.clear_sky_night

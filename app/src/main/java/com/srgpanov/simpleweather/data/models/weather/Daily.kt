@@ -7,13 +7,13 @@ import com.google.gson.annotations.SerializedName
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.other.logD
 import com.srgpanov.simpleweather.other.logE
+import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
-import java.lang.IndexOutOfBoundsException
-import java.lang.StringBuilder
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.Calendar.HOUR_OF_DAY
 import java.util.Calendar.MINUTE
+
 @Parcelize
 data class Daily(
     @SerializedName("clouds")
@@ -46,6 +46,7 @@ data class Daily(
     val windSpeed: Double
 ) : Parcelable {
 
+    @IgnoredOnParcel
     var offset: Long = 0
 
     private fun calendarTime(): Calendar {

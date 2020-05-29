@@ -16,7 +16,7 @@ class WeatherWidget : AppWidgetProvider() {
         const val ACTION_SHOW_WEATHER =
             "com.srgpanov.simpleweather.ui.weather_widget_ACTION_SHOW_WEATHER"
         const val PLACE_ENTITY_KEY = "PLACE_ENTITY_KEY"
-        val ALPHA_MAX_VALUE = 255
+        const val ALPHA_MAX_VALUE = 255
 
         fun updateWidget(
             widgetID: Int
