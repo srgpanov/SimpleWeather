@@ -13,6 +13,7 @@
 3. Хранение данных – Room для храненния метеосводок и геоданных, SharedPreferences для сохранения настроек приложения.
 4. Асинхронная работа - Kotlin Coroutins.
 5. Network - Retrofit и OkHttp
+6. Dependency injection - Dagger 2
 
 ## Использованные API:
 1.   API погоды - [ openweathermap.org](https://openweathermap.org/)
