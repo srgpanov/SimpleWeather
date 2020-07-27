@@ -41,14 +41,14 @@ data class Hourly(
         return calendarTime().get(Calendar.HOUR_OF_DAY)
     }
 
-    fun tempFormated(): String {
+    fun tempFormatted(): String {
         return format(temp.roundToInt())
     }
 
     fun getDate(): String {
         val localTime = (dt * 1000L) - offset
         val date = Date(localTime)
-        return SimpleDateFormat("dd MMMM", Locale.getDefault()).format(date)
+        return SimpleDateFormat("dd MMM", Locale.getDefault()).format(date)
     }
 
     private fun calendarTime(): Calendar {

@@ -222,6 +222,7 @@ class DetailFragment : Fragment() {
         shareViewModel.currentPlace.value = place
     }
 
+    @Suppress("DEPRECATION")
     private fun requestLocationPermission(requestCode: Int) {
         requestPermissions(
             arrayOf(
@@ -312,13 +313,16 @@ class DetailFragment : Fragment() {
                         putInt("position", position - 1)
                         putParcelable("oneCall", weatherState.oneCallResponse)
                     }
+                    val TAG = ForecastPagerFragment::class.java.simpleName
                     requireActivity().supportFragmentManager.beginTransaction()
                         .replace(
                             R.id.container,
                             ForecastPagerFragment::class.java,
                             bundle,
-                            ForecastPagerFragment::class.java.simpleName
-                        ).commit()
+                            TAG
+                        )
+                        .addToBackStack(TAG)
+                        .commit()
                 }
             }
         }

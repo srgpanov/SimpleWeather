@@ -38,9 +38,10 @@ import kotlin.coroutines.CoroutineContext
 
 class DetailViewModel constructor(
     var argPlace: PlaceEntity?,
-    val repository:DataRepository,
+    val repository: DataRepository,
     private val sharedPreferences: SharedPreferences,
-    val  context:Context) : ViewModel() {
+    val context: Context
+) : ViewModel() {
     private val parentJob = Job()
     private val coroutineContext: CoroutineContext
         get() = parentJob + Dispatchers.IO
@@ -58,26 +59,23 @@ class DetailViewModel constructor(
 
     private var isFirstStart: Boolean = false
 
-
-    private val placeObserver = object : Observer<PlaceEntity?> {
-        override fun onChanged(place: PlaceEntity?) {
-            place?.let {
-                setupToolbarStatus(place)
-                scope.launch {
-                    fetchWeather(GeoPoint(it.lat, it.lon))
-                }
+    private val placeObserver = Observer<PlaceEntity?> { place ->
+        place?.let {
+            setupToolbarStatus(place)
+            scope.launch {
+                fetchWeather(GeoPoint(it.lat, it.lon))
             }
         }
-
     }
-    companion object{
-        const val  ARGUMENT_PLACE="ARGUMENT_PLACE"
-        const val REFRESH_TIME=43200000L // 12 hours
+
+    companion object {
+        const val ARGUMENT_PLACE = "ARGUMENT_PLACE"
+        const val REFRESH_TIME = 43200000L // 12 hours
     }
 
     init {
-        weatherData.value=WeatherState.EmptyWeather
-        if (argPlace!=null){
+        weatherData.value = WeatherState.EmptyWeather
+        if (argPlace != null) {
             weatherPlace.value = argPlace
         }
         logD("second constructor argPlace is favorite${argPlace?.favorite} response ")
@@ -129,7 +127,7 @@ class DetailViewModel constructor(
 
     suspend fun fetchWeather(geoPoint: GeoPoint) {
         loadingState.postValue(true)
-        val responseResult = repository.getWeather(geoPoint,false)
+        val responseResult = repository.getWeather(geoPoint, false)
         loadingState.postValue(false)
         return when (responseResult) {
             is Success -> {
@@ -152,7 +150,7 @@ class DetailViewModel constructor(
 
     private fun setWeather(cachedWeather: OneCallResponse?) {
         if (cachedWeather != null) {
-            val responseIsFresh = responseIsFresh(cachedWeather, REFRESH_TIME);
+            val responseIsFresh = responseIsFresh(cachedWeather, REFRESH_TIME)
             if (responseIsFresh) {
                 weatherData.postValue(WeatherState.ActualWeather(cachedWeather))
             } else {
@@ -225,8 +223,6 @@ class DetailViewModel constructor(
     }
 
 
-
-
     private fun locationTypeIsCurrent(): LocationType {
         val int = sharedPreferences.getInt(SettingFragment.LOCATION_TYPE, 0)
         return values()[int]
@@ -258,8 +254,8 @@ class DetailViewModel constructor(
     }
 
     private fun setupWeatherPlace() {
-        logD("setupWeatherPlace ${locationTypeIsCurrent()==CURRENT}")
-        if (locationTypeIsCurrent()==CURRENT) {
+        logD("setupWeatherPlace ${locationTypeIsCurrent() == CURRENT}")
+        if (locationTypeIsCurrent() == CURRENT) {
             setupCurrentLocation()
         } else {
             loadCertainPlace()
@@ -267,7 +263,7 @@ class DetailViewModel constructor(
     }
 
     private fun setupCurrentLocation() {
-        val locationProvider= LocationProvider(CURRENT)
+        val locationProvider = LocationProvider(CURRENT)
         scope.launch {
             val geoPoint = locationProvider.getGeoPoint()
             logD("setup Current Location $geoPoint")
@@ -275,12 +271,12 @@ class DetailViewModel constructor(
                 val place = repository.getPlaceByGeoPoint(geoPoint)
                 logD("setup Current ${place?.title} ${place?.oneCallResponse?.timezone_offset}")
                 repository.placeIsInDb(geoPoint)
-                if (place!=null) {
-                        place.current = true
-                        repository.savePlace(place)
-                        weatherPlace.postValue(place)
-                        currentPlace.postValue(place)
-                }else{
+                if (place != null) {
+                    place.current = true
+                    repository.savePlace(place)
+                    weatherPlace.postValue(place)
+                    currentPlace.postValue(place)
+                } else {
                     weatherData.postValue(WeatherState.ErrorWeather)
                 }
             } else {
@@ -290,35 +286,32 @@ class DetailViewModel constructor(
 
     }
 
-
-
-
     private suspend fun getLocation(): GeoPoint? {
         val location = getGeoPointFromLocationManger()
         logD("getLocation lat ${location?.latitude} lon ${location?.longitude}")
-        if (location != null) {
-            return GeoPoint(location.latitude, location.longitude)
+        return if (location != null) {
+            GeoPoint(location.latitude, location.longitude)
         } else {
-            return when (val geoPoint=repository.getGeoPointFromIp()){
+            when (val geoPoint = repository.getGeoPointFromIp()) {
                 is Success -> geoPoint.data.toGeoPoint()
-                is Failure->null
+                is Failure -> null
             }.also { logD("getLocation returned GeoPointFromIp()") }
         }
     }
+
     @SuppressLint("MissingPermission")
     private fun getGeoPointFromLocationManger(): Location? {
-        val locationManager =context.getSystemService(LOCATION_SERVICE) as LocationManager;
+        val locationManager = context.getSystemService(LOCATION_SERVICE) as LocationManager
         val providers: List<String> = locationManager.getProviders(true)
-        var bestLocation:Location? = null
+        var bestLocation: Location? = null
         for (provider in providers) {
             val location = locationManager.getLastKnownLocation(provider) ?: continue
-            if (bestLocation == null || location.getAccuracy() < bestLocation.getAccuracy()) {
+            if (bestLocation == null || location.accuracy < bestLocation.accuracy) {
                 bestLocation = location
             }
         }
         return bestLocation
     }
-
 
 
     private fun locationPermissionIsGranted(): Boolean {
@@ -338,13 +331,13 @@ class DetailViewModel constructor(
     }
 
     class DetailViewModelFactory @Inject constructor(
-        var repository:DataRepository,
+        var repository: DataRepository,
         var preferences: SharedPreferences,
-        var  context:Context
+        var context: Context
     ) : ViewModelAssistedFactory<DetailViewModel> {
         override fun create(arguments: Bundle): DetailViewModel {
             val placeEntity = arguments.getParcelable<PlaceEntity?>(ARGUMENT_PLACE)
-            return DetailViewModel(placeEntity,repository,preferences,context)
+            return DetailViewModel(placeEntity, repository, preferences, context)
         }
     }
 

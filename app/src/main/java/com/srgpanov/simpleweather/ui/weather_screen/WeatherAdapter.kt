@@ -10,7 +10,7 @@ import com.srgpanov.simpleweather.ui.weather_screen.WeatherHolders.DaysHolder
 import com.srgpanov.simpleweather.ui.weather_screen.WeatherHolders.HeaderHolder
 import kotlinx.coroutines.CoroutineScope
 
-class WeatherAdapter() : RecyclerView.Adapter<WeatherHolders>() {
+class WeatherAdapter : RecyclerView.Adapter<WeatherHolders>() {
     var data: WeatherState = WeatherState.EmptyWeather
     var clickListener: MyClickListener? = null
     var scope: CoroutineScope? = null
@@ -62,7 +62,7 @@ class WeatherAdapter() : RecyclerView.Adapter<WeatherHolders>() {
             }
             is DaysHolder -> {
                 val weather = data as WeatherState.ActualWeather
-                holder.bind(weather.oneCallResponse.daily.get(position - HEADER), clickListener)
+                holder.bind(weather.oneCallResponse.daily[position - HEADER], clickListener)
             }
             is WeatherHolders.HeaderErrorHolder -> holder.bind()
             is WeatherHolders.DayErrorHolder -> holder.bind()
@@ -95,6 +95,6 @@ class WeatherAdapter() : RecyclerView.Adapter<WeatherHolders>() {
         private const val TYPE_DAYS = R.layout.day_weather_item
         private const val TYPE_ERROR_HEADER = R.layout.weather_error_item
         private const val TYPE_EMPTY_DAYS = R.layout.day_error_item
-        val HEADER: Int = 1
+        private const val HEADER: Int = 1
     }
 }

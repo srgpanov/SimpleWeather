@@ -6,17 +6,16 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.data.models.weather.Current
 import com.srgpanov.simpleweather.data.models.weather.Hourly
-import com.srgpanov.simpleweather.data.models.weather.Sunrise
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
+import com.srgpanov.simpleweather.data.models.weather.Sunrise
 import com.srgpanov.simpleweather.databinding.DetailWeatherItemBinding
 import com.srgpanov.simpleweather.databinding.HourlyWeatherItemBinding
 import com.srgpanov.simpleweather.other.logD
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.math.log
 
-class WeatherDetailAdapter() : RecyclerView.Adapter<WeatherDetailHolders>() {
+class WeatherDetailAdapter : RecyclerView.Adapter<WeatherDetailHolders>() {
     var list: MutableList<Any> = ArrayList()
     val scope: CoroutineScope? = null
 
@@ -24,7 +23,7 @@ class WeatherDetailAdapter() : RecyclerView.Adapter<WeatherDetailHolders>() {
         private const val TYPE_HEADER = 0
         private const val TYPE_HOURS = 1
         private const val TYPE_SUNSET = 2
-        val HEADER: Int = 1
+        const val HEADER: Int = 1
     }
 
 

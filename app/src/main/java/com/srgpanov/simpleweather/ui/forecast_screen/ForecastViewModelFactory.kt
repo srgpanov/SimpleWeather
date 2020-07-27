@@ -10,8 +10,8 @@ class ForecastViewModelFactory(
     val oneCallResponse: OneCallResponse?
 ) : ViewModelProvider.NewInstanceFactory() {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(modelClass)) {
-            return (ForecastPagerViewModel(position,oneCallResponse) as T)
+        if (modelClass.isAssignableFrom(ForecastPagerViewModel::class.java)) {
+            return (ForecastPagerViewModel(position, oneCallResponse) as T)
         } else {
             throw IllegalArgumentException("Unknown ViewModel class")
         }

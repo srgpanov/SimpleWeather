@@ -108,8 +108,8 @@ class ForecastPagerFragment : Fragment() {
     }
 
     private fun setupToolbar() {
-        binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back);
-        binding.toolbar.setNavigationOnClickListener { activity?.onBackPressed() }
+        binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
+        binding.toolbar.setNavigationOnClickListener { parentFragmentManager.popBackStack() }
         itemCompletelyVisibleListener = object : FirstItemCompletelyVisibleListener {
             override fun isVisible(isVisible: Boolean) {
                 if (isVisible) {

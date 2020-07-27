@@ -1,6 +1,7 @@
 package com.srgpanov.simpleweather.ui.weather_screen
 
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.view.View
@@ -11,6 +12,7 @@ import com.srgpanov.simpleweather.data.models.weather.Daily
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.databinding.*
 import com.srgpanov.simpleweather.other.MyClickListener
+import com.srgpanov.simpleweather.other.logD
 import com.srgpanov.simpleweather.other.logE
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,13 +23,8 @@ import java.util.*
 
 sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) {
     class HeaderHolder(var binding: MainWeatherItemBinding) : WeatherHolders(binding.root) {
-        var adapter: WeatherDetailAdapter
-        var context: Context
-
-        init {
-            adapter = WeatherDetailAdapter()
-            context = binding.root.context
-        }
+        var adapter: WeatherDetailAdapter = WeatherDetailAdapter()
+        var context: Context = binding.root.context
 
         fun bind(
             weatherRequest: OneCallResponse?,
@@ -56,7 +53,7 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
     }
 
     class DaysHolder(var binding: DayWeatherItemBinding) : WeatherHolders(binding.root) {
-        val context = binding.root.context
+        val context: Context = binding.root.context
         var listener: MyClickListener? = null
         fun bind(daily: Daily?, listener: MyClickListener?) {
             if (daily != null) {
@@ -79,35 +76,32 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
                 binding.tempNightTv.text = daily.temp.nightFormated()
                 binding.weatherIconDayIv.setImageResource(daily.weather[0].getWeatherIcon())
                 this.listener = listener
-                binding.dayWeatherRoot.setOnClickListener(View.OnClickListener { view: View? ->
-                    listener?.onClick(view, adapterPosition)
-                })
+                binding.dayWeatherRoot.setOnClickListener { view: View? ->
+                    listener?.onClick(view, bindingAdapterPosition)
+                }
             }
         }
 
-
-
-
+        @SuppressLint("DefaultLocale")
         private fun monthDay(date: Date): String {
-            val simpleDateFormat = SimpleDateFormat("MMMM dd", Locale.getDefault())
+            logD("locale ${Locale.getDefault().toLanguageTag()}")
+            val locale = Locale.getDefault()
+            val simpleDateFormat = if (locale.country == "RU") {
+                SimpleDateFormat("d MMMM", locale)
+            } else {
+                SimpleDateFormat("MMMM d", locale)
+            }
             val str = simpleDateFormat.format(date)
-            val string = str.toCharArray()
-            string.set(0, string[0].toUpperCase())
-            return String(string)
-
+            return str.capitalize()
         }
 
-
-
-        private fun getDayOfWeekInt(date: Date): Int {
-            try {
-                val c: Calendar = Calendar.getInstance()
-                c.setTime(date)
-                return c.get(Calendar.DAY_OF_WEEK)
-            } catch (e: Exception) {
-                e.logE()
-                return 0
-            }
+        private fun getDayOfWeekInt(date: Date): Int = try {
+            val c: Calendar = Calendar.getInstance()
+            c.time = date
+            c.get(Calendar.DAY_OF_WEEK)
+        } catch (e: Exception) {
+            e.logE()
+            0
         }
     }
     class HeaderEmptyHolder(val binding: WeatherEmptyItemBinding) :
@@ -125,7 +119,7 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
 
     class DayErrorHolder(val binding: DayErrorItemBinding) :
         WeatherHolders(binding.root) {
-        val context = binding.root.context
+        val context: Context = binding.root.context
         fun bind() {
             val calendar = Calendar.getInstance()
             calendar.time = Date()
@@ -147,13 +141,11 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
             }
         }
 
-
-
         private fun monthDay(date: Date): String {
             val simpleDateFormat = SimpleDateFormat("MMMM dd", Locale.getDefault())
             val str = simpleDateFormat.format(date)
             val string = str.toCharArray()
-            string.set(0, string[0].toUpperCase())
+            string[0] = string[0].toUpperCase()
             return String(string)
 
         }
@@ -161,10 +153,9 @@ sealed class WeatherHolders(itemView: View) : RecyclerView.ViewHolder(itemView) 
     }
     protected fun getDayOfWeek(date: Date): CharSequence? {
         val simpleDateFormat = SimpleDateFormat("EEEE", Locale.getDefault())
-
         val str = simpleDateFormat.format(date)
         val string = str.toCharArray()
-        string.set(0, string[0].toUpperCase())
+        string[0] = string[0].toUpperCase()
         return String(string)
     }
 }
