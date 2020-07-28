@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:textSize="16sp"
         android:textColor="@color/dirty_white"
-        android:singleLine="true"
+        android:maxLines="2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text = "11:00"

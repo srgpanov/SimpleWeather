@@ -1,6 +1,7 @@
 package com.srgpanov.simpleweather.data.models.weather
 
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
@@ -113,26 +114,30 @@ data class Daily(
         val min = context.getString(R.string.minutes_short)
         return "$hours $h $minute $min"
     }
-    fun windDirection():String{
+
+    fun windDirection(): String {
         return getWindDirection(windDeg)
     }
-    fun windDirectionIcon():Int{
+
+    fun windDirectionIcon(): Int {
         return getWindDirectionIcon(windDeg)
     }
-    fun weatherFormated():String{
-        try {
-        val builder = StringBuilder()
-        weather.forEachIndexed { index, weather ->
-            if (index!=this.weather.size-1){
-                builder.append(weather.description).append(", ")
-            }else{
-                builder.append(weather.description)
+
+    @SuppressLint("DefaultLocale")
+    fun weatherFormatted(): String {
+        return try {
+            val builder = StringBuilder()
+            weather.forEachIndexed { index, weather ->
+                if (index != this.weather.size - 1) {
+                    builder.append(weather.description).append(", ")
+                } else {
+                    builder.append(weather.description)
+                }
             }
-        }
-        return firstLetterToUpperCase(builder.toString())
-        }catch (e:IndexOutOfBoundsException){
-            logE("weatherFormated $e")
-            return ""
+            builder.toString().capitalize()
+        } catch (e: IndexOutOfBoundsException) {
+            logE("weatherFormatted $e")
+            ""
         }
     }
 

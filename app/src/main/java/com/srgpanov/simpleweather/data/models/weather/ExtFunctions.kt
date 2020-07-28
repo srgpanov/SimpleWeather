@@ -7,13 +7,13 @@ import com.srgpanov.simpleweather.ui.setting_screen.SettingFragment
 import com.srgpanov.simpleweather.ui.setting_screen.Temp
 import kotlin.math.roundToInt
 
-fun format(temp: Int):String{
+fun format(temp: Int): String {
     val preferences = PreferenceManager.getDefaultSharedPreferences(App.instance)
-    val tempMeasurement=preferences.getInt(SettingFragment.TEMP_MEASUREMENT,0)
-    val tempEnum=if (tempMeasurement==0) Temp.CELSIUS else Temp.FAHRENHEIT
-    var temperature: Int =temp
-    if (tempEnum==Temp.FAHRENHEIT){
-        temperature=((temp*1.8)+32).roundToInt()
+    val tempMeasurement = preferences.getInt(SettingFragment.TEMP_MEASUREMENT, 0)
+    val tempEnum = if (tempMeasurement == 0) Temp.CELSIUS else Temp.FAHRENHEIT
+    var temperature: Int = temp
+    if (tempEnum == Temp.FAHRENHEIT) {
+        temperature = ((temp * 1.8) + 32).roundToInt()
     }
     if (temperature > 0) {
         return "+${temperature}°"
@@ -24,33 +24,32 @@ fun format(temp: Int):String{
         return "${temperature}°"
     }
 }
-internal fun getWindDirection(direction:Int):String{
-    return when(direction){
-       in 338..360, in 0..22->"N"
-        in 23..67->"NE"
-       in 68..112->"E"
-       in 113..157->"SE"
-       in 158..202->"S"
-       in 203..247->"SW"
-       in 248..292->"W"
-       in  293..337->"NW"
+
+internal fun getWindDirection(direction: Int): String {
+    return when (direction) {
+        in 338..360, in 0..22 -> "N"
+        in 23..67 -> "NE"
+        in 68..112 -> "E"
+        in 113..157 -> "SE"
+        in 158..202 -> "S"
+        in 203..247 -> "SW"
+        in 248..292 -> "W"
+        in 293..337 -> "NW"
         else -> throw IllegalStateException("Wind direction")
-}}
-internal fun getWindDirectionIcon(direction:Int):Int{
-    return when(direction){
-        in 338..360, in 0..22->R.drawable.ic_se
-                in 23..67->R.drawable.ic_south
-               in 68..112->R.drawable.ic_ne
-               in 113..157->R.drawable.ic_east
-               in 158..202->R.drawable.ic_nw
-               in 203..247->R.drawable.ic_north
-               in 248..292->R.drawable.ic_sw
-               in  293..337->R.drawable.ic_west
+    }
+}
+
+internal fun getWindDirectionIcon(direction: Int): Int {
+    return when (direction) {
+        in 338..360, in 0..22 -> R.drawable.ic_north
+        in 23..67 -> R.drawable.ic_ne
+        in 68..112 -> R.drawable.ic_east
+        in 113..157 -> R.drawable.ic_se
+        in 158..202 -> R.drawable.ic_south
+        in 203..247 -> R.drawable.ic_sw
+        in 248..292 -> R.drawable.ic_west
+        in 293..337 -> R.drawable.ic_nw
         else -> throw IllegalStateException("Wind icon")
     }
 }
-internal fun firstLetterToUpperCase(str: String): String {
-    val string = str.toCharArray()
-    string.set(0, string[0].toUpperCase())
-    return String(string)
-}
+

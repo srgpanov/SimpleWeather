@@ -1,6 +1,7 @@
 package com.srgpanov.simpleweather.data.models.weather
 
 
+import android.annotation.SuppressLint
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import com.srgpanov.simpleweather.other.logE
@@ -53,20 +54,22 @@ data class Current(
     fun getDate():Date{
         return Date(dt*1000L)
     }
+
+    @SuppressLint("DefaultLocale")
     fun weatherFormatted():String{
-        try {
+        return try {
             val builder = StringBuilder()
             weather.forEachIndexed { index, weather ->
-                if (index!=this.weather.size-1){
+                if (index != this.weather.size - 1) {
                     builder.append(weather.description).append(", ")
-                }else{
+                } else {
                     builder.append(weather.description)
                 }
             }
-            return firstLetterToUpperCase(builder.toString())
-        }catch (e: IndexOutOfBoundsException){
+            builder.toString().capitalize()
+        } catch (e: IndexOutOfBoundsException) {
             logE("weatherFormated $e")
-            return ""
+            ""
         }
     }
     fun windDirection():String{
