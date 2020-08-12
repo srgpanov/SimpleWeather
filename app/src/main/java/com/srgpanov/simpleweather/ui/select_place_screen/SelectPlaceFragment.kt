@@ -113,7 +113,7 @@ class SelectPlaceFragment : Fragment() {
                 onSelectPlace(place)
             }
         }
-        binding.searchView.setOnQueryTextFocusChangeListener { view, hasFocus ->
+        binding.searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 showKeyboard()
             } else {

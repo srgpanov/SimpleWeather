@@ -205,11 +205,11 @@ class WeatherWidgetSettingListFragment : Fragment() {
         binding.timeSettingBackground.setOnClickListener {
             changeSwitcherState(binding.timeSettingSwitch)
         }
-        binding.lightSettingSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
+        binding.lightSettingSwitch.setOnCheckedChangeListener { _, isChecked ->
             viewModel.saveSwitcherState(WIDGET_LIGHT_THEME, isChecked)
             viewModel.mutableIsLightTheme.value = isChecked
         }
-        binding.timeSettingSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
+        binding.timeSettingSwitch.setOnCheckedChangeListener { _, isChecked ->
             viewModel.saveSwitcherState(WIDGET_SHOW_TIME_UPDATE, isChecked)
             viewModel.mutableTimeOfLastUpdate.value = isChecked
         }
@@ -294,7 +294,6 @@ class WeatherWidgetSettingListFragment : Fragment() {
     private fun changeSwitcherState(switcher: Switch) {
         val checked = switcher.isChecked
         switcher.isChecked = !checked
-
     }
 
 

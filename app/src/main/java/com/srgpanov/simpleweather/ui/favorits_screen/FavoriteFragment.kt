@@ -1,5 +1,6 @@
 package com.srgpanov.simpleweather.ui.favorits_screen
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.DialogInterface
 import android.graphics.Color
@@ -12,13 +13,14 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.PopupWindow
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentResultListener
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.MergeAdapter
+import androidx.recyclerview.widget.ConcatAdapter
 import com.srgpanov.simpleweather.App
 import com.srgpanov.simpleweather.MainActivity
 import com.srgpanov.simpleweather.R
@@ -39,6 +41,7 @@ import kotlin.coroutines.CoroutineContext
 class FavoriteFragment : Fragment() {
     private var _binding: FragmentFavoriteBinding? = null
     private val binding get() = _binding!!
+
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
     private lateinit var shareViewModel: ShareViewModel
@@ -50,15 +53,9 @@ class FavoriteFragment : Fragment() {
     private val favoritesAdapter: FavoritesAdapter by lazy { FavoritesAdapter() }
     private val favoritesHeaderAdapter: FavoritesHeaderAdapter by lazy { FavoritesHeaderAdapter() }
     private val emptyFavoriteAdapter: EmptyFavoriteAdapter by lazy { EmptyFavoriteAdapter() }
-    private lateinit var mergeAdapter: MergeAdapter
+    private lateinit var mergeAdapter: ConcatAdapter
     private var mainActivity: MainActivity? = null
 
-
-    companion object {
-        @JvmStatic
-        fun newInstance() =
-            FavoriteFragment()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,7 +73,7 @@ class FavoriteFragment : Fragment() {
                     }
                 }
             })
-        logD("lifecycle onCreate  ${this}")
+        logD("lifecycle onCreate  $this")
     }
 
     override fun onCreateView(
@@ -85,7 +82,7 @@ class FavoriteFragment : Fragment() {
     ): View? {
         _binding = FragmentFavoriteBinding.inflate(layoutInflater, container, false)
 
-        logD("lifecycle onCreateView  ${this}")
+        logD("lifecycle onCreateView  $this")
         return binding.root
     }
 
@@ -125,19 +122,19 @@ class FavoriteFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        logD("lifecycle onPause ${this}")
+        logD("lifecycle onPause $this")
     }
 
     override fun onStop() {
         super.onStop()
-        logD("lifecycle onStop ${this}")
+        logD("lifecycle onStop $this")
 
     }
 
     override fun onDestroyView() {
         binding.recyclerView.adapter = null
         _binding = null
-        logD("lifecycle onDestroyView ${this}")
+        logD("lifecycle onDestroyView $this")
         super.onDestroyView()
     }
 
@@ -158,7 +155,8 @@ class FavoriteFragment : Fragment() {
     private fun setupToolbar() {
         binding.toolbar.title = requireContext().getString(R.string.favorite)
         binding.toolbar.inflateMenu(R.menu.favorites_menu)
-        binding.toolbar.navigationIcon = requireContext().getDrawable(R.drawable.ic_arrow_back)
+        binding.toolbar.navigationIcon =
+            ContextCompat.getDrawable(requireContext(), R.drawable.ic_arrow_back)
         binding.toolbar.menu.findItem(R.id.app_bar_search).setOnMenuItemClickListener {
             openSearch()
             false
@@ -172,7 +170,7 @@ class FavoriteFragment : Fragment() {
     private fun setupRecyclerView() {
         setupRvListeners()
         favoritesAdapter.scope = scope
-        mergeAdapter = MergeAdapter(favoritesHeaderAdapter, favoritesAdapter)
+        mergeAdapter = ConcatAdapter(favoritesHeaderAdapter, favoritesAdapter)
         binding.recyclerView.adapter = mergeAdapter
     }
 
@@ -200,6 +198,7 @@ class FavoriteFragment : Fragment() {
 
     }
 
+    @SuppressLint("InflateParams")
     private fun showPopUpMenu(it: View, position: Int) {
         val inflater =
             requireActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -288,7 +287,7 @@ class FavoriteFragment : Fragment() {
         if (favoriteOrCurrent) {
             goToDetailFragment(placeEntity)
         } else {
-            val detailFragment = DetailFragment.newInstance().apply {
+            val detailFragment = DetailFragment().apply {
                 this.arguments = Bundle().apply { putParcelable("place", placeEntity) }
             }
             requireActivity().supportFragmentManager.beginTransaction()

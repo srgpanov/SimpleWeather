@@ -73,7 +73,6 @@ class WeatherAdapter : RecyclerView.Adapter<WeatherHolders>() {
     override fun getItemViewType(position: Int): Int {
         return when (position == 0) {
             true -> {
-
                 when (data) {
                     WeatherState.EmptyWeather -> TYPE_EMPTY_HEADER
                     is WeatherState.ActualWeather -> TYPE_HEADER

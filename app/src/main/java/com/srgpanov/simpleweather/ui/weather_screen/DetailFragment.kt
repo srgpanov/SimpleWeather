@@ -66,7 +66,6 @@ class DetailFragment : Fragment() {
     companion object {
         const val ANOTHER_REQUEST_LOCATION_PERMISSION = 11
         const val FIRST_REQUEST_LOCATION_PERMISSION = 10
-        fun newInstance() = DetailFragment()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -404,7 +403,7 @@ class DetailFragment : Fragment() {
                 setupFavoriteState(it)
             }
         })
-        viewModel.showSnackbar.observe(viewLifecycleOwner, Observer {
+        viewModel.showSnackBar.observe(viewLifecycleOwner, Observer {
             val snackbar = Snackbar.make(
                 binding.root,
                 it ?: getString(R.string.something_goes_wrong),
@@ -419,7 +418,7 @@ class DetailFragment : Fragment() {
                 viewModel.weatherPlace.value = it
             }
         })
-        viewModel.errorConnectionSnackbar.observe(viewLifecycleOwner, Observer { show ->
+        viewModel.errorConnectionSnackBar.observe(viewLifecycleOwner, Observer { show ->
             show?.let {
                 showErrorLayout(show)
             }
@@ -468,7 +467,7 @@ class DetailFragment : Fragment() {
 
     private fun showRequestPermissionDialog() {
         val messageDialogFragment = RequestPermissionDialogFragment()
-        messageDialogFragment.onClickListener = DialogInterface.OnClickListener { dialog, which ->
+        messageDialogFragment.onClickListener = DialogInterface.OnClickListener { _, _ ->
             requestLocationPermission(FIRST_REQUEST_LOCATION_PERMISSION)
         }
         messageDialogFragment.isCancelable = false

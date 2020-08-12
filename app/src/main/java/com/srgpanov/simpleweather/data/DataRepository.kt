@@ -16,10 +16,11 @@ import java.util.*
 import javax.inject.Inject
 
 class DataRepository @Inject constructor(
-     val localDataSource:LocalDataSourceImpl,
-     val remoteDataSource:RemoteDataSourceImpl) {
+    private val localDataSource: LocalDataSourceImpl,
+    private val remoteDataSource: RemoteDataSourceImpl
+) {
 
-    companion object{
+    companion object {
         const val REFRESH_TIME = 3600000L //1 hour
     }
 
@@ -33,12 +34,12 @@ class DataRepository @Inject constructor(
             logD("getWeather return null ")
             return getFreshWeather(geoPoint)
         } else {
-            if (freshData and needRefresh(cachedResponse, REFRESH_TIME)) {
+            return if (freshData and needRefresh(cachedResponse, REFRESH_TIME)) {
                 logD("getWeather return getFreshWeather ")
-                return getFreshWeather(geoPoint)
+                getFreshWeather(geoPoint)
             } else {
                 logD("getWeather return cachedResponse ${cachedResponse.oneCallResponse.current.dt} ")
-                return ResponseResult.Success(cachedResponse.oneCallResponse)
+                ResponseResult.Success(cachedResponse.oneCallResponse)
             }
         }
     }

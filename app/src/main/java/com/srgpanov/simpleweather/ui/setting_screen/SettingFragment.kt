@@ -269,7 +269,7 @@ class SettingFragment : Fragment() {
         binding.locationPermissionBackground.setOnClickListener {
             requestLocationPermission()
         }
-        binding.locationPermissionSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
+        binding.locationPermissionSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 requestLocationPermission()
             }

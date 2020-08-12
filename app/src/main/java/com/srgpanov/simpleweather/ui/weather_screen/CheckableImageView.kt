@@ -3,14 +3,14 @@ package com.srgpanov.simpleweather.ui.weather_screen
 import android.R
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
+import android.view.View.OnClickListener
 import android.widget.Checkable
 import androidx.appcompat.widget.AppCompatImageView
 
 
 class CheckableImageView : AppCompatImageView, Checkable {
-    constructor(context: Context?) : super(context)
-    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
 
     private var mChecked = false
 
@@ -39,11 +39,9 @@ class CheckableImageView : AppCompatImageView, Checkable {
     }
 
     override fun setOnClickListener(l: OnClickListener?) {
-        val onClickListener: View.OnClickListener = object : View.OnClickListener {
-            override fun onClick(v: View?) {
-                toggle()
-                l?.onClick(v)
-            }
+        val onClickListener = OnClickListener { v ->
+            toggle()
+            l?.onClick(v)
         }
         super.setOnClickListener(onClickListener)
     }

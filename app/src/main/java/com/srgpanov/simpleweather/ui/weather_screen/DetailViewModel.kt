@@ -1,15 +1,8 @@
 package com.srgpanov.simpleweather.ui.weather_screen
 
-import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Context.LOCATION_SERVICE
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationManager
 import android.os.Bundle
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
@@ -37,7 +30,7 @@ import kotlin.coroutines.CoroutineContext
 
 
 class DetailViewModel constructor(
-    var argPlace: PlaceEntity?,
+    private var argPlace: PlaceEntity?,
     val repository: DataRepository,
     private val sharedPreferences: SharedPreferences,
     val context: Context
@@ -53,8 +46,8 @@ class DetailViewModel constructor(
     val weatherData = MutableLiveData<WeatherState>()
     val showSetting = MutableLiveData<Boolean>()
     val loadingState = MutableLiveData<Boolean>()
-    val showSnackbar = SingleLiveEvent<String>()
-    val errorConnectionSnackbar = SingleLiveEvent<Boolean>()
+    val showSnackBar = SingleLiveEvent<String>()
+    val errorConnectionSnackBar = SingleLiveEvent<Boolean>()
     val requestLocationPermission = SingleLiveEvent<Unit>()
 
     private var isFirstStart: Boolean = false
@@ -132,18 +125,18 @@ class DetailViewModel constructor(
         return when (responseResult) {
             is Success -> {
                 weatherData.postValue(WeatherState.ActualWeather(responseResult.data))
-                errorConnectionSnackbar.postValue(false)
+                errorConnectionSnackBar.postValue(false)
             }
             is Failure.ServerError -> {
                 val cachedWeather = repository.getCachedWeather(geoPoint)
-                showSnackbar.postValue("ServerError ${responseResult.errorBody}")
+                showSnackBar.postValue("ServerError ${responseResult.errorBody}")
                 setWeather(cachedWeather)
-                errorConnectionSnackbar.postValue(false)
+                errorConnectionSnackBar.postValue(false)
             }
             is Failure.NetworkError -> {
                 val cachedWeather = repository.getCachedWeather(geoPoint)
                 setWeather(cachedWeather)
-                errorConnectionSnackbar.postValue(true)
+                errorConnectionSnackBar.postValue(true)
             }
         }
     }
@@ -161,7 +154,6 @@ class DetailViewModel constructor(
         }
     }
 
-
     fun fetchFreshWeather() {
         scope.launch {
             val place = weatherPlace.value
@@ -172,14 +164,14 @@ class DetailViewModel constructor(
                 when (responseResult) {
                     is Success -> {
                         weatherData.postValue(WeatherState.ActualWeather(responseResult.data))
-                        errorConnectionSnackbar.postValue(false)
+                        errorConnectionSnackBar.postValue(false)
                     }
                     is Failure.ServerError -> {
-                        showSnackbar.postValue("ServerError ${responseResult.errorBody}")
-                        errorConnectionSnackbar.postValue(false)
+                        showSnackBar.postValue("ServerError ${responseResult.errorBody}")
+                        errorConnectionSnackBar.postValue(false)
                     }
                     is Failure.NetworkError -> {
-                        errorConnectionSnackbar.postValue(true)
+                        errorConnectionSnackBar.postValue(true)
                     }
                 }
             } else {
@@ -195,7 +187,7 @@ class DetailViewModel constructor(
             scope.launch {
                 if (checked) {
                     repository.saveFavoritePlace(it)
-                    showSnackbar.postValue(context.getString(R.string.location_added_to_favorites))
+                    showSnackBar.postValue(context.getString(R.string.location_added_to_favorites))
                 } else {
                     repository.removeFavoritePlace(it)
                 }
@@ -218,7 +210,7 @@ class DetailViewModel constructor(
 
 
     fun onErrorConnectionClick() {
-        errorConnectionSnackbar.postValue(false)
+        errorConnectionSnackBar.postValue(false)
         fetchFreshWeather()
     }
 
@@ -239,7 +231,6 @@ class DetailViewModel constructor(
         }
         return false
     }
-
 
     fun setCurrentPlace() {
         if (argPlace != null) {
@@ -286,50 +277,6 @@ class DetailViewModel constructor(
 
     }
 
-    private suspend fun getLocation(): GeoPoint? {
-        val location = getGeoPointFromLocationManger()
-        logD("getLocation lat ${location?.latitude} lon ${location?.longitude}")
-        return if (location != null) {
-            GeoPoint(location.latitude, location.longitude)
-        } else {
-            when (val geoPoint = repository.getGeoPointFromIp()) {
-                is Success -> geoPoint.data.toGeoPoint()
-                is Failure -> null
-            }.also { logD("getLocation returned GeoPointFromIp()") }
-        }
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun getGeoPointFromLocationManger(): Location? {
-        val locationManager = context.getSystemService(LOCATION_SERVICE) as LocationManager
-        val providers: List<String> = locationManager.getProviders(true)
-        var bestLocation: Location? = null
-        for (provider in providers) {
-            val location = locationManager.getLastKnownLocation(provider) ?: continue
-            if (bestLocation == null || location.accuracy < bestLocation.accuracy) {
-                bestLocation = location
-            }
-        }
-        return bestLocation
-    }
-
-
-    private fun locationPermissionIsGranted(): Boolean {
-        val permissionCoarseLocation =
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-        val permissionFineLocation =
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
-        logD("location permissionCoarseLocation $permissionCoarseLocation permissionFineLocation $permissionFineLocation")
-        return permissionCoarseLocation == PackageManager.PERMISSION_GRANTED &&
-                permissionFineLocation == PackageManager.PERMISSION_GRANTED
-    }
-
     class DetailViewModelFactory @Inject constructor(
         var repository: DataRepository,
         var preferences: SharedPreferences,
@@ -340,7 +287,5 @@ class DetailViewModel constructor(
             return DetailViewModel(placeEntity, repository, preferences, context)
         }
     }
-
-
 }
 
