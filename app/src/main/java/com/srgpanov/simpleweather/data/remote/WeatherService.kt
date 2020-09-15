@@ -1,8 +1,7 @@
 package com.srgpanov.simpleweather.data.remote
 
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
-import com.srgpanov.simpleweather.data.models.weather.current_weather.CurrentWeatherResponse
-import retrofit2.Response
+import com.srgpanov.simpleweather.data.models.weather.current_weather.SimpleWeatherResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 import java.util.*
@@ -25,8 +24,8 @@ interface WeatherService {
         @Query("lon")
         lon: Double,
         @Query("lang")
-        lang:String=Locale.getDefault().language
-    ): ResponseResult<CurrentWeatherResponse>
+        lang: String = Locale.getDefault().language
+    ): ResponseResult<SimpleWeatherResponse>
 
 
 

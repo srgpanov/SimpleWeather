@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.preference.PreferenceManager
 import com.srgpanov.simpleweather.App
 import com.srgpanov.simpleweather.other.*
@@ -17,15 +18,13 @@ class WeatherWidget : AppWidgetProvider() {
             "com.srgpanov.simpleweather.ui.weather_widget_ACTION_SHOW_WEATHER"
         const val PLACE_ENTITY_KEY = "PLACE_ENTITY_KEY"
         const val ALPHA_MAX_VALUE = 255
+        const val ARG_REFRESH = "com.srgpanov.simpleweather.ui.weather_widget_ARG_REFRESH"
 
-        fun updateWidget(
-            widgetID: Int
-        ) {
-            val helper = App.instance.appComponent.getWidgetHelper()
-            helper.updateWidget(widgetID)
+        fun updateWidget(widgetID: Int, refresh: Boolean = false) {
+            val factory = App.instance.appComponent.getWidgetHelperFactory()
+            val helper = factory.create(widgetID)
+            helper.updateWidget(refresh)
         }
-
-
     }
 
     override fun onEnabled(context: Context?) {
@@ -39,6 +38,9 @@ class WeatherWidget : AppWidgetProvider() {
         if (intent?.action.equals(ACTION_CHANGE, true)) {
             var widgetId = AppWidgetManager.INVALID_APPWIDGET_ID
             val extras = intent?.extras
+            val shouldRefresh = intent?.getBooleanExtra(ARG_REFRESH, false) ?: false
+            Log.d("WeatherWidget", "onReceive: $shouldRefresh")
+            Log.d("WeatherWidget", "onReceive: ${intent?.extras}")
             if (extras != null) {
                 widgetId = extras.getInt(
                     AppWidgetManager.EXTRA_APPWIDGET_ID,
@@ -47,7 +49,7 @@ class WeatherWidget : AppWidgetProvider() {
             }
             logD("onReceive widgetId $widgetId")
             if (widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                updateWidget(widgetId)
+                updateWidget(widgetId, shouldRefresh)
             }
         }
     }
@@ -59,8 +61,8 @@ class WeatherWidget : AppWidgetProvider() {
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
         logD("onUpdate $appWidgetIds")
-        appWidgetIds.forEach { id ->
-            updateWidget( id)
+        for (id in appWidgetIds) {
+            updateWidget(id)
         }
     }
 
@@ -76,8 +78,6 @@ class WeatherWidget : AppWidgetProvider() {
             sharedPreferences.edit().remove(WIDGET_LATITUDE + id).apply()
             sharedPreferences.edit().remove(WIDGET_LONGITUDE + id).apply()
         }
-
-        super.onDeleted(context, appWidgetIds)
         logD("onDeleted")
     }
 

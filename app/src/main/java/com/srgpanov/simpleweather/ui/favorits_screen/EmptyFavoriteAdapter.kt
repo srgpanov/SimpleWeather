@@ -7,9 +7,8 @@ import androidx.core.text.bold
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.databinding.EmptyFavoriteItemBinding
-import com.srgpanov.simpleweather.databinding.FavoriteLocationItemBinding
 
-class EmptyFavoriteAdapter(): RecyclerView.Adapter<EmptyFavoriteAdapter.EmptyItemsViewHolder>() {
+class EmptyFavoriteAdapter : RecyclerView.Adapter<EmptyFavoriteAdapter.EmptyItemsViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EmptyItemsViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -29,7 +28,7 @@ class EmptyFavoriteAdapter(): RecyclerView.Adapter<EmptyFavoriteAdapter.EmptyIte
         return 1
     }
 
-    inner class EmptyItemsViewHolder(private val binding: EmptyFavoriteItemBinding) :
+    class EmptyItemsViewHolder(binding: EmptyFavoriteItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         init {
             val context = binding.root.context

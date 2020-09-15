@@ -12,11 +12,11 @@ open class SingleLiveEvent<T> : MutableLiveData<T?>() {
 
     @MainThread
     override fun observe(owner: LifecycleOwner, observer: Observer<in T?>) {
-        super.observe(owner, Observer {
+        super.observe(owner) {
             if (mPending.compareAndSet(true, false)) {
                 observer.onChanged(it)
             }
-        })
+        }
     }
 
     @MainThread
@@ -24,8 +24,6 @@ open class SingleLiveEvent<T> : MutableLiveData<T?>() {
         mPending.set(true)
         super.setValue(value)
     }
-
-
 
     fun call() {
         value = null

@@ -4,7 +4,7 @@ package com.srgpanov.simpleweather.data.local
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
-import com.srgpanov.simpleweather.data.models.weather.current_weather.CurrentWeatherResponse
+import com.srgpanov.simpleweather.data.models.weather.current_weather.SimpleWeatherResponse
 
 class RoomConverter {
 
@@ -22,14 +22,14 @@ class RoomConverter {
     }
 
     @TypeConverter
-    fun fromCurrentWeather(currentWeatherResponse: CurrentWeatherResponse): String {
-        return Gson().toJson(currentWeatherResponse)
+    fun fromCurrentWeather(simpleWeatherResponse: SimpleWeatherResponse): String {
+        return Gson().toJson(simpleWeatherResponse)
 
 
     }
 
     @TypeConverter
-    fun toCurrentWeather(data: String): CurrentWeatherResponse {
-        return Gson().fromJson(data, CurrentWeatherResponse::class.java)
+    fun toCurrentWeather(data: String): SimpleWeatherResponse {
+        return Gson().fromJson(data, SimpleWeatherResponse::class.java)
     }
 }

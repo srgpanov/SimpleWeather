@@ -6,14 +6,11 @@ import android.content.Context
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.other.logD
-import com.srgpanov.simpleweather.other.logE
+import com.srgpanov.simpleweather.other.format
 import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
-import java.text.SimpleDateFormat
 import java.util.*
 import java.util.Calendar.HOUR_OF_DAY
-import java.util.Calendar.MINUTE
 
 @Parcelize
 data class Daily(
@@ -53,11 +50,12 @@ data class Daily(
     private fun calendarTime(): Calendar {
         val tz = TimeZone.getDefault()
         val offsetFromUtc = tz.getOffset(System.currentTimeMillis())
-        val time = (dt*1000L)-offsetFromUtc+(offset)
+        val time = (dt * 1000L) - offsetFromUtc + (offset)
         val calendar = Calendar.getInstance()
         calendar.time = Date(time)
         return calendar
     }
+
     fun date(): Date {
         return calendarTime().time
     }
@@ -69,50 +67,43 @@ data class Daily(
     fun getHourSunrise(): Int {
         val tz = TimeZone.getDefault()
         val offsetFromUtc = tz.getOffset(System.currentTimeMillis())
-        val time = (sunrise*1000L)-offsetFromUtc+(offset)
+        val time = (sunrise * 1000L) - offsetFromUtc + (offset)
         val calendar = Calendar.getInstance()
-        calendar.time= Date(time)
+        calendar.time = Date(time)
         return calendar.get(HOUR_OF_DAY)
     }
 
     fun getHourSunset(): Int {
         val tz = TimeZone.getDefault()
         val offsetFromUtc = tz.getOffset(System.currentTimeMillis())
-        val time = (sunset*1000L)-offsetFromUtc+(offset)
+        val time = (sunset * 1000L) - offsetFromUtc + (offset)
         val calendar = Calendar.getInstance()
-        calendar.time=Date(time)
+        calendar.time = Date(time)
         return calendar.get(HOUR_OF_DAY)
     }
 
     fun getSunriseString(): String {
         val tz = TimeZone.getDefault()
         val offsetFromUtc = tz.getOffset(System.currentTimeMillis())
-        val time = (sunrise*1000L)-offsetFromUtc+(offset)
-        logD("getSunriseString ${ SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(time))}")
-        return SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(time))
+        val time = (sunrise * 1000L) - offsetFromUtc + (offset)
+        return Date(time).format("HH:mm")
     }
 
     fun getSunsetString(): String {
         val tz = TimeZone.getDefault()
         val offsetFromUtc = tz.getOffset(System.currentTimeMillis())
-        val time = (sunset*1000L)-offsetFromUtc+(offset)
-        return SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(time))
+        val time = (sunset * 1000L) - offsetFromUtc + (offset)
+        return Date(time).format("HH:mm")
     }
 
     fun dayLightHours(context: Context): String {
         val dayLightHours = (sunset - sunrise) * 1000L
-        val calendar = Calendar.getInstance()
-        calendar.time = Date(dayLightHours)
-        val hours: String = if (calendar.get(HOUR_OF_DAY) < 10) {
-            "0${calendar.get(HOUR_OF_DAY)}"
-        } else
-            calendar.get(HOUR_OF_DAY).toString()
-        val minute =
-            if (calendar.get(MINUTE) < 10) "0${calendar.get(MINUTE)}"
-            else calendar.get(MINUTE).toString()
+        val date = Date(dayLightHours)
         val h = context.getString(R.string.hours_short)
         val min = context.getString(R.string.minutes_short)
-        return "$hours $h $minute $min"
+        val hours = date.format("H")
+        val minutes = date.format("mm")
+        return "$hours $h $minutes $min"
     }
 
     fun windDirection(): String {
@@ -125,31 +116,15 @@ data class Daily(
 
     @SuppressLint("DefaultLocale")
     fun weatherFormatted(): String {
-        return try {
-            val builder = StringBuilder()
-            weather.forEachIndexed { index, weather ->
-                if (index != this.weather.size - 1) {
-                    builder.append(weather.description).append(", ")
-                } else {
-                    builder.append(weather.description)
-                }
+        val builder = StringBuilder()
+        weather.forEachIndexed { index, weather ->
+            if (index != this.weather.lastIndex) {
+                builder.append(weather.description).append(", ")
+            } else {
+                builder.append(weather.description)
             }
-            builder.toString().capitalize()
-        } catch (e: IndexOutOfBoundsException) {
-            logE("weatherFormatted $e")
-            ""
         }
-    }
+        return builder.toString().capitalize()
 
-    private fun getHourString(): String {
-        return SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendarTime().time)
-//        val calendar = Calendar.getInstance()
-//        calendar.time = date
-//        return "${calendar.get(HOUR_OF_DAY)}:${calendar.get(MINUTE)}"
     }
-
-    private fun getHour(): Int {
-        return calendarTime().get(HOUR_OF_DAY)
-    }
-
 }

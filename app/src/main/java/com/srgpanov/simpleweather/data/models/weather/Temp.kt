@@ -3,10 +3,8 @@ package com.srgpanov.simpleweather.data.models.weather
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
-import com.srgpanov.simpleweather.other.logD
 import kotlinx.android.parcel.Parcelize
 import kotlin.math.roundToInt
-import kotlin.system.measureTimeMillis
 
 @Parcelize
 data class Temp(
@@ -23,29 +21,34 @@ data class Temp(
     @SerializedName("night")
     val night: Double
 ) : Parcelable {
-    fun dayFormated():String{
-        val tempInt =day.roundToInt()
-        return format(tempInt)
+    fun dayFormatted(): String {
+        val tempInt = day.roundToInt()
+        return formatTemp(tempInt)
     }
-    fun eveFormated():String{
-        val tempInt =eve.roundToInt()
-        return format(tempInt)
+
+    fun eveFormatted(): String {
+        val tempInt = eve.roundToInt()
+        return formatTemp(tempInt)
     }
-    fun mornFormated():String{
-        val tempInt =morn.roundToInt()
-        return format(tempInt)
+
+    fun mornFormatted(): String {
+        val tempInt = morn.roundToInt()
+        return formatTemp(tempInt)
     }
-    fun nightFormated():String{
-        val tempInt =night.roundToInt()
-        return format(tempInt)
+
+    fun nightFormatted(): String {
+        val tempInt = night.roundToInt()
+        return formatTemp(tempInt)
     }
-    fun minFormated():String{
-        val tempInt =min.roundToInt()
-        return format(tempInt)
+
+    fun minFormatted(): String {
+        val tempInt = min.roundToInt()
+        return formatTemp(tempInt)
     }
-    fun maxFormated():String{
-        val tempInt =max.roundToInt()
-        return format(tempInt)
+
+    fun maxFormatted(): String {
+        val tempInt = max.roundToInt()
+        return formatTemp(tempInt)
     }
 
 

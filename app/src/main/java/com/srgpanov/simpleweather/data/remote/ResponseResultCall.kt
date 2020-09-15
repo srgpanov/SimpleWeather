@@ -2,6 +2,7 @@ package com.srgpanov.simpleweather.data.remote
 
 import okhttp3.Request
 import okhttp3.ResponseBody
+import okio.Timeout
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Converter
@@ -72,5 +73,9 @@ class ResponseResultCall<T : Any>(
 
     override fun request(): Request {
         return delegate.request()
+    }
+
+    override fun timeout(): Timeout {
+        return delegate.timeout()
     }
 }

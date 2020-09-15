@@ -1,6 +1,5 @@
 package com.srgpanov.simpleweather.ui.weather_screen
 
-import android.R
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View.OnClickListener
@@ -47,8 +46,7 @@ class CheckableImageView : AppCompatImageView, Checkable {
     }
 
 
-
     companion object {
-        private val CHECKED_STATE_SET = intArrayOf(R.attr.state_checked)
+        private val CHECKED_STATE_SET = intArrayOf(android.R.attr.state_checked)
     }
 }

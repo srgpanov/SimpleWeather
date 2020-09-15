@@ -4,7 +4,6 @@ package com.srgpanov.simpleweather.data.models.weather
 import android.annotation.SuppressLint
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
-import com.srgpanov.simpleweather.other.logE
 import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.android.parcel.Parcelize
 import java.util.*
@@ -42,43 +41,43 @@ data class Current(
     val windSpeed: Float
 ) : Parcelable {
     @IgnoredOnParcel
-    var offset:Long=0
-    fun tempFormatted():String{
-        val tempInt =temp.roundToInt()
-        return format(tempInt)
+    var offset: Long = 0
+
+
+    fun tempFormatted(): String {
+        val tempInt = temp.roundToInt()
+        return formatTemp(tempInt)
     }
-    fun feelsLikeFormatted():String{
-        val tempInt =feelsLike.roundToInt()
-        return format(tempInt)
+
+    fun feelsLikeFormatted(): String {
+        val tempInt = feelsLike.roundToInt()
+        return formatTemp(tempInt)
     }
-    fun getDate():Date{
-        return Date(dt*1000L)
+
+    fun getDate(): Date {
+        return Date(dt * 1000L)
     }
 
     @SuppressLint("DefaultLocale")
-    fun weatherFormatted():String{
-        return try {
-            val builder = StringBuilder()
-            weather.forEachIndexed { index, weather ->
-                if (index != this.weather.size - 1) {
-                    builder.append(weather.description).append(", ")
-                } else {
-                    builder.append(weather.description)
-                }
+    fun weatherFormatted(): String {
+        val builder = StringBuilder()
+        weather.forEachIndexed { index, weather ->
+            if (index != this.weather.lastIndex) {
+                builder.append(weather.description).append(", ")
+            } else {
+                builder.append(weather.description)
             }
-            builder.toString().capitalize()
-        } catch (e: IndexOutOfBoundsException) {
-            logE("weatherFormated $e")
-            ""
         }
-    }
-    fun windDirection():String{
-        return getWindDirection(windDeg)
-    }
-    fun windDirectionIcon():Int{
-        return getWindDirectionIcon(windDeg)
+        return builder.toString().capitalize()
     }
 
+    fun windDirection(): String {
+        return getWindDirection(windDeg)
+    }
+
+    fun windDirectionIcon(): Int {
+        return getWindDirectionIcon(windDeg)
+    }
 
 
 }

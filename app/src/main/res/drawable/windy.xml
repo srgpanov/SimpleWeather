@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="1000dp"
-    android:height="1000dp"
+    android:width="200dp"
+    android:height="200dp"
     android:viewportWidth="1000"
     android:viewportHeight="1000">
 
     <group
-            android:translateY="511.000000"
-            android:scaleX="0.100000"
-            android:scaleY="-0.100000">
+        android:translateY="511.000000"
+        android:scaleX="0.100000"
+        android:scaleY="-0.100000">
         <path
             android:fillColor="@color/icons"
             android:pathData="M7511.5,4287.5c-275.5-39.7-656-186.8-859.1-331.5l-67.7-46.7l133.1-119.1l133.1-119.1l193.8,95.7c287.1,140.1,487.9,179.8,835.8,168.1c490.3-21,810.1-158.8,1160.3-508.9c312.9-310.5,480.9-684,506.6-1120.6c51.4-882.5-562.6-1652.9-1440.4-1811.7c-142.4-25.7-889.5-30.3-4041.2-32.7H199.5l-49-53.7c-67.7-72.4-67.7-179.8,2.3-245.1l56-51.4l3978.1,4.7l3978.1,7l205.4,65.4c880.2,275.5,1447.5,978.2,1524.5,1884c30.4,359.5-81.7,840.4-277.8,1190.6c-135.4,240.5-522.9,628-763.4,763.4C8443,4254.8,7952.7,4350.5,7511.5,4287.5z" />

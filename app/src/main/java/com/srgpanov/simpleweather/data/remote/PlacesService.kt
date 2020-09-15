@@ -1,7 +1,6 @@
 package com.srgpanov.simpleweather.data.remote
 
 import com.srgpanov.simpleweather.data.models.places.Places
-import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
 

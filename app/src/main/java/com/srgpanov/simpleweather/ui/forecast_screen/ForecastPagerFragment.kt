@@ -4,32 +4,52 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.ViewCompat
-import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.observe
 import androidx.viewpager2.widget.ViewPager2
+import com.srgpanov.simpleweather.App
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.models.other.CalendarItem
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
 import com.srgpanov.simpleweather.databinding.ForecastPagerFragmentBinding
-import com.srgpanov.simpleweather.other.*
+import com.srgpanov.simpleweather.di.ArgumentsViewModelFactory
+import com.srgpanov.simpleweather.other.FirstItemCompletelyVisibleListener
+import com.srgpanov.simpleweather.other.InsetSide
+import com.srgpanov.simpleweather.other.addSystemWindowInsetToPadding
+import com.srgpanov.simpleweather.other.setHeightOrWidthAsSystemWindowInset
+import javax.inject.Inject
 
-class ForecastPagerFragment : Fragment() {
-    private lateinit var viewModel: ForecastPagerViewModel
-    private lateinit var dateAdapter: CalendarAdapter
-    private lateinit var forecastAdapter: ForecastPagerAdapter
+class ForecastPagerFragment private constructor() : Fragment() {
     private var _binding: ForecastPagerFragmentBinding? = null
-    private val binding get() = _binding!!
-    private var itemCompletelyVisibleListener: FirstItemCompletelyVisibleListener? = null
+    private val binding
+        get() = _binding!!
+
+    private lateinit var viewModel: ForecastViewModel
+    private val dateAdapter: CalendarAdapter by lazy { CalendarAdapter() }
+    private val forecastAdapter: ForecastPagerAdapter by lazy { ForecastPagerAdapter() }
+
+    @Inject
+    lateinit var forecastFactory: ForecastViewModelFactory
+
+    companion object {
+        const val ARG_POSITION = "ARG_POSITION"
+        const val ARG_ONE_CALL = "ARG_ONE_CALL"
+
+        fun newInstance(response: OneCallResponse, position: Int): ForecastPagerFragment {
+            return ForecastPagerFragment().apply {
+                arguments = Bundle().apply {
+                    putInt(ARG_POSITION, position)
+                    putParcelable(ARG_ONE_CALL, response)
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val position = arguments?.getInt("position", 0) ?: 0
-        val oneCall = arguments?.getParcelable<OneCallResponse>("oneCall")
-        val factory = ForecastViewModelFactory(position, oneCall)
-        viewModel =ViewModelProvider(this,factory )[ForecastPagerViewModel::class.java]
+        App.instance.appComponent.injectForecastFragment(this)
+        val assistedFactory = ArgumentsViewModelFactory(forecastFactory, requireArguments())
+        viewModel = ViewModelProvider(this, assistedFactory)[ForecastViewModel::class.java]
     }
 
     override fun onCreateView(
@@ -53,26 +73,14 @@ class ForecastPagerFragment : Fragment() {
 
     private fun setupInsets() {
         binding.appbarLayout.addSystemWindowInsetToPadding(top = true)
-        val statusView = binding.statusBackground
-        ViewCompat.setOnApplyWindowInsetsListener(statusView) { view, insets ->
-            view.updateLayoutParams {
-                if (insets.systemWindowInsetTop != 0) {
-                    height = insets.systemWindowInsetTop
-                }
-            }
-            insets
-        }
-        statusView.requestApplyInsetsWhenAttached()
+        binding.statusBackground.setHeightOrWidthAsSystemWindowInset(InsetSide.TOP)
     }
 
     private fun setupCalendar() {
-        dateAdapter = CalendarAdapter()
         binding.calendar.adapter = dateAdapter
-        dateAdapter.listener = object : MyClickListener {
-            override fun onClick(view: View?, position: Int) {
-                dateAdapter.selectDay(position)
-                binding.viewPager.setCurrentItem(position, true)
-            }
+        dateAdapter.listener = { position ->
+            dateAdapter.selectDay(position)
+            binding.viewPager.setCurrentItem(position, true)
         }
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
@@ -80,48 +88,30 @@ class ForecastPagerFragment : Fragment() {
                 viewModel.daySelected = position
             }
         })
-        forecastAdapter = ForecastPagerAdapter()
-        forecastAdapter.itemVisibleListener = itemCompletelyVisibleListener
         binding.viewPager.adapter = forecastAdapter
         binding.viewPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
-        viewModel.oneCallResponse.observe(viewLifecycleOwner, Observer {
-            forecastAdapter.forecasts = it.daily.toMutableList()
-            val dateList: MutableList<CalendarItem> = mutableListOf()
-            it.daily.forEach { forecast ->
-                dateList.add(
-                    CalendarItem(
-                        forecast.date()
-                    )
-                )
-            }
-            dateAdapter.setData(dateList.toList())
-            val currentDay = viewModel.daySelected
-            binding.viewPager.setCurrentItem(currentDay, false)
-            logD("selectDay")
-            dateAdapter.selectDay(currentDay)
-        })
-    }
+        viewModel.forecastList.observe(viewLifecycleOwner) { forecasts ->
+            forecastAdapter.setData(forecasts)
+            binding.viewPager.setCurrentItem(viewModel.daySelected, false)
+        }
+        viewModel.calendarDay.observe(viewLifecycleOwner) { days ->
+            dateAdapter.setData(days)
+            dateAdapter.selectDay(viewModel.daySelected)
+        }
 
-    override fun onStart() {
-        super.onStart()
-        logD("lifecycle onStart")
     }
 
     private fun setupToolbar() {
         binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
         binding.toolbar.setNavigationOnClickListener { parentFragmentManager.popBackStack() }
-        itemCompletelyVisibleListener = object : FirstItemCompletelyVisibleListener {
+        val itemCompletelyVisibleListener = object : FirstItemCompletelyVisibleListener {
             override fun isVisible(isVisible: Boolean) {
-                if (isVisible) {
-                    binding.appbarLayout.elevation = 0f
-                    binding.statusBackground.elevation = 0f
-                } else {
-                    if (binding.appbarLayout.elevation == 0f) {
-                        binding.appbarLayout.elevation = 8f
-                        binding.statusBackground.elevation = 8f
-                    }
-                }
+                val elevation: Float = if (isVisible) 0f else 8f
+
+                binding.appbarLayout.elevation = elevation
+                binding.statusBackground.elevation = elevation
             }
         }
+        forecastAdapter.itemVisibleListener = itemCompletelyVisibleListener
     }
 }

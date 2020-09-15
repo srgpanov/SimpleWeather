@@ -3,16 +3,16 @@ package com.srgpanov.simpleweather.data.remote
 import com.srgpanov.simpleweather.data.models.ip_to_location.IpToLocation
 import com.srgpanov.simpleweather.data.models.places.Places
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
-import com.srgpanov.simpleweather.data.models.weather.current_weather.CurrentWeatherResponse
+import com.srgpanov.simpleweather.data.models.weather.current_weather.SimpleWeatherResponse
 import com.srgpanov.simpleweather.other.numbersAfterDot
 import java.util.*
 import javax.inject.Inject
 
 
 class RemoteDataSourceImpl @Inject constructor(
-    val weatherService: WeatherService,
-     val placesService: PlacesService,
-     val ipToLocationService: IpToLocationService
+    private val weatherService: WeatherService,
+    private val placesService: PlacesService,
+    private val ipToLocationService: IpToLocationService
 ) {
 
 
@@ -26,7 +26,7 @@ class RemoteDataSourceImpl @Inject constructor(
     suspend fun getCurrentWeather(
         lat: Double,
         lon: Double
-    ): ResponseResult<CurrentWeatherResponse> {
+    ): ResponseResult<SimpleWeatherResponse> {
         return weatherService.currentWeatherRequest(lat.numbersAfterDot(), lon.numbersAfterDot())
     }
 

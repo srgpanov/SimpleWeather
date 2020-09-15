@@ -5,7 +5,6 @@
     android:id="@+id/swipe_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
     android:background="@color/dirty_white">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -15,7 +14,6 @@
         android:nestedScrollingEnabled="true"
         tools:context=".ui.weather_screen.DetailFragment">
 
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/detail_rv"
             android:layout_width="match_parent"
@@ -24,6 +22,16 @@
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:itemCount="8" />
 
+        <View
+            android:id="@+id/status_background"
+            android:layout_width="0dp"
+            android:layout_height="24dp"
+            android:alpha="0.0"
+            android:background="@color/status_bar_color"
+            android:elevation="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -102,16 +110,7 @@
             app:layout_constraintStart_toStartOf="@id/toolbar"
             app:layout_constraintTop_toTopOf="@id/toolbar" />
 
-        <View
-            android:id="@+id/status_background"
-            android:layout_width="0dp"
-            android:layout_height="24dp"
-            android:alpha="0.0"
-            android:background="@color/status_bar_color"
-            android:elevation="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+
 
 
         <TextView
@@ -153,7 +152,7 @@
         <View
             android:id="@+id/insets_error_view"
             android:layout_width="0dp"
-            android:layout_height="25dp"
+            android:layout_height="0dp"
             android:background="@android:color/holo_red_light"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -165,7 +164,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:constraint_referenced_ids="connection_error_button,connection_error_tv,insets_error_view" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

@@ -1,6 +1,7 @@
 package com.srgpanov.simpleweather.ui.weather_widget
 
-import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_ID
+import android.appwidget.AppWidgetManager.INVALID_APPWIDGET_ID
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -8,37 +9,38 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
-import android.widget.Switch
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.os.bundleOf
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentResultListener
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.observe
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.srgpanov.simpleweather.App
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
-import com.srgpanov.simpleweather.data.models.weather.format
+import com.srgpanov.simpleweather.data.models.weather.formatTemp
 import com.srgpanov.simpleweather.databinding.WidgetSettingsFagmentLayoutBinding
 import com.srgpanov.simpleweather.di.ArgumentsViewModelFactory
+import com.srgpanov.simpleweather.domain_logic.view_entities.weather.PlaceViewItem
 import com.srgpanov.simpleweather.other.*
 import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment
-import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment.Companion.REQUEST_PLACE
+import com.srgpanov.simpleweather.ui.select_place_screen.SelectPlaceFragment.Companion.KEY_REQUEST_PLACE
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.CERTAIN
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.CURRENT
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.OnLocationTypeChoiceCallback
 import com.srgpanov.simpleweather.ui.weather_widget.SettingWidgetViewModel.Companion.ALPHA_MAX_VALUE
-import java.text.SimpleDateFormat
+import com.srgpanov.simpleweather.ui.weather_widget.SettingWidgetViewModel.Companion.ARGUMENT_WIDGET
 import java.util.*
 import javax.inject.Inject
 
-class WeatherWidgetSettingListFragment : Fragment() {
+class WeatherWidgetSettingListFragment : Fragment(), FragmentResultListener {
     private var _binding: WidgetSettingsFagmentLayoutBinding? = null
     private val binding get() = _binding!!
-    var widgetID = AppWidgetManager.INVALID_APPWIDGET_ID
+    private var widgetID = INVALID_APPWIDGET_ID
+
     @Inject
     internal lateinit var settingsViewModelFactory: SettingWidgetViewModel.SettingsListViewModelFactory
     lateinit var viewModel: SettingWidgetViewModel
@@ -46,37 +48,21 @@ class WeatherWidgetSettingListFragment : Fragment() {
 
     companion object {
         val TAG = WeatherWidgetSettingListFragment::class.java.simpleName
-        val WIDGET_ID_KEY = "WIDGET_ID_KEY"
+        const val WIDGET_ID_KEY = "WIDGET_ID_KEY"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         App.instance.appComponent.injectWidgetSettingsListFragment(this)
         setupWidgetId()
-        val factory = ArgumentsViewModelFactory<SettingWidgetViewModel>(
+        val factory: ArgumentsViewModelFactory<SettingWidgetViewModel> = ArgumentsViewModelFactory(
             settingsViewModelFactory,
-            createBundle(widgetID)
+            bundleOf(ARGUMENT_WIDGET to widgetID)
         )
         viewModel = ViewModelProvider(this, factory)[SettingWidgetViewModel::class.java]
         requireActivity()
-            .supportFragmentManager.setFragmentResultListener(
-                REQUEST_PLACE,
-                this,
-                FragmentResultListener { requestKey, result ->
-                    if (requestKey == REQUEST_PLACE) {
-                        val place = result.getParcelable<PlaceEntity>(REQUEST_PLACE)
-                        if (place != null) {
-                            viewModel.onLocationTypeCertainChoice(place)
-                        } else {
-                            logE("place != null somethings goes wrong")
-                        }
-                    }
-                })
-    }
-    private fun createBundle(widgetId:Int):Bundle{
-        return Bundle().apply {
-            putInt(SettingWidgetViewModel.ARGUMENT_WIDGET,widgetId)
-        }
+            .supportFragmentManager
+            .setFragmentResultListener(KEY_REQUEST_PLACE, this, this)
     }
 
     override fun onCreateView(
@@ -97,7 +83,7 @@ class WeatherWidgetSettingListFragment : Fragment() {
     }
 
     override fun onStop() {
-        WeatherWidget.updateWidget( widgetID)
+        WeatherWidget.updateWidget(widgetID)
         super.onStop()
     }
 
@@ -106,9 +92,16 @@ class WeatherWidgetSettingListFragment : Fragment() {
         super.onDestroyView()
     }
 
+    override fun onFragmentResult(requestKey: String, result: Bundle) {
+        if (requestKey == KEY_REQUEST_PLACE) {
+            val place = result.getParcelable<PlaceViewItem>(KEY_REQUEST_PLACE)
+            checkNotNull(place) { "WeatherWidgetSettingListFragment wrong fragment result" }
+            viewModel.onLocationTypeCertainChoice(place)
+        }
+    }
+
     private fun setupOtherViews() {
-        val nightTempTextColor =
-            ContextCompat.getColor(requireContext(), R.color.widget_black_night_text)
+        val nightTempTextColor = requireContext().getColorCompat(R.color.widget_black_night_text)
         binding.widgetContainer.widgetNightTempTv.setTextColor(nightTempTextColor)
     }
 
@@ -116,66 +109,63 @@ class WeatherWidgetSettingListFragment : Fragment() {
         viewModel.isLightTheme.observe(viewLifecycleOwner) {
             val transparency = viewModel.transparency.value
             binding.lightSettingSwitch.isChecked = it
-            if ( transparency != null) {
-                setupWidgetThemesColors(it, transparency)
-            } else logE("isLightTheme.observe error")
+            setupWidgetThemesColors(it, transparency)
         }
         viewModel.timeOfLastUpdate.observe(viewLifecycleOwner) {
             binding.timeSettingSwitch.isChecked = it
-            val place = viewModel.widgetPlace.value
+            val place = viewModel.widgetPlaceView.value
             if (place != null) {
-                binding.widgetContainer.widgetPlaceNameTv.text=getWidgetTitle(place)
+                binding.widgetContainer.widgetPlaceNameTv.text = getWidgetTitle(place)
             }
         }
         viewModel.transparency.observe(viewLifecycleOwner) {
             val isLightTheme = viewModel.isLightTheme.value
             binding.transparencySeekbar.progress = ALPHA_MAX_VALUE - it
-            if ( isLightTheme != null) {
-                setupWidgetThemesColors(isLightTheme, it)
-            }else logE("transparency.observe error")
+            setupWidgetThemesColors(isLightTheme, it)
         }
         viewModel.locationType.observe(viewLifecycleOwner) {
-                binding.locationDescriptionTv.text = getLocationDescriptionText(null)
+            binding.locationDescriptionTv.text = getLocationDescriptionText(null)
         }
-        viewModel.widgetPlace.observe(viewLifecycleOwner) {
+        viewModel.widgetPlaceView.observe(viewLifecycleOwner) {
             logD("widgetPlace ${it.title}")
-                restorePlace(it)
+            restorePlace(it)
         }
 
 
     }
 
-    private fun restorePlace(place: PlaceEntity) {
-        val locationDescriptionText = getLocationDescriptionText(place)
+    private fun restorePlace(placeView: PlaceViewItem) {
+        val locationDescriptionText = getLocationDescriptionText(placeView)
         binding.locationDescriptionTv.text = locationDescriptionText
-        binding.widgetContainer.widgetPlaceNameTv.text = getWidgetTitle(place)
+        binding.widgetContainer.widgetPlaceNameTv.text = getWidgetTitle(placeView)
 
-        val oneCallResponse = place.oneCallResponse
+        val oneCallResponse = placeView.oneCallResponse
 
         val weatherIcon = oneCallResponse?.current?.weather?.get(0)?.getWeatherIcon()
         binding.widgetContainer.widgetWeatherIconIv.setImageResource(
             weatherIcon ?: R.drawable.ic_ovc
         )
         binding.widgetContainer.widgetTempTv.text =
-            oneCallResponse?.current?.tempFormatted() ?: format(20)
+            oneCallResponse?.current?.tempFormatted() ?: formatTemp(20)
         binding.widgetContainer.widgetDayTempTv.text =
-            oneCallResponse?.daily?.get(0)?.temp?.dayFormated() ?: format(18)
+            oneCallResponse?.daily?.get(0)?.temp?.dayFormatted() ?: formatTemp(18)
         binding.widgetContainer.widgetNightTempTv.text =
-            oneCallResponse?.daily?.get(0)?.temp?.nightFormated() ?: format(18)
+            oneCallResponse?.daily?.get(0)?.temp?.nightFormatted() ?: formatTemp(18)
 
     }
 
-    private fun getWidgetTitle(place: PlaceEntity): String {
-        return if (viewModel.timeOfLastUpdate.value == true) {
-            "${getFormattedCurrentTime()}, ${place.title}"
+    private fun getWidgetTitle(placeView: PlaceViewItem): String {
+        val showTimeUpdate = viewModel.timeOfLastUpdate.value
+        return if (showTimeUpdate) {
+            "${Date().format("HH:mm")}, ${placeView.title}"
         } else {
-            place.title
+            placeView.title
         }
     }
 
-    private fun getLocationDescriptionText(place: PlaceEntity?): String? {
+    private fun getLocationDescriptionText(placeView: PlaceViewItem?): String? {
         return if (viewModel.locationType.value == CERTAIN) {
-            place?.cityFullName
+            placeView?.cityFullName
         } else {
             getString(R.string.current_location)
         }
@@ -183,40 +173,40 @@ class WeatherWidgetSettingListFragment : Fragment() {
 
 
     private fun setupWidgetId() {
+        val argKey = arguments?.getInt(WIDGET_ID_KEY)
+        if (argKey != null) {
+            widgetID = argKey
+            return
+        }
         val intent = requireActivity().intent
         val extras = intent.extras
         if (extras != null) {
-            widgetID = extras.getInt(
-                AppWidgetManager.EXTRA_APPWIDGET_ID,
-                AppWidgetManager.INVALID_APPWIDGET_ID
-            )
-        } else {
-            val argKey = arguments?.getInt(WIDGET_ID_KEY)
-            widgetID = argKey ?: AppWidgetManager.INVALID_APPWIDGET_ID
+            widgetID = extras.getInt(EXTRA_APPWIDGET_ID, INVALID_APPWIDGET_ID)
         }
-        logD("widgetID ${arguments}")
-        logD("widgetID $widgetID")
     }
 
-    private fun setupListeners() {
-        binding.lightSettingBackground.setOnClickListener {
-            changeSwitcherState(binding.lightSettingSwitch)
+    private fun setupListeners() = with(binding) {
+        lightSettingBackground.setOnClickListener {
+            changeSwitcherState(lightSettingSwitch)
         }
-        binding.timeSettingBackground.setOnClickListener {
-            changeSwitcherState(binding.timeSettingSwitch)
+        timeSettingBackground.setOnClickListener {
+            changeSwitcherState(timeSettingSwitch)
         }
-        binding.lightSettingSwitch.setOnCheckedChangeListener { _, isChecked ->
+        lightSettingSwitch.setOnCheckedChangeListener { _, isChecked ->
             viewModel.saveSwitcherState(WIDGET_LIGHT_THEME, isChecked)
-            viewModel.mutableIsLightTheme.value = isChecked
+            viewModel.isLightTheme.value = isChecked
         }
-        binding.timeSettingSwitch.setOnCheckedChangeListener { _, isChecked ->
+        timeSettingSwitch.setOnCheckedChangeListener { _, isChecked ->
             viewModel.saveSwitcherState(WIDGET_SHOW_TIME_UPDATE, isChecked)
-            viewModel.mutableTimeOfLastUpdate.value = isChecked
+            viewModel.timeOfLastUpdate.value = isChecked
         }
 
-        binding.transparencySeekbar.setOnSeekBarChangeListener(object :
-            SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+        transparencySeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(
+                seekBar: SeekBar?,
+                progress: Int,
+                fromUser: Boolean
+            ) {
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -224,23 +214,15 @@ class WeatherWidgetSettingListFragment : Fragment() {
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
                 viewModel.saveSeekBarState(seekBar.progress)
-                viewModel.mutableTransparency.value = ALPHA_MAX_VALUE - seekBar.progress
+                viewModel.transparency.value = ALPHA_MAX_VALUE - seekBar.progress
             }
         })
-        binding.locationBackground.setOnClickListener {
-            showDialog()
-        }
-
+        locationBackground.setOnClickListener { showDialog() }
     }
-
 
     private fun setupInsets() {
         binding.widgetSettingsScrollContainer.addSystemWindowInsetToPadding(bottom = true)
     }
-
-
-    private fun getFormattedCurrentTime() =
-        SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
 
     private fun setupWidgetThemesColors(isLightTheme: Boolean, transparency: Int) {
         val backgroundColor = getWidgetBackground(isLightTheme, transparency)
@@ -255,43 +237,32 @@ class WeatherWidgetSettingListFragment : Fragment() {
         binding.widgetContainer.widgetContainer.background = ColorDrawable(backgroundColor)
     }
 
-    private fun getRefreshButtonImg(isLightTheme: Boolean) =
-        if (isLightTheme) R.drawable.ic_refresh_icon_12dp else R.drawable.ic_refresh_icon_blue_12dp
+    private fun getRefreshButtonImg(isLightTheme: Boolean): Int {
+        return if (isLightTheme)
+            R.drawable.ic_refresh_icon_12dp
+        else
+            R.drawable.ic_refresh_icon_blue_12dp
+    }
 
-    private fun getTextColor(isLightTheme: Boolean) = if (isLightTheme) Color.BLACK else Color.WHITE
-
-
+    private fun getTextColor(isLightTheme: Boolean): Int {
+        return if (isLightTheme)
+            Color.BLACK
+        else
+            Color.WHITE
+    }
 
 
     private fun getWidgetTitleBackground(isLightTheme: Boolean, alpha: Int): Int {
-        return if (isLightTheme) {
-            ColorUtils.setAlphaComponent(
-                ContextCompat.getColor(requireActivity(), R.color.widget_white_title),
-                alpha
-            )
-        } else {
-            ColorUtils.setAlphaComponent(
-                ContextCompat.getColor(requireActivity(), R.color.widget_black_title),
-                alpha
-            )
-        }
+        val color = if (isLightTheme) R.color.widget_white_title else R.color.widget_black_title
+        return ColorUtils.setAlphaComponent(requireContext().getColorCompat(color), alpha)
     }
 
     private fun getWidgetBackground(isLightTheme: Boolean, alpha: Int): Int {
-        return if (isLightTheme) {
-            ColorUtils.setAlphaComponent(
-                ContextCompat.getColor(requireContext(), R.color.widget_white),
-                alpha
-            )
-        } else {
-            ColorUtils.setAlphaComponent(
-                ContextCompat.getColor(requireContext(), R.color.widget_black),
-                alpha.also { logD("alpha $it") }
-            )
-        }
+        val color = if (isLightTheme) R.color.widget_white else R.color.widget_black
+        return ColorUtils.setAlphaComponent(requireContext().getColorCompat(color), alpha)
     }
 
-    private fun changeSwitcherState(switcher: Switch) {
+    private fun changeSwitcherState(switcher: SwitchMaterial) {
         val checked = switcher.isChecked
         switcher.isChecked = !checked
     }
@@ -299,7 +270,7 @@ class WeatherWidgetSettingListFragment : Fragment() {
 
     private fun showDialog() {
         val locationSettingDialog = LocationSettingDialogFragment()
-        locationSettingDialog.onLocationTypeChoiceCallback = object :OnLocationTypeChoiceCallback {
+        locationSettingDialog.onLocationTypeChoiceCallback = object : OnLocationTypeChoiceCallback {
             override fun onLocationTypeChoice(type: LocationType) {
                 logD("onLocationTypeChoice ${type.ordinal}")
                 when (type) {
@@ -315,12 +286,8 @@ class WeatherWidgetSettingListFragment : Fragment() {
     }
 
 
-
-
     fun addButtonHeightToPadding(height: Int) {
         val paddingBottom = binding.widgetSettingsScrollContainer.paddingBottom
         binding.widgetSettingsScrollContainer.updatePadding(bottom = paddingBottom + height)
     }
-
-
 }

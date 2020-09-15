@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/detail_weather_root"
     android:layout_width="200dp"
     android:layout_height="@dimen/detail_weather_height"
@@ -15,7 +16,7 @@
         app:layout_constraintGuide_begin="30dp" />
 
     <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/wind_icon_iv"
+        android:id="@+id/icon_iv"
         android:layout_width="18dp"
         android:layout_height="18dp"
         android:src="@drawable/windy"
@@ -28,7 +29,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:textSize="16sp"
-        android:text="6"
+        tools:text="6"
         android:textColor="@android:color/white"
         android:textStyle="bold"
         app:layout_constraintStart_toEndOf="@id/vertical_guideline"
@@ -68,7 +69,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:textSize="16sp"
-        android:text="1027"
+        tools:text="1027"
         android:textColor="@android:color/white"
         android:textStyle="bold"
         app:layout_constraintStart_toEndOf="@id/vertical_guideline"
@@ -98,7 +99,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:text="42"
+        tools:text="42"
         android:textSize="16sp"
         android:textColor="@android:color/white"
         android:textStyle="bold"
@@ -110,7 +111,7 @@
         android:layout_width="wrap_content"
         android:layout_height="16dp"
         android:gravity="center_vertical"
-        android:text="%"
+        android:text="@string/percent_symbol"
         android:textColor="@color/dirty_white"
         app:layout_constraintBaseline_toBaselineOf="@id/humidity_value_tv"
         app:layout_constraintStart_toEndOf="@id/humidity_value_tv" />

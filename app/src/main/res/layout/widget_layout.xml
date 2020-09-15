@@ -92,6 +92,7 @@
                     android:paddingEnd="2dp"
                     android:singleLine="true"
                     android:textSize="12sp"
+                    tools:ignore="RtlSymmetry"
                     tools:text="+17C" />
 
                 <TextView
@@ -104,6 +105,7 @@
                     android:paddingStart="2dp"
                     android:singleLine="true"
                     android:textSize="12sp"
+                    tools:ignore="RtlSymmetry"
                     tools:text="+17C" />
             </LinearLayout>
 

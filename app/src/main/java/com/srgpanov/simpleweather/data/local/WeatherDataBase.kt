@@ -8,14 +8,16 @@ import androidx.room.TypeConverters
 import com.srgpanov.simpleweather.data.models.entity.*
 
 @Database(
-    entities = arrayOf(
-        PlaceTable::class,
-        FavoriteTable::class,
-        SearchHistoryTable::class,
-        CurrentTable::class,
-        OneCallTable::class,
-        SimpleWeatherTable::class
-    ), version = 1
+    entities = [
+        PlaceEntity::class,
+        FavoriteEntity::class,
+        SearchHistoryEntity::class,
+        CurrentEntity::class,
+        OneCallEntity::class,
+        SimpleWeatherEntity::class
+    ],
+    version = 4,
+    exportSchema = false
 )
 @TypeConverters(RoomConverter::class)
 abstract class WeatherDataBase : RoomDatabase() {
@@ -32,6 +34,7 @@ abstract class WeatherDataBase : RoomDatabase() {
                         context,
                         WeatherDataBase::class.java, "weatherDb"
                     )
+                        .fallbackToDestructiveMigration()
                         .build()
                 }
             }

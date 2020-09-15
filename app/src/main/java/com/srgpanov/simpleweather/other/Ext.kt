@@ -5,17 +5,19 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.*
-import com.srgpanov.simpleweather.BuildConfig
+import androidx.fragment.app.Fragment
 import com.srgpanov.simpleweather.R
 import java.math.RoundingMode
+import java.util.*
+import kotlin.math.abs
 import kotlin.reflect.KClass
 
 
+inline fun <reified T> T.logD(message: String = "TAG $this") =
+    Log.d(getClassSimpleName(T::class), message)
 
-
-
-inline fun <reified T> T.logD(message: String= "TAG $this") = Log.d(getClassSimpleName(T::class),message )
-inline fun <reified T> T.logE(message: String= "TAG $this") = Log.e(getClassSimpleName(T::class),message )
+inline fun <reified T> T.logE(message: String = "TAG $this") =
+    Log.e(getClassSimpleName(T::class), message)
 
 fun getWeatherIcon(weather: String): Int {
     return when (weather) {
@@ -40,10 +42,32 @@ fun getWeatherIcon(weather: String): Int {
         "skc_d" -> R.drawable.ic_skc_d
         "skc_n" -> R.drawable.ic_skc_n
         else -> {
-            Log.e("TAG  ","Cant find image")
+            Log.e("TAG  ", "Cant find image")
             R.drawable.ic_ovc
         }
     }
+}
+
+fun weatherIsFresh(timeStamp: Long): Boolean {
+    val b = abs(System.currentTimeMillis() - timeStamp) < REFRESH_TIME
+    Log.d("weatherIsFresh", "timestamp:  ${Date(timeStamp).format()} ")
+    Log.d(
+        "weatherIsFresh",
+        "time from last response " +
+                "${Date(abs(System.currentTimeMillis() - timeStamp)).format()}  isFresh=${b}"
+    )
+    return b
+}
+
+fun weatherIsActual(timeStamp: Long): Boolean {
+    val b = abs(System.currentTimeMillis() - timeStamp) < WEATHER_IS_ACTUAL
+    Log.d("weatherIsNotActual", "timestamp:  ${Date(timeStamp).format()} ")
+    Log.d(
+        "weatherIsNotActual",
+        "time from last response " +
+                "${Date(abs(System.currentTimeMillis() - timeStamp)).format()}  IsNotActual=${b}"
+    )
+    return b
 }
 
 
@@ -95,6 +119,40 @@ fun View.addSystemWindowInsetToMargin(
     requestApplyInsetsWhenAttached()
 }
 
+fun View.setHeightOrWidthAsSystemWindowInset(
+    side: InsetSide,
+    onApplyInsets: ((inset: Int) -> Unit)? = null
+) {
+    ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+        view.updateLayoutParams {
+            when (side) {
+                InsetSide.LEFT -> {
+                    width = insets.systemWindowInsetLeft
+                    onApplyInsets?.invoke(insets.systemWindowInsetLeft)
+                }
+                InsetSide.RIGHT -> {
+                    width = insets.systemWindowInsetRight
+                    onApplyInsets?.invoke(insets.systemWindowInsetRight)
+                }
+                InsetSide.BOTTOM -> {
+                    height = insets.systemWindowInsetBottom
+                    onApplyInsets?.invoke(insets.systemWindowInsetBottom)
+                }
+                InsetSide.TOP -> {
+                    height = insets.systemWindowInsetTop
+                    onApplyInsets?.invoke(insets.systemWindowInsetTop)
+                }
+            }
+        }
+        insets
+    }
+    requestApplyInsetsWhenAttached()
+}
+
+enum class InsetSide {
+    LEFT, RIGHT, BOTTOM, TOP
+}
+
 fun View.requestApplyInsetsWhenAttached() {
     if (isAttachedToWindow) {
         // We're already attached, just request as normal
@@ -112,24 +170,27 @@ fun View.requestApplyInsetsWhenAttached() {
         })
     }
 }
-fun dpToPx(dp:Int):Int{
-    return (dp*Resources.getSystem().displayMetrics.density).toInt()
+
+fun dpToPx(dp: Int): Int {
+    return (dp * Resources.getSystem().displayMetrics.density).toInt()
 }
+
 fun pxToDp(px: Int): Int {
     return (px / Resources.getSystem().displayMetrics.density).toInt()
 }
-fun Double.numbersAfterDot(numbers:Int=2):Double{
+
+fun Double.numbersAfterDot(numbers: Int = 2): Double {
     return this.toBigDecimal().setScale(numbers, RoundingMode.DOWN).toDouble()
 }
 
-
+val Fragment.TAG: String
+    get() = this::class.java.simpleName
 
 
 inline fun <reified T> T.getClassSimpleName(enclosingClass: KClass<*>?): String =
 
-    if(T::class.java.simpleName.isNotBlank()) {
+    if (T::class.java.simpleName.isNotBlank()) {
         T::class.java.simpleName
-    }
-    else { // Enforce the caller to pass a class to retrieve its simple name
+    } else { // Enforce the caller to pass a class to retrieve its simple name
         enclosingClass?.simpleName ?: "Anonymous"
     }

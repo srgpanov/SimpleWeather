@@ -4,72 +4,94 @@ import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Color
+import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
-import androidx.core.content.ContextCompat
+import androidx.annotation.ColorInt
+import androidx.annotation.ColorRes
 import androidx.core.graphics.ColorUtils
 import com.srgpanov.simpleweather.MainActivity
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.data.DataRepository
-import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
+import com.srgpanov.simpleweather.data.PreferencesStorage
+import com.srgpanov.simpleweather.data.location.LocationProvider
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
-import com.srgpanov.simpleweather.data.remote.ResponseResult
+import com.srgpanov.simpleweather.domain_logic.view_entities.weather.PlaceViewItem
 import com.srgpanov.simpleweather.other.*
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.CURRENT
-import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.values
+import com.srgpanov.simpleweather.ui.weather_widget.WeatherWidget.Companion.ARG_REFRESH
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
+import kotlin.coroutines.CoroutineContext
 
 class WidgetUpdateHelper @Inject constructor(
+    private val widgetID: Int,
     private val context: Context,
     private val repository: DataRepository,
-    private val sp: SharedPreferences
-) {
-    private val scope = CoroutineScope(Dispatchers.IO + Job())
+    preferences: PreferencesStorage,
+    private val locationProvider: LocationProvider
+) : CoroutineScope {
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.IO + Job()
     private var widgetView: RemoteViews = RemoteViews(context.packageName, R.layout.widget_layout)
     private var appWidgetManager: AppWidgetManager = AppWidgetManager.getInstance(context)
-    private var widgetID: Int = AppWidgetManager.INVALID_APPWIDGET_ID
-    private var icons: Boolean = false
-    private var isLightTheme: Boolean = false
-    private var showTimeUpdate: Boolean = false
-    private var transparency: Int = WeatherWidget.ALPHA_MAX_VALUE
-    private var locationTitle: String? = null
-    private var locationLatitude: Double = 0.0
-    private var locationLongitude: Double = 0.0
-    private var locationType = CURRENT.ordinal
-    private var locationProvider = LocationProvider(values()[locationType])
-    private lateinit var observePlace: PlaceEntity
 
-    fun updateWidget(widgetID: Int) = scope.launch {
-        setupId(widgetID)
-        showLoading(this@WidgetUpdateHelper.widgetID)
+    private var isLightTheme: Boolean by preferences(WIDGET_LIGHT_THEME + widgetID, false)
+    private var showTimeUpdate: Boolean by preferences(WIDGET_SHOW_TIME_UPDATE + widgetID, false)
+    private var transparency: Int
+            by preferences(WIDGET_TRANSPARENCY + widgetID, WeatherWidget.ALPHA_MAX_VALUE)
+
+    private var locationTitle: String by preferences(WIDGET_LOCATION_NAME + widgetID, "")
+
+    private var _locationLatitude: String by preferences(WIDGET_LATITUDE + widgetID, "")
+    private var locationLatitude: Double
+        get() = _locationLatitude.toDoubleOrNull() ?: 0.0
+        set(value) {
+            _locationLatitude = value.toString()
+        }
+
+    private var _locationLongitude: String by preferences(WIDGET_LONGITUDE + widgetID, "")
+    private var locationLongitude: Double
+        get() = _locationLongitude.toDoubleOrNull() ?: 0.0
+        set(value) {
+            _locationLongitude = value.toString()
+        }
+
+
+    private var locationType: Int by preferences(WIDGET_LOCATION_TYPE + widgetID, CURRENT.ordinal)
+    private lateinit var observePlaceView: PlaceViewItem
+
+    fun updateWidget(shouldRefresh: Boolean = false) = launch {
+        Log.d("WidgetUpdateHelper", "updateWidget: $widgetID")
+        showLoading(widgetID)
         val place = getObservablePlace()
         if (place != null) {
-            observePlace = place
+            observePlaceView = place
         } else {
-            hideLoading(this@WidgetUpdateHelper.widgetID)
+            hideLoading(widgetID)
             showError()
             return@launch
         }
-        var locationName = observePlace.title
-        val response = observePlace.oneCallResponse
-        val oneCallTable = repository.getOneCallTable(observePlace.toGeoPoint())
-        val isFresh = oneCallTable?.isFresh() ?: false
-        if (response != null && isFresh) {
-            updateWidgetView(response, widgetView)
+        var locationName = observePlaceView.title
+        val response = observePlaceView.oneCallResponse
+        val oneCallTable = repository.getOneCallTable(observePlaceView.toGeoPoint())
+        val isFresh = oneCallTable?.oneCallResponse?.isFresh ?: false
+        val useCachedWeather = response != null && isFresh && !shouldRefresh
+        if (useCachedWeather) {
+            updateWidgetView(response!!, widgetView)
         } else {
-            val weatherResponse = repository.getFreshWeather(observePlace.toGeoPoint())
-            widgetView = when (weatherResponse) {
-                is ResponseResult.Success -> updateWidgetView(weatherResponse.data, widgetView)
-                is ResponseResult.Failure -> updateWidgetView(widgetView, observePlace.toGeoPoint())
+            val weatherResponse = repository.getFreshWeather(observePlaceView.toGeoPoint())
+            widgetView = if (weatherResponse != null) {
+                updateWidgetView(weatherResponse, widgetView)
+            } else {
+                updateWidgetView(widgetView, observePlaceView.toGeoPoint())
             }
         }
         setupBackground()
@@ -77,10 +99,9 @@ class WidgetUpdateHelper @Inject constructor(
         val textColor = if (isLightTheme) Color.BLACK else Color.WHITE
         val refreshButtonImage =
             if (isLightTheme) R.drawable.ic_refresh_icon_12dp else R.drawable.ic_refresh_icon_blue_12dp
-        val nightTempTextColor =
-            ContextCompat.getColor(context, R.color.widget_black_night_text)
+        val nightTempTextColor = context.getColorCompat(R.color.widget_black_night_text)
         if (showTimeUpdate) {
-            val timeOfLastUpdate = getTimeOfLastUpdate(observePlace.toGeoPoint())
+            val timeOfLastUpdate = getTimeOfLastUpdate(observePlaceView.toGeoPoint())
             val comma = if (timeOfLastUpdate != null) ", " else ""
             locationName = "${timeOfLastUpdate ?: ""}$comma $locationName"
         }
@@ -90,67 +111,52 @@ class WidgetUpdateHelper @Inject constructor(
         widgetView.setTextColor(R.id.widget_day_temp_tv, textColor)
         widgetView.setTextColor(R.id.widget_night_temp_tv, nightTempTextColor)
         widgetView.setImageViewResource(R.id.widget_refresh_ib, refreshButtonImage)
-        hideLoading(this@WidgetUpdateHelper.widgetID)
-        appWidgetManager.updateAppWidget(this@WidgetUpdateHelper.widgetID, widgetView)
+        hideLoading(widgetID)
+        appWidgetManager.updateAppWidget(widgetID, widgetView)
     }
 
     private fun setupBackground() {
-        val backgroundColor = if (isLightTheme) {
-            ColorUtils.setAlphaComponent(
-                ContextCompat.getColor(context, R.color.widget_white),
-                transparency
-            )
-        } else {
-            ColorUtils.setAlphaComponent(
-                ContextCompat.getColor(context, R.color.widget_black),
-                transparency.also { logD("alpha $it") }
-            )
-        }
-        val backgroundTitleColor = if (isLightTheme) {
-            ColorUtils.setAlphaComponent(
-                ContextCompat.getColor(context, R.color.widget_white_title),
-                transparency
-            )
-        } else {
-            ColorUtils.setAlphaComponent(
-                ContextCompat.getColor(context, R.color.widget_black_title),
-                transparency
-            )
-        }
+        val backColor = if (isLightTheme) R.color.widget_white else R.color.widget_black
+        val backgroundColor = context.getColorWithAlpha(backColor, transparency)
+
+        val titleColor =
+            if (isLightTheme) R.color.widget_white_title else R.color.widget_black_title
+        val backgroundTitleColor = context.getColorWithAlpha(titleColor, transparency)
+
         widgetView.setInt(R.id.widget_container, "setBackgroundColor", backgroundColor)
         widgetView.setInt(
             R.id.widget_place_name_container,
             "setBackgroundColor",
             backgroundTitleColor
         )
-
     }
 
-    private fun setupId(widgetID: Int) {
-        this.widgetID = widgetID
-        icons = sp.getBoolean(WIDGET_ICONS + widgetID, false)
-        isLightTheme = sp.getBoolean(WIDGET_LIGHT_THEME + widgetID, false)
-        showTimeUpdate = sp.getBoolean(WIDGET_SHOW_TIME_UPDATE + widgetID, false)
-        transparency = sp.getInt(WIDGET_TRANSPARENCY + widgetID, WeatherWidget.ALPHA_MAX_VALUE)
-        locationTitle = sp.getString(WIDGET_LOCATION_NAME + widgetID, "")
-        locationLatitude = getCoordinate(WIDGET_LATITUDE + widgetID)
-        locationLongitude = getCoordinate(WIDGET_LONGITUDE + widgetID)
-        locationType = sp.getInt(WIDGET_LOCATION_TYPE + widgetID, CURRENT.ordinal)
+    @ColorInt
+    private fun Context.getColorWithAlpha(@ColorRes colorId: Int, alpha: Int): Int {
+        return ColorUtils.setAlphaComponent(getColorCompat(colorId), alpha)
     }
+
 
     private fun setupClickListeners() {
         val updateIntent = Intent(context, WeatherWidget::class.java)
         updateIntent.action = WeatherWidget.ACTION_CHANGE
         updateIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetID)
-        var pIntent = PendingIntent.getBroadcast(context, widgetID, updateIntent, 0)
+        updateIntent.putExtra(ARG_REFRESH, true)
+        var pIntent = PendingIntent.getBroadcast(
+            context,
+            widgetID,
+            updateIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        )
         widgetView.setOnClickPendingIntent(R.id.widget_refresh_ib, pIntent)
 
-        if (this::observePlace.isInitialized) {
-            val openActivityIntent = Intent(context, MainActivity::class.java)
-            openActivityIntent.action = WeatherWidget.ACTION_SHOW_WEATHER
-            openActivityIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            openActivityIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
-            openActivityIntent.putExtra(WeatherWidget.PLACE_ENTITY_KEY, observePlace)
+        if (this::observePlaceView.isInitialized) {
+            val openActivityIntent = Intent(context, MainActivity::class.java).apply {
+                action = WeatherWidget.ACTION_SHOW_WEATHER
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+                putExtra(WeatherWidget.PLACE_ENTITY_KEY, observePlaceView)
+            }
             pIntent = PendingIntent.getActivity(
                 context,
                 widgetID,
@@ -162,21 +168,16 @@ class WidgetUpdateHelper @Inject constructor(
     }
 
 
-    suspend fun getObservablePlace(): PlaceEntity? {
+    private suspend fun getObservablePlace(): PlaceViewItem? {
         return if (locationType == CURRENT.ordinal) {
-            val geoPoint = locationProvider.getGeoPoint()
+            val geoPoint = locationProvider.getWeatherGeoPoint()
             if (geoPoint != null) {
                 repository.getPlaceByGeoPoint(geoPoint)
             } else {
                 null
             }
         } else {
-            GeoPoint(locationLatitude, locationLongitude)
-            PlaceEntity(
-                locationTitle ?: context.getString(R.string.refresh_required),
-                locationLatitude,
-                locationLongitude
-            )
+            PlaceViewItem(locationTitle, locationLatitude, locationLongitude)
         }
     }
 
@@ -212,18 +213,14 @@ class WidgetUpdateHelper @Inject constructor(
         appWidgetManager.updateAppWidget(widgetID, widgetView)
     }
 
-    suspend fun getLocationName(): String {
-        return getObservablePlace()?.title ?: context.getString(R.string.refresh_required)
-    }
-
 
     private fun updateWidgetView(
         oneCallResponse: OneCallResponse,
         widgetView: RemoteViews
     ): RemoteViews {
         val tempCurrent = oneCallResponse.current.tempFormatted()
-        val tempDay = oneCallResponse.daily[0].temp.dayFormated()
-        val tempNight = oneCallResponse.daily[0].temp.nightFormated()
+        val tempDay = oneCallResponse.daily[0].temp.dayFormatted()
+        val tempNight = oneCallResponse.daily[0].temp.nightFormatted()
         val weatherIcon = oneCallResponse.current.weather[0].getWeatherIcon()
         widgetView.setTextViewText(R.id.widget_temp_tv, tempCurrent)
         widgetView.setTextViewText(R.id.widget_day_temp_tv, tempDay)
@@ -238,7 +235,7 @@ class WidgetUpdateHelper @Inject constructor(
             context.getString(R.string.refresh_required)
         )
         return run {
-            val cachedWeather = repository.getCachedWeather(geoPoint)
+            val cachedWeather = repository.getPlaceByGeoPoint(geoPoint)?.oneCallResponse
             if (cachedWeather != null) {
                 updateWidgetView(cachedWeather, widgetView)
             } else {
@@ -248,29 +245,37 @@ class WidgetUpdateHelper @Inject constructor(
 
     }
 
-    suspend fun getTimeOfLastUpdate(geoPoint: GeoPoint): String? {
-        logD("getTimeOfLastUpdate $geoPoint id ${geoPoint.pointToId()}")
+    private suspend fun getTimeOfLastUpdate(geoPoint: GeoPoint): String? {
         val cachedWeather = repository.getOneCallTable(geoPoint)
         if (cachedWeather != null) {
-            val time = cachedWeather.timeStamp
-            logD("getTimeOfLastUpdate returned formatted Date")
-            return SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(time))
+            val time = cachedWeather.oneCallResponse.timeStamp
+            return Date(time).format("HH:mm")
         }
         logD("getTimeOfLastUpdate returned null")
         return null
     }
 
-    private fun getCoordinate(key: String): Double {
-        return try {
-            sp.getString(key, "")?.toDouble()!!
-        } catch (e: NumberFormatException) {
-            logE("$e")
-            0.0
-        } catch (e: NullPointerException) {
-            logE("$e")
-            0.0
+
+    class Factory @Inject constructor(
+        private val context: Context,
+        private val repository: DataRepository,
+        private val preferences: PreferencesStorage,
+        private val locationProvider: LocationProvider
+    ) {
+        fun create(
+            widgetID: Int
+        ): WidgetUpdateHelper {
+            return WidgetUpdateHelper(
+                widgetID,
+                context,
+                repository,
+                preferences,
+                locationProvider
+            )
         }
     }
 
 
 }
+
+

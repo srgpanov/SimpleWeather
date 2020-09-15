@@ -81,4 +81,5 @@
     <string name="hours_short">ч</string>
     <string name="minutes_short">мин</string>
     <string name="_8_day_forecast">"Прогноз на 8 дней "</string>
+    <string name="search">Поиск</string>
 </resources>

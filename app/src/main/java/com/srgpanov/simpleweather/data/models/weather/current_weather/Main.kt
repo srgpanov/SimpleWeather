@@ -3,7 +3,7 @@ package com.srgpanov.simpleweather.data.models.weather.current_weather
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
-import com.srgpanov.simpleweather.data.models.weather.format
+import com.srgpanov.simpleweather.data.models.weather.formatTemp
 import kotlinx.android.parcel.Parcelize
 import kotlin.math.roundToInt
 @Parcelize
@@ -26,6 +26,6 @@ data class Main(
     val tempMin: Double
 ) : Parcelable {
     fun tempFormatted():String{
-        return format(temp.roundToInt())
+        return formatTemp(temp.roundToInt())
     }
 }

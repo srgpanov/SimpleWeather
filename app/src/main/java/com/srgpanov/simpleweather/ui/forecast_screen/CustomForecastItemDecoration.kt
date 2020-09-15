@@ -5,11 +5,12 @@ import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.R
+import com.srgpanov.simpleweather.other.getDrawableCompat
 
 class CustomForecastItemDecoration(
     context: Context
 ) : RecyclerView.ItemDecoration() {
-    val drawable: Drawable = context.getDrawable(R.drawable.custom_divider_2dp)!!
+    val drawable: Drawable = context.getDrawableCompat(R.drawable.custom_divider_2dp)!!
     override fun onDrawOver(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
         val left = parent.paddingLeft
         val right = parent.width - parent.paddingRight

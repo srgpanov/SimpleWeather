@@ -13,6 +13,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
+
 @Module
 class RemoteModule {
 
@@ -24,11 +25,11 @@ class RemoteModule {
     @Singleton
     @Provides
     fun getInterceptor(): HttpLoggingInterceptor {
-        val loggingInterceptor = HttpLoggingInterceptor();
+        val loggingInterceptor = HttpLoggingInterceptor()
         if (BuildConfig.DEBUG) {
             loggingInterceptor.apply { level = HttpLoggingInterceptor.Level.BODY }
         }
-        return loggingInterceptor;
+        return loggingInterceptor
     }
     @Singleton
     @Provides

@@ -2,24 +2,25 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-
     android:id="@+id/hourly_weather_root"
     android:layout_width="58dp"
     android:layout_height="@dimen/detail_weather_height">
+
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/hour_time_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
+        android:textSize="14sp"
         android:textColor="@color/dirty_white"
         android:maxLines="2"
+
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text = "11:00"
         />
 
     <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/wind_icon_iv"
+        android:id="@+id/icon_iv"
         android:layout_width="32dp"
         android:layout_height="32dp"
         app:layout_constraintStart_toStartOf="parent"

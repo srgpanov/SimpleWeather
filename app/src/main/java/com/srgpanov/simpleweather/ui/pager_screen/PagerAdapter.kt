@@ -19,7 +19,7 @@ class PagerAdapter(fragmentManager: FragmentManager) : FragmentPagerAdapter(
     override fun getItem(position: Int): Fragment {
         return when (position) {
             0 -> FavoriteFragment()
-            1 -> DetailFragment()
+            1 -> DetailFragment.newInstance()
             else -> throw IllegalStateException("wrong fragment")
         }
     }

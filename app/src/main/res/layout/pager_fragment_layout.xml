@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.srgpanov.simpleweather.ui.pager_screen.EdgePager
-    xmlns:android="http://schemas.android.com/apk/res/android"
+
+
+<androidx.viewpager2.widget.ViewPager2 xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/view_pager"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-</com.srgpanov.simpleweather.ui.pager_screen.EdgePager>
+</androidx.viewpager2.widget.ViewPager2>

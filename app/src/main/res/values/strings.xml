@@ -82,5 +82,8 @@
     <string name="hours_short">h</string>
     <string name="minutes_short">min</string>
     <string name="_8_day_forecast">8 day forecast</string>
+    <string name="current_place_empty_weather_temp" translatable="false">—</string>
+    <string name="search">Search</string>
+    <string name="percent_symbol" translatable="false">%</string>
 
 </resources>

@@ -2,21 +2,19 @@ package com.srgpanov.simpleweather.ui.pager_screen
 
 import android.graphics.Color
 import android.view.View
-import android.view.ViewGroup
-import androidx.viewpager.widget.ViewPager
 import androidx.viewpager2.widget.ViewPager2
-import com.srgpanov.simpleweather.other.logD
+import kotlin.math.abs
 
 
-class PagerTransformer : ViewPager.PageTransformer {
-    private  val MIN_ALPHA = 0.5f
-     var parentView:View?=null
-    var color =Color.parseColor("#000000")
+class PagerTransformer : ViewPager2.PageTransformer {
+    private val minAlpha = 0.5f
+    private var parentView: View? = null
+    var color = Color.parseColor("#000000")
     override fun transformPage(page: View, position: Float) {
 
         page.apply {
             val pageWidth = width
-            when{
+            when {
                 position < -1 -> { // [-Infinity,-1)
                     // This page is way off-screen to the left.
                     alpha = 0f
@@ -33,7 +31,7 @@ class PagerTransformer : ViewPager.PageTransformer {
                     // Fade the page out.
                     parentView = page.parent as? View
                     parentView?.setBackgroundColor(color)
-                    val scaleFactor = (MIN_ALPHA + (1 - MIN_ALPHA) * (1 - Math.abs(position)))
+                    val scaleFactor = (minAlpha + (1 - minAlpha) * (1 - abs(position)))
                     alpha = scaleFactor
                     // Counteract the default slide transition
                     translationX = pageWidth * -position

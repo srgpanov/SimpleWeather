@@ -29,7 +29,7 @@
 
 
     <ImageView
-        android:id="@+id/wind_icon_iv"
+        android:id="@+id/icon_iv"
         style="@style/forecat_header_icon"
         android:src="@drawable/ic_windy_in_round"
         app:layout_constraintStart_toStartOf="parent"
@@ -40,9 +40,9 @@
         style="@style/forecast_header_tv"
         android:layout_marginStart="16dp"
         android:text="@string/wind_header"
-        app:layout_constraintBottom_toBottomOf="@id/wind_icon_iv"
-        app:layout_constraintStart_toEndOf="@id/wind_icon_iv"
-        app:layout_constraintTop_toTopOf="@id/wind_icon_iv" />
+        app:layout_constraintBottom_toBottomOf="@id/icon_iv"
+        app:layout_constraintStart_toEndOf="@id/icon_iv"
+        app:layout_constraintTop_toTopOf="@id/icon_iv" />
 
 
 

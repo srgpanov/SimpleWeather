@@ -1,20 +1,20 @@
 package com.srgpanov.simpleweather.ui.weather_widget
 
 import android.appwidget.AppWidgetManager
-import android.content.Context
-import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.preference.PreferenceManager
 import com.srgpanov.simpleweather.data.DataRepository
-import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
+import com.srgpanov.simpleweather.data.PreferencesStorage
+import com.srgpanov.simpleweather.data.location.LocationProvider
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.di.ViewModelAssistedFactory
+import com.srgpanov.simpleweather.domain_logic.view_entities.weather.PlaceViewItem
 import com.srgpanov.simpleweather.other.*
 import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType
-import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.*
+import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.CERTAIN
+import com.srgpanov.simpleweather.ui.setting_screen.LocationSettingDialogFragment.LocationType.CURRENT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -22,27 +22,53 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class SettingWidgetViewModel(
-    val widgetId: Int,
-    var repository: DataRepository,
-    var context: Context
+    widgetId: Int,
+    private val repository: DataRepository,
+    preferences: PreferencesStorage,
+    private val locationProvider: LocationProvider
 ) : ViewModel() {
-    private val preferences: SharedPreferences =
-        PreferenceManager.getDefaultSharedPreferences(context)
-    private lateinit var locationProvider: LocationProvider
+
     private val scope = CoroutineScope(Dispatchers.Default + Job())
-    private val locationLatitude: Double = getCoordinate(WIDGET_LATITUDE + widgetId)
-    private val locationLongitude: Double = getCoordinate(WIDGET_LONGITUDE + widgetId)
-    val mutableIsLightTheme = MutableLiveData<Boolean>()
-    val mutableTimeOfLastUpdate = MutableLiveData<Boolean>()
-    val mutableTransparency = MutableLiveData<Int>()
-    val mutableLocationType = MutableLiveData<LocationType>()
-    val mutableLocationDescription = MutableLiveData<String>()
-    val mutableWidgetPlace = MutableLiveData<PlaceEntity>()
-    val isLightTheme: LiveData<Boolean> = mutableIsLightTheme
-    val timeOfLastUpdate: LiveData<Boolean> = mutableTimeOfLastUpdate
-    val transparency: LiveData<Int> = mutableTransparency
-    val locationType: LiveData<LocationType> = mutableLocationType
-    val widgetPlace: LiveData<PlaceEntity> = mutableWidgetPlace
+
+    private var _locationLatitude: String by preferences(WIDGET_LATITUDE + widgetId, "")
+    private var locationLatitude: Double
+        get() = _locationLatitude.toDoubleOrNull() ?: 0.0
+        set(value) {
+            _locationLatitude = value.toString()
+        }
+
+    private var _locationLongitude: String by preferences(WIDGET_LONGITUDE + widgetId, "")
+    private var locationLongitude: Double
+        get() = _locationLongitude.toDoubleOrNull() ?: 0.0
+        set(value) {
+            _locationLongitude = value.toString()
+        }
+
+    private var locationName: String by preferences(WIDGET_LOCATION_NAME + widgetId, "")
+
+    private var lightTheme: Boolean by preferences(WIDGET_LIGHT_THEME + widgetId, false)
+    private var timeOfUpdate: Boolean by preferences(WIDGET_SHOW_TIME_UPDATE + widgetId, false)
+    private var transparencyPref: Int
+            by preferences(WIDGET_TRANSPARENCY + widgetId, ALPHA_MAX_VALUE)
+
+    private var showTimeUpdate: Boolean by preferences(WIDGET_SHOW_TIME_UPDATE + widgetId, false)
+    private var _locationTypePref: Int
+            by preferences(WIDGET_LOCATION_TYPE + widgetId, CURRENT.ordinal)
+
+    private var locationTypePref: LocationType
+        get() = (if (_locationTypePref == CURRENT.ordinal) CURRENT else CERTAIN)
+        set(value) {
+            _locationTypePref = value.ordinal
+        }
+
+
+    private val mutableLocationDescription = MutableLiveData<String>()
+    private val mutableWidgetPlace = MutableLiveData<PlaceViewItem>()
+    val isLightTheme = MutableLiveDataKt(lightTheme)
+    val timeOfLastUpdate = MutableLiveDataKt(timeOfUpdate)
+    val transparency = MutableLiveDataKt(transparencyPref)
+    val locationType = MutableLiveDataKt(locationTypePref)
+    val widgetPlaceView: LiveData<PlaceViewItem> = mutableWidgetPlace
 
     companion object {
         const val ALPHA_MAX_VALUE = 255
@@ -55,18 +81,8 @@ class SettingWidgetViewModel(
     }
 
     private fun restoreSettings() {
-        val icons = preferences.getBoolean(WIDGET_ICONS + widgetId, false)
-        val lightTheme = preferences.getBoolean(WIDGET_LIGHT_THEME + widgetId, false)
-        val timeOfUpdate = preferences.getBoolean(WIDGET_SHOW_TIME_UPDATE + widgetId, false)
-        val transparency = preferences.getInt(WIDGET_TRANSPARENCY + widgetId, ALPHA_MAX_VALUE)
-        val locationType = getLocationType()
-        locationProvider = LocationProvider(CURRENT)
-        mutableIsLightTheme.value = lightTheme
-        mutableTimeOfLastUpdate.value = timeOfUpdate
-        mutableTransparency.value = transparency
-        mutableLocationType.value = locationType
         scope.launch {
-            when (locationType) {
+            when (locationTypePref) {
                 CURRENT -> restoreCurrentLocation()
                 CERTAIN -> restoreCertainLocation()
             }
@@ -75,88 +91,65 @@ class SettingWidgetViewModel(
     }
 
     private suspend fun restoreCurrentLocation() {
-        val geoPoint = locationProvider.getGeoPoint()
+        val geoPoint = locationProvider.getWeatherGeoPoint()
         val place =
-            repository.getPlaceByGeoPoint(geoPoint ?: GeoPoint().also { logE("GeoPoint null") })
-        if (place != null) {
-            mutableWidgetPlace.postValue(place)
-        } else {
-            logE("restoreCurrentLocation place==nul")
-        }
+            repository.getPlaceByGeoPoint(geoPoint ?: GeoPoint())
+        place?.let { mutableWidgetPlace.postValue(it) }
+            ?: logE("restoreCurrentLocation place==null")
+
     }
 
     private suspend fun restoreCertainLocation() {
         val place = repository.getPlaceByGeoPoint(GeoPoint(locationLatitude, locationLongitude))
-        if (place != null) {
-            mutableWidgetPlace.postValue(place)
-            mutableLocationDescription.postValue(place.title)
+        place?.let {
+            mutableWidgetPlace.postValue(it)
+            mutableLocationDescription.postValue(it.title)
         }
     }
 
-    private fun getLocationType(): LocationType {
-        val savedType =
-            preferences.getInt(
-                WIDGET_LOCATION_TYPE + widgetId,
-                CURRENT.ordinal
-            )
-        return values()[savedType]
-    }
-
-    private fun getCoordinate(key: String): Double {
-        return try {
-            preferences.getString(key, "")?.toDouble()!!
-        } catch (e: NumberFormatException) {
-            logE("$e")
-            0.0
-        } catch (e: NullPointerException) {
-            logE("$e")
-            0.0
-        }
-    }
 
     fun onLocationCurrentChoice() {
-        preferences.edit().putInt(WIDGET_LOCATION_TYPE + widgetId, CURRENT.ordinal).apply()
-        mutableLocationType.value = CURRENT
+        locationTypePref = CURRENT
+        locationType.value = CURRENT
         scope.launch {
             restoreCurrentLocation()
         }
     }
 
-    fun onLocationTypeCertainChoice(place: PlaceEntity) {
-        preferences.edit()
-            .putInt(WIDGET_LOCATION_TYPE + widgetId, CERTAIN.ordinal).apply()
-        preferences.edit()
-            .putString(WIDGET_LATITUDE + widgetId, place.lat.toString()).apply()
-        preferences.edit()
-            .putString(WIDGET_LONGITUDE + widgetId, place.lon.toString()).apply()
-        preferences.edit()
-            .putString(WIDGET_LOCATION_NAME + widgetId, place.title).apply()
-        mutableLocationType.value = CERTAIN
-        mutableWidgetPlace.value = place
+    fun onLocationTypeCertainChoice(placeView: PlaceViewItem) {
+        locationTypePref = CERTAIN
+        locationLatitude = placeView.lat
+        locationLongitude = placeView.lon
+        locationName = placeView.title
+        locationType.value = CERTAIN
+        mutableWidgetPlace.value = placeView
         scope.launch {
-            repository.savePlace(place)
-            repository.savePlaceToHistory(place)
+            repository.savePlace(placeView)
+            repository.savePlaceToHistory(placeView)
         }
     }
 
     fun saveSwitcherState(key: String, checked: Boolean) {
-        preferences.edit().putBoolean(key + widgetId, checked).apply()
+        return when (key) {
+            WIDGET_SHOW_TIME_UPDATE -> showTimeUpdate = checked
+            WIDGET_LIGHT_THEME -> lightTheme = checked
+            else -> throw  IllegalStateException("preferences not implemented")
+        }
     }
 
     fun saveSeekBarState(progress: Int) {
-        preferences.edit()
-            .putInt(WIDGET_TRANSPARENCY + widgetId, ALPHA_MAX_VALUE - progress)
-            .apply()
+        transparencyPref = ALPHA_MAX_VALUE - progress
     }
 
     class SettingsListViewModelFactory @Inject constructor(
-        var repository: DataRepository,
-        var context: Context
+        private val repository: DataRepository,
+        private val preferences: PreferencesStorage,
+        private val locationProvider: LocationProvider
     ) : ViewModelAssistedFactory<SettingWidgetViewModel> {
 
         override fun create(arguments: Bundle): SettingWidgetViewModel {
-            val id = arguments.getInt(ARGUMENT_WIDGET,AppWidgetManager.INVALID_APPWIDGET_ID)
-            return SettingWidgetViewModel(id, repository, context)
+            val id = arguments.getInt(ARGUMENT_WIDGET, AppWidgetManager.INVALID_APPWIDGET_ID)
+            return SettingWidgetViewModel(id, repository, preferences, locationProvider)
         }
     }
 }

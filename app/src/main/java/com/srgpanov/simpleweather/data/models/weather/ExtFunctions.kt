@@ -3,13 +3,13 @@ package com.srgpanov.simpleweather.data.models.weather
 import androidx.preference.PreferenceManager
 import com.srgpanov.simpleweather.App
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.ui.setting_screen.SettingFragment
+import com.srgpanov.simpleweather.data.PreferencesStorage.Companion.TEMP_MEASUREMENT
 import com.srgpanov.simpleweather.ui.setting_screen.Temp
 import kotlin.math.roundToInt
 
-fun format(temp: Int): String {
+fun formatTemp(temp: Int): String {
     val preferences = PreferenceManager.getDefaultSharedPreferences(App.instance)
-    val tempMeasurement = preferences.getInt(SettingFragment.TEMP_MEASUREMENT, 0)
+    val tempMeasurement = preferences.getInt(TEMP_MEASUREMENT, 0)
     val tempEnum = if (tempMeasurement == 0) Temp.CELSIUS else Temp.FAHRENHEIT
     var temperature: Int = temp
     if (tempEnum == Temp.FAHRENHEIT) {

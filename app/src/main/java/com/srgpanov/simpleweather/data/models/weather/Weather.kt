@@ -33,7 +33,7 @@ data class Weather(
             "01n" -> R.drawable.ic_skc_n
             "02n" -> R.drawable.ic_bkn_n
             "03n" -> R.drawable.ic_ovc
-            "04n" -> R.drawable.ic_ovc //todomake icons
+            "04n" -> R.drawable.ic_ovc //todoMake icons
             "09n" -> R.drawable.ic_bkn_ra_n
             "10n" -> R.drawable.ic_bkn__ra_n
             "11n" -> R.drawable.ic_ovc_ts_ra

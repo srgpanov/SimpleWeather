@@ -1,8 +1,7 @@
-<vector
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:name="vector"
-    android:width="1000dp"
-    android:height="1000dp"
+    android:width="200dp"
+    android:height="200dp"
     android:viewportWidth="1000"
     android:viewportHeight="1000">
     <path
@@ -10,7 +9,7 @@
         android:pathData="M 500 50 C 380.698 50 266.161 97.443 181.802 181.802 C 97.443 266.161 50 380.698 50 500 C 50 619.302 97.443 733.839 181.802 818.198 C 266.161 902.557 380.698 950 500 950 C 619.302 950 733.839 902.557 818.198 818.198 C 902.557 733.839 950 619.302 950 500 C 950 380.698 902.557 266.161 818.198 181.802 C 733.839 97.443 619.302 50 500 50 Z"
         android:strokeColor="#d6e2ee"
         android:strokeWidth="80"
-        android:strokeMiterLimit="22.9256"/>
+        android:strokeMiterLimit="22.9256" />
     <path
         android:name="path_1"
         android:pathData="M 500 400 C 473.489 400 448.036 410.543 429.289 429.289 C 410.543 448.036 400 473.489 400 500 C 400 526.511 410.543 551.964 429.289 570.711 C 448.036 589.457 473.489 600 500 600 C 526.511 600 551.964 589.457 570.711 570.711 C 589.457 551.964 600 526.511 600 500 C 600 473.489 589.457 448.036 570.711 429.289 C 551.964 410.543 526.511 400 500 400 Z M 597.45 400.24 L 570.36 428.94 M 597.45 400.24 L 669 324.42"

@@ -4,16 +4,20 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.databinding.FavoriteCurrentItemBinding
 import com.srgpanov.simpleweather.databinding.FavoriteSeparatorItemBinding
-import com.srgpanov.simpleweather.other.MyClickListener
+import com.srgpanov.simpleweather.domain_logic.view_entities.favorites.CurrentViewItem
 
 class FavoritesHeaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-    var current: PlaceEntity? = null
-    var listener: MyClickListener? = null
-    val SEPARATOR =1
-    val DATA_ITEM =1
+    var current: CurrentViewItem? = null
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
+    var listener: ((itemBinding: FavoriteCurrentItemBinding, item: CurrentViewItem?) -> Unit)? =
+        null
+    private val separator = 1
+    private val dataItem = 1
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -38,7 +42,7 @@ class FavoritesHeaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     override fun getItemCount(): Int {
-         return DATA_ITEM+SEPARATOR
+        return dataItem + separator
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -57,32 +61,13 @@ class FavoritesHeaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     inner class CurrentViewHolder(private val binding: FavoriteCurrentItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: PlaceEntity?) {
-            if (item!=null){
-            binding.cityNameTv.text = item.title
-            val weather = item.oneCallResponse
-            if (weather!=null){
-                val weatherIcon =
-                    weather.current.weather[0].getWeatherIcon()
-                binding.cloudnessIv.setImageResource(weatherIcon)
-                binding.tempValueTv.text = weather.current.tempFormatted()
-            }else{
-                binding.tempValueTv.text="—"
-            }
-
-            binding.constraintLayout.setOnClickListener {
-                listener?.onClick(
-                    it, FavoritesAdapter.CURRENT_POSITION
-                )
-            }}else{
-                binding.cityNameTv.text= binding.root.context.getString(R.string.current_location)
-                binding.tempValueTv.text="—"
-            }
+        fun bind(viewItem: CurrentViewItem?) {
+            val current = viewItem ?: CurrentViewItem.emptyCurrent(binding.root.context)
+            current.bind(binding)
+            listener?.invoke(binding, viewItem)
         }
     }
 
-    inner class SeparatorViewHolder(private val binding: FavoriteSeparatorItemBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-
-    }
+    class SeparatorViewHolder(binding: FavoriteSeparatorItemBinding) :
+        RecyclerView.ViewHolder(binding.root)
 }

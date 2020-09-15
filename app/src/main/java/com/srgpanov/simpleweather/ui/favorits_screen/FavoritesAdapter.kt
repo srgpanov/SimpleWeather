@@ -4,25 +4,19 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.databinding.FavoriteLocationItemBinding
-import com.srgpanov.simpleweather.other.MyClickListener
-import com.srgpanov.simpleweather.other.logD
-import kotlinx.coroutines.*
+import com.srgpanov.simpleweather.domain_logic.view_entities.favorites.FavoritesViewItem
+import com.srgpanov.simpleweather.other.getDrawableCompat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 
 
-class FavoritesAdapter() : RecyclerView.Adapter<FavoritesAdapter.FavoritesViewHolder>() {
-    var places: MutableList<PlaceEntity> = mutableListOf()
-        private set
-    var listener: MyClickListener? = null
-    var optionsListener: MyClickListener? = null
-    var scope: CoroutineScope? = null
-    var setDataJob: Job? = null
+class FavoritesAdapter : RecyclerView.Adapter<FavoritesAdapter.FavoritesViewHolder>() {
+    val favorites: MutableList<FavoritesViewItem> = mutableListOf()
+    var listener: ((itemBinding: FavoriteLocationItemBinding, position: Int) -> Unit)? =
+        null
 
-    companion object {
-        const val CURRENT_POSITION = -2
-    }
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -38,85 +32,72 @@ class FavoritesAdapter() : RecyclerView.Adapter<FavoritesAdapter.FavoritesViewHo
         )
     }
 
-//    override fun onBindViewHolder(
-//        holder: FavoritesViewHolder,
-//        position: Int,
-//        payloads: MutableList<Any>
-//    ) {
-//        if (payloads.isEmpty()) {
-//            onBindViewHolder(holder,position)
-//            return
-//        } else {
-//            val bundle = payloads[0] as Bundle
-//            logD("onBindViewHolder ${bundle}")
-//            for (key in bundle.keySet()) {
-//                when (key) {
-//                    TIME_STAMP -> holder.binding.cityTimeTv.text = bundle.getString(TIME_STAMP)
-//                    TEMP -> holder.binding.tempValueTv.text = bundle.getString(TEMP)
-//                    ICON -> holder.binding.cloudnessIv.setImageResource(bundle.getInt(ICON))
-//                    TITLE -> holder.binding.cityNameTv.text = bundle.getString(TITLE)
-//                }
-//            }
-//        }
-//    }
+    override fun onBindViewHolder(
+        holder: FavoritesViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        if (payloads.isEmpty()) {
+            super.onBindViewHolder(holder, position, payloads)
+            return
+        } else {
+            val payLoads = payloads[0] as? List<FavoritesViewItem.Payload>
+            if (payLoads != null) {
+                holder.bindPayloads(payLoads)
+            }
+
+        }
+    }
 
     override fun onBindViewHolder(holder: FavoritesViewHolder, position: Int) {
-        holder.bind(places[position])
+        holder.bind(favorites[position], listener)
     }
 
 
     override fun getItemCount(): Int {
-        return places.size
+        return favorites.size
     }
 
 
-    fun setData(data: List<PlaceEntity>) {
-        setDataJob?.cancel()
-        setDataJob = scope?.launch {
-            data.forEach {
-                logD("setData ${it.simpleWeather == null} ${it.simpleWeather?.currentWeatherResponse?.main?.temp}")
-            }
-            val oldItems = ArrayList(places)
-            val placeDiffCallBack = PlaceDiffCallBack(oldItems, data)
-            val resultDiff = DiffUtil.calculateDiff(placeDiffCallBack, false)
+    suspend fun setData(newItems: List<FavoritesViewItem>) = withContext(Dispatchers.Default) {
+        val oldItems = ArrayList(favorites)
+        val placeDiffCallBack = PlaceDiffCallBack(oldItems, newItems)
+        val resultDiff = DiffUtil.calculateDiff(placeDiffCallBack, false)
+        if (isActive) {
             withContext(Dispatchers.Main) {
+                favorites.clear()
+                favorites.addAll(newItems)
                 resultDiff.dispatchUpdatesTo(this@FavoritesAdapter)
-                places.clear()
-                places.addAll(data)
             }
         }
     }
 
 
-    inner class FavoritesViewHolder(val binding: FavoriteLocationItemBinding) :
+    class FavoritesViewHolder(val binding: FavoriteLocationItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: PlaceEntity) {
-            logD(item.toString())
-            binding.cityNameTv.text = item.title
-            val background = item.simpleWeather?.currentWeatherResponse?.weather?.get(0)
-                ?.getWeatherBackground() ?: R.drawable.empty_weather_background
-            binding.constraintLayout.background = binding.root.context.getDrawable(background)
-            val response = item.simpleWeather?.currentWeatherResponse
-            logD("$response")
-            response?.let {
-                binding.cloudnessIv.setImageResource(it.weather[0].getWeatherIcon())
-                binding.tempValueTv.text = it.main.tempFormatted()
-                binding.cityTimeTv.text =
-                    item.simpleWeather?.currentWeatherResponse?.localTime()
-            }
-            binding.constraintLayout.setOnClickListener {
-                listener?.onClick(
-                    it, bindingAdapterPosition
-                )
-            }
-            binding.optionsIb.setOnClickListener {
-                optionsListener?.onClick(
-                    it, bindingAdapterPosition
-                )
-            }
+        fun bind(
+            favorite: FavoritesViewItem,
+            listener: ((itemBinding: FavoriteLocationItemBinding, position: Int) -> Unit)?
+        ) {
+            favorite.bind(binding)
+            listener?.invoke(binding, bindingAdapterPosition)
+        }
 
+        fun bindPayloads(
+            payLoads: List<FavoritesViewItem.Payload>
+        ) {
+            for (key in payLoads) {
+                when (key) {
+                    is FavoritesViewItem.Payload.Title -> binding.cityNameTv.text = key.new
+                    is FavoritesViewItem.Payload.Background -> binding.constraintLayout.background =
+                        binding.root.context.getDrawableCompat(key.new)
+                    is FavoritesViewItem.Payload.Icon -> if (key.new != null) binding.cloudnessIv.setImageResource(
+                        key.new
+                    )
+                    is FavoritesViewItem.Payload.Temp -> binding.tempValueTv.text = key.new
+                    is FavoritesViewItem.Payload.CityTime -> binding.cityTimeTv.text = key.new
+                }
+            }
         }
     }
-
-
 }

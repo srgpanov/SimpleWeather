@@ -4,17 +4,16 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.R
-import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
 import com.srgpanov.simpleweather.databinding.FavoriteSearchHeaderItemBinding
 import com.srgpanov.simpleweather.databinding.FavoriteSearchItemBinding
 import com.srgpanov.simpleweather.databinding.SearchHistoryEmptyItemBinding
-import com.srgpanov.simpleweather.other.MyClickListener
+import com.srgpanov.simpleweather.domain_logic.view_entities.weather.PlaceViewItem
 
 class SearchHistoryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    var searchHistoryList: MutableList<PlaceEntity> = mutableListOf()
+    var searchHistoryList: MutableList<PlaceViewItem> = mutableListOf()
         private set
-    var listener: MyClickListener? = null
+    var listener: ((position: Int) -> Unit)? = null
 
     companion object {
         const val HEADER = 1
@@ -22,22 +21,22 @@ class SearchHistoryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        return when (viewType){
-            R.layout.favorite_search_item->SearchViewHolder(
+        return when (viewType) {
+            R.layout.favorite_search_item -> SearchViewHolder(
                 FavoriteSearchItemBinding.inflate(
                     inflater,
                     parent,
                     false
                 )
             )
-            R.layout.favorite_search_header_item->SearchHeaderViewHolder(
+            R.layout.favorite_search_header_item -> SearchHeaderViewHolder(
                 FavoriteSearchHeaderItemBinding.inflate(
                     inflater,
                     parent,
                     false
                 )
             )
-            R.layout.search_history_empty_item->SearchEmptyViewHolder(
+            R.layout.search_history_empty_item -> SearchEmptyViewHolder(
                 SearchHistoryEmptyItemBinding.inflate(
                     inflater,
                     parent,
@@ -50,50 +49,50 @@ class SearchHistoryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if(holder is SearchViewHolder){
-            holder.bind(searchHistoryList[position - HEADER])
+        if (holder is SearchViewHolder) {
+            holder.bind(searchHistoryList[position - HEADER], listener)
         }
     }
 
     override fun getItemCount(): Int {
-        if (searchHistoryList.isEmpty()){
-            return 1
-        }else{
-            return searchHistoryList.size + HEADER
+        return if (searchHistoryList.isEmpty()) {
+            1
+        } else {
+            searchHistoryList.size + HEADER
         }
     }
 
     override fun getItemViewType(position: Int): Int {
-        if (searchHistoryList.isEmpty()){
-            return R.layout.search_history_empty_item
-        }else{
-            return if (position == 0) {
+        return if (searchHistoryList.isEmpty()) {
+            R.layout.search_history_empty_item
+        } else {
+            if (position == 0)
                 R.layout.favorite_search_header_item
-            } else
+            else
                 R.layout.favorite_search_item
         }
 
     }
 
-    fun setData(data: List<PlaceEntity>) {
+    fun setData(data: List<PlaceViewItem>) {
         searchHistoryList.clear()
         searchHistoryList.addAll(data)
         notifyDataSetChanged()
     }
 
-    inner class SearchViewHolder(val binding: FavoriteSearchItemBinding) :
+    class SearchViewHolder(val binding: FavoriteSearchItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: PlaceEntity) {
-            binding.placesTv.text = item.cityFullName
+        fun bind(viewItem: PlaceViewItem, listener: ((position: Int) -> Unit)?) {
+            binding.placesTv.text = viewItem.cityFullName
             binding.placesTv.setOnClickListener {
-                listener?.onClick(it, bindingAdapterPosition - HEADER)
+                listener?.invoke(bindingAdapterPosition - HEADER)
             }
         }
     }
 
-    inner class SearchHeaderViewHolder(val binding: FavoriteSearchHeaderItemBinding) :
+    class SearchHeaderViewHolder(val binding: FavoriteSearchHeaderItemBinding) :
         RecyclerView.ViewHolder(binding.root)
 
-    inner class SearchEmptyViewHolder(binding: SearchHistoryEmptyItemBinding) :
+    class SearchEmptyViewHolder(binding: SearchHistoryEmptyItemBinding) :
         RecyclerView.ViewHolder(binding.root)
 }

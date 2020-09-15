@@ -5,14 +5,14 @@ import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import androidx.recyclerview.widget.RecyclerView
 import com.srgpanov.simpleweather.R
+import com.srgpanov.simpleweather.other.getDrawableCompat
 
 
 //кастомный дивайдер убирающий разделитель после хедера и после последнего элемента
 class CustomWeatherItemDecoration(
     context: Context
 ) : RecyclerView.ItemDecoration() {
-    //  val drawable: Drawable = ContextCompat.getDrawable(context, R.drawable.custom_divider)!!
-    var drawable: Drawable? = context.getDrawable(R.drawable.custom_divider)
+    var drawable: Drawable? = context.getDrawableCompat(R.drawable.custom_divider)
     override fun onDrawOver(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
         val left = parent.paddingLeft
         val right = parent.width - parent.paddingRight

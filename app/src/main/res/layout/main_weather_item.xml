@@ -6,9 +6,7 @@
     android:id="@+id/main_weather_root"
     android:layout_width="match_parent"
     android:layout_height="@dimen/header_weather_height"
-    android:background="@android:color/holo_blue_light"
-
-    >
+    android:background="@android:color/holo_blue_light">
 
     <View
         android:id="@+id/guideline1"
@@ -34,7 +32,7 @@
         android:id="@+id/condition_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Clear"
+        tools:text="Clear"
         android:textSize="18sp"
         android:textColor="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
@@ -45,7 +43,7 @@
         android:id="@+id/feels_like_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Feels like: 0"
+        tools:text="Feels like: 0"
         android:textSize="18sp"
         android:textColor="@color/dirty_white"
         app:layout_constraintEnd_toEndOf="parent"
@@ -67,7 +65,7 @@
         android:layout_width="wrap_content"
         android:layout_height="72dp"
         android:gravity="center"
-        android:text="+7C"
+        tools:text="+7C"
         android:textAlignment="center"
         android:textSize="48sp"
         android:textColor="@android:color/white"

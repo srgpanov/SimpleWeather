@@ -4,16 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.ViewCompat
-import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
-import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.databinding.AboutFragmentBinding
-import com.srgpanov.simpleweather.databinding.FragmentFavoriteBinding
-import com.srgpanov.simpleweather.other.addSystemWindowInsetToPadding
-import com.srgpanov.simpleweather.other.requestApplyInsetsWhenAttached
+import com.srgpanov.simpleweather.other.InsetSide
+import com.srgpanov.simpleweather.other.setHeightOrWidthAsSystemWindowInset
 
-class AboutFragment:Fragment() {
+class AboutFragment : Fragment() {
     private var _binding: AboutFragmentBinding? = null
     private val binding get() = _binding!!
 
@@ -33,17 +29,10 @@ class AboutFragment:Fragment() {
     }
 
     private fun setupInsets() {
-        val statusView = binding.statusBackground
-        ViewCompat.setOnApplyWindowInsetsListener(statusView) { view, insets ->
-            view.updateLayoutParams {
-                if (insets.systemWindowInsetTop != 0) {
-                    height = insets.systemWindowInsetTop
-                }
-            }
-            insets
-        }
-        statusView.requestApplyInsetsWhenAttached()
+        binding.statusBackground.setHeightOrWidthAsSystemWindowInset(InsetSide.TOP)
+
     }
+
     private fun setupToolbar() {
         binding.toolbar.setNavigationOnClickListener {
             parentFragmentManager.popBackStack()

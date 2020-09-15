@@ -4,20 +4,14 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.ActionBar
-import androidx.core.view.ViewCompat
-import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import com.srgpanov.simpleweather.MainActivity
 import com.srgpanov.simpleweather.R
 import com.srgpanov.simpleweather.databinding.SettingWidgetFragmentBinding
-import com.srgpanov.simpleweather.other.OnBackPressedListener
-import com.srgpanov.simpleweather.other.logD
-import com.srgpanov.simpleweather.other.requestApplyInsetsWhenAttached
-import com.srgpanov.simpleweather.ui.pager_screen.PagerAdapter
+import com.srgpanov.simpleweather.other.InsetSide
+import com.srgpanov.simpleweather.other.setHeightOrWidthAsSystemWindowInset
 import com.srgpanov.simpleweather.ui.weather_widget.WeatherWidget
 
 
@@ -25,7 +19,6 @@ class SettingWidgetFragment:Fragment() {
     private var _binding: SettingWidgetFragmentBinding? = null
     private val binding get() = _binding!!
     private var mainActivity: MainActivity?=null
-    private var actionBar: ActionBar? = null
     private lateinit var widgetManager: AppWidgetManager
     private lateinit var pagerAdapter:SettingWidgetAdapter
 
@@ -53,17 +46,7 @@ class SettingWidgetFragment:Fragment() {
     override fun onDestroyView() {
         binding.viewPager.adapter=null
         _binding=null
-        actionBar=null
-        mainActivity?.setSupportActionBar(null)
         super.onDestroyView()
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // handle arrow click here
-        if (item.itemId == android.R.id.home) {
-            parentFragmentManager.popBackStack()
-        }
-        return super.onOptionsItemSelected(item)
     }
 
 
@@ -77,26 +60,14 @@ class SettingWidgetFragment:Fragment() {
 
     }
     private fun setupInsets() {
-        val statusView = binding.statusBarView
-        ViewCompat.setOnApplyWindowInsetsListener(statusView) { view, insets ->
-            view.updateLayoutParams {
-                if (insets.systemWindowInsetTop != 0) {
-                    height = insets.systemWindowInsetTop
-                }
-            }
-            insets
-        }
-        statusView.requestApplyInsetsWhenAttached()
+        binding.statusBarView.setHeightOrWidthAsSystemWindowInset(InsetSide.TOP)
     }
 
     private fun setupToolbar() {
-        mainActivity?.setSupportActionBar(binding.toolbar)
-        actionBar = mainActivity?.getSupportActionBar()
-        actionBar?.setTitle(getString(R.string.widget_settings))
-        actionBar?.setDisplayHomeAsUpEnabled(true)
-        actionBar?.setDisplayShowHomeEnabled(true)
-        setHasOptionsMenu(true)
+        binding.toolbar.setNavigationIcon(R.drawable.ic_arrow_back)
+        binding.toolbar.title = getString(R.string.widget_settings)
+        binding.toolbar.setNavigationOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
     }
-
-
 }

@@ -4,10 +4,10 @@ package com.srgpanov.simpleweather.data.models.weather
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
-import com.srgpanov.simpleweather.other.logD
+import com.srgpanov.simpleweather.other.weatherIsActual
+import com.srgpanov.simpleweather.other.weatherIsFresh
 import kotlinx.android.parcel.Parcelize
 import java.math.RoundingMode
-import java.util.*
 
 @Parcelize
 data class OneCallResponse(
@@ -24,20 +24,23 @@ data class OneCallResponse(
     @SerializedName("timezone")
     val timezone: String,
     @SerializedName("timezone_offset")
-    val timezone_offset: Long
+    val timezone_offset: Long,
+    var timeStamp: Long = System.currentTimeMillis()
 ) : Parcelable {
+    val isFresh: Boolean
+        get() = weatherIsFresh(timeStamp)
+    val isActual: Boolean
+        get() = weatherIsActual(timeStamp)
 
 
     fun setOffsets(): OneCallResponse {
-        logD("WeatherResponse init")
-        logD("setOffsets ${Date(timezone_offset)}")
         hourly.forEach {
-            it.offset = timezone_offset.toInt()
+            it.offset = timezone_offset.toInt() * 1000
         }
         daily.forEach {
-            it.offset = timezone_offset*1000
+            it.offset = timezone_offset * 1000
         }
-        current.offset = timezone_offset*1000
+        current.offset = timezone_offset * 1000
         return this
     }
 
