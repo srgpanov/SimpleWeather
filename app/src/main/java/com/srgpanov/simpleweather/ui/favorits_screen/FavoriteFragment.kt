@@ -10,10 +10,8 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentResultListener
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.observe
 import androidx.recyclerview.widget.ConcatAdapter
 import com.srgpanov.simpleweather.App
 import com.srgpanov.simpleweather.MainActivity
@@ -63,7 +61,7 @@ class FavoriteFragment : Fragment(), FragmentResultListener {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentFavoriteBinding.inflate(layoutInflater, container, false)
         return binding.root
     }
@@ -96,10 +94,9 @@ class FavoriteFragment : Fragment(), FragmentResultListener {
         viewModel.currentPlace.observe(viewLifecycleOwner) { viewItem: CurrentViewItem? ->
             favoritesHeaderAdapter.current = viewItem
         }
-        shareViewModel.refreshWeather.observe(viewLifecycleOwner, Observer {
-            logD("refreshWeather")
+        shareViewModel.refreshWeather.observe(viewLifecycleOwner) {
             viewModel.refreshWeatherFromDetail()
-        })
+        }
     }
 
 
@@ -110,6 +107,7 @@ class FavoriteFragment : Fragment(), FragmentResultListener {
     }
 
 
+    @Deprecated("Deprecated in Java")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> mainActivity?.navigateToDetailFragment()

@@ -89,7 +89,7 @@ class SettingFragment : Fragment(), FragmentResultListener {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = SettingFragmentBinding.inflate(layoutInflater, container, false)
         return binding.root
     }
@@ -118,6 +118,7 @@ class SettingFragment : Fragment(), FragmentResultListener {
         super.onDestroyView()
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {
             parentFragmentManager.popBackStack()

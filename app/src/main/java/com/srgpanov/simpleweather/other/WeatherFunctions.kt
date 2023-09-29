@@ -15,7 +15,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -34,16 +33,10 @@ fun Context.checkPermission(permission: String): Boolean {
     return ContextCompat.checkSelfPermission(this, permission) == PERMISSION_GRANTED
 }
 
-fun <T> Flow<T>.collectIn(scope: CoroutineScope, block: suspend (T) -> Unit): Job = scope.launch {
-    collect(block) // tail-call
-}
-
-fun View.showSnackBar(
-    text: CharSequence,
-    duration: Int = Snackbar.LENGTH_SHORT,
-    animationMode: Int = ANIMATION_MODE_SLIDE
-) {
-    Snackbar.make(this, text, duration).apply { this.animationMode = animationMode }.show()
+fun <T> Flow<T>.collectIn(scope: CoroutineScope, block: (T) -> Unit): Job = scope.launch {
+    collect { param: T ->
+        block.invoke(param)
+    } // tail-call
 }
 
 fun View.showSnackBar(

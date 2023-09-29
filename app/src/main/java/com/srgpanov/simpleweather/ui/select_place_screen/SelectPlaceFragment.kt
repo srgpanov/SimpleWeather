@@ -11,7 +11,6 @@ import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.observe
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.srgpanov.simpleweather.App
 import com.srgpanov.simpleweather.MainActivity
@@ -28,7 +27,12 @@ import com.srgpanov.simpleweather.ui.favorits_screen.SearchHistoryAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -60,7 +64,7 @@ class SelectPlaceFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = SelectPlaceFragmentBinding.inflate(layoutInflater, container, false)
         return binding.root
     }
@@ -174,7 +178,7 @@ class SelectPlaceFragment : Fragment() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                offer(newText.toString())
+                trySend(newText.toString()).isSuccess
                 return false
             }
         }

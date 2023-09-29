@@ -1,10 +1,14 @@
 package com.srgpanov.simpleweather.domain_logic.view_entities.weather
 
 import android.os.Parcelable
-import com.srgpanov.simpleweather.data.models.entity.*
+import com.srgpanov.simpleweather.data.models.entity.CurrentEntity
+import com.srgpanov.simpleweather.data.models.entity.FavoriteEntity
+import com.srgpanov.simpleweather.data.models.entity.PlaceEntity
+import com.srgpanov.simpleweather.data.models.entity.SearchHistoryEntity
+import com.srgpanov.simpleweather.data.models.entity.SimpleWeatherEntity
 import com.srgpanov.simpleweather.data.models.other.GeoPoint
 import com.srgpanov.simpleweather.data.models.weather.OneCallResponse
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class PlaceViewItem(

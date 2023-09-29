@@ -2,7 +2,7 @@ package com.srgpanov.simpleweather.data.local
 
 import android.util.Log
 import androidx.room.*
-import androidx.room.OnConflictStrategy.REPLACE
+import androidx.room.OnConflictStrategy.Companion.REPLACE
 import com.srgpanov.simpleweather.data.models.entity.*
 import com.srgpanov.simpleweather.data.models.entity.query_entity.PlacesWithSimpleWeather
 import com.srgpanov.simpleweather.data.models.entity.query_entity.PlacesWithWeather

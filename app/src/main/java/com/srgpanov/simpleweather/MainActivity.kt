@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity(), NavigationActivity {
         pagerFragment?.showDetailFragment()
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         logD("MainActivity onBackPressed")
         for (fragment in supportFragmentManager.fragments) {

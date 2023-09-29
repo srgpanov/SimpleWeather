@@ -7,7 +7,14 @@ import android.content.Intent
 import android.util.Log
 import androidx.preference.PreferenceManager
 import com.srgpanov.simpleweather.App
-import com.srgpanov.simpleweather.other.*
+import com.srgpanov.simpleweather.other.WIDGET_ICONS
+import com.srgpanov.simpleweather.other.WIDGET_LATITUDE
+import com.srgpanov.simpleweather.other.WIDGET_LIGHT_THEME
+import com.srgpanov.simpleweather.other.WIDGET_LOCATION_TYPE
+import com.srgpanov.simpleweather.other.WIDGET_LONGITUDE
+import com.srgpanov.simpleweather.other.WIDGET_SHOW_TIME_UPDATE
+import com.srgpanov.simpleweather.other.WIDGET_TRANSPARENCY
+import com.srgpanov.simpleweather.other.logD
 
 
 class WeatherWidget : AppWidgetProvider() {
@@ -67,7 +74,7 @@ class WeatherWidget : AppWidgetProvider() {
     }
 
 
-    override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
+    override fun onDeleted(context: Context, appWidgetIds: IntArray?) {
         appWidgetIds?.forEach { id ->
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             sharedPreferences.edit().remove(WIDGET_ICONS + id).apply()

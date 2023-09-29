@@ -1,25 +1,26 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'com.google.gms.google-services' // Google Services Gradle plugin
-// Apply the Crashlytics Gradle plugin
-apply plugin: 'com.google.firebase.crashlytics'
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.kapt'
+    id 'kotlin-parcelize'
+    id 'com.google.firebase.crashlytics'
+    id 'com.google.gms.google-services'
+}
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "29.0.3"
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.srgpanov.simpleweather"
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 34
         versionCode 2
         versionName "1.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    namespace 'com.srgpanov.simpleweather'
 
     buildTypes {
         release {
@@ -27,7 +28,7 @@ android {
             shrinkResources true //удаление мусора
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-        debug{
+        debug {
             minifyEnabled false //обфускация
             shrinkResources false //удаление мусора
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -37,66 +38,65 @@ android {
         }
     }
 
-    buildFeatures{
-         viewBinding = true
+    buildFeatures {
+        viewBinding = true
     }
 
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_19
+        targetCompatibility JavaVersion.VERSION_19
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        jvmTarget = JavaVersion.VERSION_19.toString()
     }
 
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'androidx.core:core-ktx:1.3.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core-ktx:1.12.0'
 
     //preferences
-    implementation "androidx.preference:preference-ktx:1.1.1"
+    implementation "androidx.preference:preference-ktx:1.2.1"
 
     //design
-    implementation 'com.google.android.material:material:1.3.0-alpha02'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
-    implementation "androidx.recyclerview:recyclerview:1.2.0-alpha05"
+    implementation "androidx.recyclerview:recyclerview:1.3.1"
 
     // retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation "com.squareup.retrofit2:converter-gson:2.9.0"
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.8.1'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.10.0'
 
     //android architecture
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-alpha07'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.3.0-alpha07'
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.2.0"
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.2'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.2'
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.6.2"
 
     //dagger
-    implementation 'com.google.dagger:dagger:2.28'
-    kapt 'com.google.dagger:dagger-compiler:2.28'
+    implementation 'com.google.dagger:dagger:2.44.2'
+    kapt 'com.google.dagger:dagger-compiler:2.44.2'
 
     //fragments
-    implementation 'androidx.fragment:fragment-ktx:1.3.0-alpha08'
-    implementation 'androidx.activity:activity-ktx:1.2.0-alpha08'
+    implementation 'androidx.fragment:fragment-ktx:1.6.1'
+    implementation 'androidx.activity:activity-ktx:1.7.2'
 
     //room
-    def room_version = "2.2.5"
+    def room_version = "2.5.2"
     implementation "androidx.room:room-runtime:$room_version"
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
 
     //crashlytics
-    implementation 'com.google.firebase:firebase-analytics-ktx:17.5.0'
+    implementation 'com.google.firebase:firebase-analytics-ktx:21.3.0'
     // Add the Firebase Crashlytics SDK.
-    implementation 'com.google.firebase:firebase-crashlytics:17.2.1'
+    implementation 'com.google.firebase:firebase-crashlytics:18.4.3'
 
     //stetho
     implementation 'com.facebook.stetho:stetho:1.5.1'
@@ -106,10 +106,10 @@ dependencies {
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.4'
 
-    testImplementation 'junit:junit:4.13'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-    androidTestImplementation 'androidx.test:rules:1.3.0'
-    androidTestImplementation 'androidx.test:runner:1.3.0'
-    debugImplementation 'androidx.fragment:fragment-testing:1.3.0-alpha08'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test:rules:1.5.0'
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    debugImplementation 'androidx.fragment:fragment-testing:1.6.1'
 }

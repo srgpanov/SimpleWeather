@@ -1,6 +1,6 @@
 package com.srgpanov.simpleweather.di.module
 
-import com.srgpanov.simpleweather.BuildConfig
+import com.facebook.stetho.BuildConfig
 import com.srgpanov.simpleweather.data.remote.IpToLocationService
 import com.srgpanov.simpleweather.data.remote.PlacesService
 import com.srgpanov.simpleweather.data.remote.ResponseResultAdapterFactory

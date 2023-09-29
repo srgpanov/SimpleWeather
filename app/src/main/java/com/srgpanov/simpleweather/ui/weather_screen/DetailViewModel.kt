@@ -2,7 +2,6 @@ package com.srgpanov.simpleweather.ui.weather_screen
 
 import android.os.Bundle
 import android.util.Log
-import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -30,7 +29,7 @@ import javax.inject.Inject
 
 
 class DetailViewModel constructor(
-    private val argPlaceView: PlaceViewItem?,
+    argPlaceView: PlaceViewItem?,
     private val repository: DataRepository,
     preferences: PreferencesStorage,
     private val locationProvider: LocationProvider,
@@ -41,7 +40,7 @@ class DetailViewModel constructor(
     var weatherData = MutableLiveDataKt<WeatherState>(WeatherState.EmptyWeather)
     val favoriteCheckBox = MutableLiveDataKt(false)
     val loadingState = MutableLiveDataKt(false)
-    val showSnackBar = SingleLiveEvent<@StringRes Int>()
+    val showSnackBar = SingleLiveEvent<Int>()
     val errorConnectionSnackBar = SingleLiveEvent<Boolean>()
     val requestLocationPermission = SingleLiveEvent<Unit>()
 
